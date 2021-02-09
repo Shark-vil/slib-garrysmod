@@ -1,0 +1,1 @@
+util.AddNetworkString(slib.GetNetworkString('Player', 'SlibVarSyncForClient'))

@@ -1,0 +1,17 @@
+{ 
+"title"		:	"LUA - SLibrary", 
+"type"		:	"addon", 
+"ignore"	: 
+    [ 
+        "*.psd*", 
+        "*.vcproj*", 
+        "*.svn*",
+        "*.git*",
+        "*LICENSE*",
+        "*.md*",
+        "*.code-workspace*",
+        "README.md",
+        ".git*",
+        ".vscode*"
+    ] 
+} 
