@@ -7,11 +7,16 @@ if SERVER then
 
    local callback_data = {}
 
-   function snet.IsValidForClient(ply, func_callback, validator_name, timeout, ...)
+   function snet.IsValidForClient(ply, func_callback, validator_name, validator_uid, timeout, ...)
       validator_name = validator_name or 'entity'
       timeout = timeout or 1
 
-      local uid = ply:UserID() .. validator_name .. tostring(RealTime()) .. tostring(SysTime())
+      local uid
+      if validator_uid == nil then
+         uid = ply:UserID() .. validator_name .. tostring(RealTime()) .. tostring(SysTime())
+      else
+         uid = ply:UserID() .. validator_name .. string.lower(validator_uid)
+      end
 
       callback_data[uid] = function(ply, result)
          timer.Remove('SNet_IsValidForClient_' .. uid)
