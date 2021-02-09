@@ -24,6 +24,8 @@ hook.Add("PlayerSpawn", "Slib_GCvars_RegisterForPlayer", function(ply)
    timer.Simple(3, function()
       if not IsValid(ply) then return end
 
+      ply:slibSetVar('GCvarsIsLoad', true)
+      
       net.Start(n_gcvar_register_cvars)
       net.WriteTable(slib.GlobalCvars)
       net.Send(ply)
