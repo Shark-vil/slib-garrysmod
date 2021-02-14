@@ -54,7 +54,7 @@ if SERVER then
 		entities_queue[ply] = entities_queue[ply] or {}
 
 		for _, v in ipairs(entities_queue[ply]) do
-			if v.name == name and v.ply == ply and v.ent == ent then
+			if v.name == name and v.ent == ent then
 				return
 			end
 		end
@@ -72,9 +72,7 @@ if SERVER then
 
 	snet.EntityInvokeAll = function(name, ent, ...)
 		for _, ply in ipairs(player.GetAll()) do
-			if IsValid(ply) and IsValid(ent) then
-				snet.EntityInvoke(name, ply, ent, ...)
-			end
+			snet.EntityInvoke(name, ply, ent, ...)
 		end
 	end
 
@@ -115,7 +113,6 @@ if SERVER then
 			for i = #entities_queue[ply], 1, -1 do
 				local data = entities_queue[ply][i]
 				local name = data.name
-				local ply = data.ply
 				local ent = data.ent
 
 				if not IsValid(ent) or not IsValid(ply) then
