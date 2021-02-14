@@ -49,19 +49,19 @@ end
 
 if SERVER then
 	snet.EntityInvoke = function(name, ply, ent, ...)
-		if not IsValid(ent) or not IsValid(ply) then return end
+		if not IsValid(ent) then return end
+		if not IsValid(ply) or not ply:IsSpawn() then return end
 		
-		entities_queue[ply] = entities_queue[ply] or {}
-
-		for _, v in ipairs(entities_queue[ply]) do
+		for _, v in ipairs(entities_queue) do
 			if v.name == name and v.ply == ply and v.ent == ent then
 				return
 			end
 		end
 
-		table.insert(entities_queue[ply], {
+		table.insert(entities_queue, {
 			uid = ply:UserID() .. ent:EntIndex() .. tostring(RealTime()) .. tostring(SysTime()),
 			name = name,
+			ply = ply,
 			ent = ent,
 			args = { ... },
 			equalDelay = 0,
@@ -72,19 +72,17 @@ if SERVER then
 
 	snet.EntityInvokeAll = function(name, ent, ...)
 		for _, ply in ipairs(player.GetAll()) do
-			if IsValid(ply) and IsValid(ent) then
+			if IsValid(ply) and ply:IsSpawn() and IsValid(ent) then
 				snet.EntityInvoke(name, ply, ent, ...)
 			end
 		end
 	end
 
 	net.Receive('sv_entity_network_rpc_result', function(len, ply)
-		if entities_queue[ply] == nil then return end
-
 		local uid = net.ReadString()
 		local success = net.ReadBool()
 
-		for _, data in ipairs(entities_queue[ply]) do
+		for _, data in ipairs(entities_queue) do
 			if data.uid == uid then
 				data.isSuccess = success
 				data.isAnswer = true
@@ -94,9 +92,7 @@ if SERVER then
 	end)
 
 	hook.Add('SetupPlayerVisibility', 'Slib_TemporaryEntityNetworkVisibility', function(ply, ent)
-		if entities_queue[ply] == nil then return end
-		
-		for _, data in ipairs(entities_queue[ply]) do
+		for _, data in ipairs(entities_queue) do
 			if data.ply == ply and data.ent == ent then
 				AddOriginToPVS(ent:GetPos())
 			end
@@ -104,50 +100,34 @@ if SERVER then
 	end)
 	
 	hook.Add('Think', 'Slib_TemporaryEntityNetworkVisibilityChecker', function()
-		for _, ply in ipairs(player.GetAll()) do
-			if entities_queue[ply] == nil then
-				goto skip
-			end
+		for i = #entities_queue, 1, -1 do
+			local data = entities_queue[i]
+			local name = data.name
+			local ply = data.ply
+			local ent = data.ent
 
-			local iterators = 0
-			local iterators_max = 3
+			if not IsValid(ent) or not IsValid(ply) then
+				hook.Run('SlibEntitySuccessInvoked', false, name, ply, ent)
+				table.remove(entities_queue, i)
+			else	
+				if data.isSuccess then
+					hook.Run('SlibEntitySuccessInvoked', true, name, ply, ent)
+					table.remove(entities_queue, i)
+				else
+					if data.isAnswer and data.equalDelay < RealTime() then
+						data.isAnswer = false
 
-			for i = #entities_queue[ply], 1, -1 do
-				local data = entities_queue[ply][i]
-				local name = data.name
-				local ply = data.ply
-				local ent = data.ent
-
-				if not IsValid(ent) or not IsValid(ply) then
-					hook.Run('SlibEntitySuccessInvoked', false, name, ply, ent)
-					table.remove(entities_queue[ply], i)
-				else	
-					if data.isSuccess then
-						hook.Run('SlibEntitySuccessInvoked', true, name, ply, ent)
-						table.remove(entities_queue[ply], i)
-					else
-						if data.isAnswer and data.equalDelay < RealTime() then
-							data.isAnswer = false
-
-							net.Start('cl_entity_network_rpc_callback')
-							net.WriteString(name)
-							net.WriteString(data.uid)
-							net.WriteEntity(data.ent)
-							net.WriteType(data.args)
-							net.Send(ply)
-							
-							data.equalDelay = RealTime() + 1
-							iterators = iterators + 1
-						end
+						net.Start('cl_entity_network_rpc_callback')
+						net.WriteString(name)
+						net.WriteString(data.uid)
+						net.WriteEntity(data.ent)
+						net.WriteType(data.args)
+						net.Send(ply)
+						
+						data.equalDelay = RealTime() + 1
 					end
 				end
-
-				if iterators >= iterators_max then
-					break
-				end
 			end
-
-			::skip::
 		end
 	end)
 else
