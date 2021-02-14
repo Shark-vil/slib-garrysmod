@@ -17,7 +17,6 @@ else
 			local ent = net.ReadEntity()
 			if not IsValid(ent) then
 				net.Start('sv_entity_network_rpc_result')
-				net.WriteString(name)
 				net.WriteString(uid)
 				net.WriteBool(false)
 				net.SendToServer()
@@ -41,7 +40,6 @@ else
 			end
 	
 			net.Start('sv_entity_network_rpc_result')
-			net.WriteString(name)
 			net.WriteString(uid)
 			net.WriteBool(true)
 			net.SendToServer()
@@ -52,7 +50,7 @@ end
 if SERVER then
 	snet.EntityInvoke = function(name, ply, ent, ...)
 		if not IsValid(ent) then return end
-		if not IsValid(ply) or not ply:IsPlayer() then return end
+		if not IsValid(ply) or not ply:IsSpawn() then return end
 		
 		for _, v in ipairs(entities_queue) do
 			if v.name == name and v.ply == ply and v.ent == ent then
@@ -68,28 +66,27 @@ if SERVER then
 			args = { ... },
 			equalDelay = 0,
 			isSuccess = false,
+			isAnswer = true,
 		})
 	end
 
 	snet.EntityInvokeAll = function(name, ent, ...)
 		for _, ply in ipairs(player.GetAll()) do
-			if IsValid(ply) then
+			if IsValid(ply) and ply:IsSpawn() and IsValid(ent) then
 				snet.EntityInvoke(name, ply, ent, ...)
 			end
 		end
 	end
 
 	net.Receive('sv_entity_network_rpc_result', function(len, ply)
-		local name = net.ReadString()
 		local uid = net.ReadString()
 		local success = net.ReadBool()
 
-		if success then
-			for _, data in ipairs(entities_queue) do
-				if data.uid == uid then
-					data.isSuccess = true
-					return
-				end
+		for _, data in ipairs(entities_queue) do
+			if data.uid == uid then
+				data.isSuccess = success
+				data.isAnswer = true
+				return
 			end
 		end
 	end)
@@ -117,7 +114,9 @@ if SERVER then
 					hook.Run('SlibEntitySuccessInvoked', true, name, ply, ent)
 					table.remove(entities_queue, i)
 				else
-					if data.equalDelay < RealTime() then
+					if data.isAnswer and data.equalDelay < RealTime() then
+						data.isAnswer = false
+
 						net.Start('cl_entity_network_rpc_callback')
 						net.WriteString(name)
 						net.WriteString(data.uid)
@@ -125,7 +124,7 @@ if SERVER then
 						net.WriteType(data.args)
 						net.Send(ply)
 						
-						data.equalDelay = RealTime() + 0.5
+						data.equalDelay = RealTime() + 1
 					end
 				end
 			end
