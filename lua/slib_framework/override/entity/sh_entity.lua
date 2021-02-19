@@ -13,6 +13,6 @@ function meta:slibSetVar(name, value)
 end
 
 function meta:slibGetVar(name)
-   if self.slibVariables == nil or self.slibVariables[name] == nil then return end
+   if self.slibVariables == nil or self.slibVariables[name] == nil then return false end
    return self.slibVariables[name]
 end
