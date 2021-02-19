@@ -1,9 +1,9 @@
 local meta = FindMetaTable('Entity')
-meta.slibVariables = {}
 
 function meta:slibSetVar(name, value)
    if isfunction(value) then return end
 
+   self.slibVariables = self.slibVariables or {}
    self.slibVariables[name] = value
 
    if SERVER then
@@ -13,5 +13,5 @@ function meta:slibSetVar(name, value)
 end
 
 function meta:slibGetVar(name)
-   return self.slibVariables[name]
+   return self.slibVariables ~= nil and self.slibVariables[name] or false
 end
