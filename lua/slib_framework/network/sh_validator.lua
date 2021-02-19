@@ -67,15 +67,16 @@ else
       local uid = net.ReadString()
       local validator_name = net.ReadString()
       local args = net.ReadType()
+      local success = false
 
       local validator_method = snet.GetValidator(validator_name)
       if validator_method == nil then return end
-
-      local result = validator_method(ply, uid, unpack(args))
+      
+      success = validator_method(ply, uid, unpack(args))
 
       net.Start(netowrk_name_to_server)
       net.WriteString(uid)
-      net.WriteBool(result)
+      net.WriteBool(success)
       net.SendToServer()
    end)
 end

@@ -10,9 +10,11 @@ net.Receive(n_gcvar_register_cvars, function()
 
    for cvar_name, cvar_data in pairs(slib.GlobalCvars) do
       if not tobool(GetConVar(cvar_name)) then
-         CreateConVar(cvar_name, cvar_data.value, cvar_data.flag, cvar_data.helptext, cvar_data.min, cvar_data.max)
+         ErrorNoHalt('The global variable must be created on both the server and client!')
+         goto skip
       else
          RunConsoleCommand(cvar_name, cvar_data.value)
+         MsgN('Successful cvar sync for client! CVAR ['.. cvar_name ..'] - ' .. cvar_data.value)
       end
 
       cvar_locker[cvar_name] = cvar_locker[cvar_name] or false
@@ -50,6 +52,8 @@ net.Receive(n_gcvar_register_cvars, function()
          net.WriteFloat(value_new)
          net.SendToServer()
       end)
+
+      ::skip::
    end
 end)
 
