@@ -66,7 +66,7 @@ if SERVER then
 			args = { ... },
 			equalDelay = 0,
 			isSuccess = false,
-			isAnswer = true,
+			-- isAnswer = true,
 		})
 	end
 
@@ -85,7 +85,7 @@ if SERVER then
 		for _, data in ipairs(entities_queue) do
 			if data.uid == uid then
 				data.isSuccess = success
-				data.isAnswer = true
+				-- data.isAnswer = true
 				return
 			end
 		end
@@ -100,6 +100,8 @@ if SERVER then
 	end)
 	
 	hook.Add('Think', 'Slib_TemporaryEntityNetworkVisibilityChecker', function()
+		local delay_infelicity = 0
+
 		for i = #entities_queue, 1, -1 do
 			local data = entities_queue[i]
 			local name = data.name
@@ -114,8 +116,8 @@ if SERVER then
 					hook.Run('SlibEntitySuccessInvoked', true, name, ply, ent)
 					table.remove(entities_queue, i)
 				else
-					if data.isAnswer and data.equalDelay < RealTime() then
-						data.isAnswer = false
+					if data.equalDelay < RealTime() then
+						-- data.isAnswer = false
 
 						net.Start('cl_entity_network_rpc_callback')
 						net.WriteString(name)
@@ -124,7 +126,8 @@ if SERVER then
 						net.WriteType(data.args)
 						net.Send(ply)
 						
-						data.equalDelay = RealTime() + 1
+						data.equalDelay = RealTime() + 1.5 + delay_infelicity
+						delay_infelicity = delay_infelicity + 0.1
 					end
 				end
 			end
