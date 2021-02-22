@@ -1,6 +1,6 @@
 { 
 "title"		:	"LUA - SLibrary", 
-"type"		:	"addon", 
+"type"		:	"tool", 
 "ignore"	: 
     [ 
         "*.psd*", 
