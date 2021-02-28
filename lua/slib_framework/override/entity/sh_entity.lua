@@ -12,7 +12,9 @@ function meta:slibSetVar(name, value)
    end
 end
 
-function meta:slibGetVar(name)
-   if self.slibVariables == nil or self.slibVariables[name] == nil then return false end
+function meta:slibGetVar(name, fallback)
+   if self.slibVariables == nil or self.slibVariables[name] == nil then
+      return fallback or false
+   end
    return self.slibVariables[name]
 end

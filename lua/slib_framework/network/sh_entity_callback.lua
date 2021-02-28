@@ -93,8 +93,8 @@ if SERVER then
 
 	hook.Add('SetupPlayerVisibility', 'Slib_TemporaryEntityNetworkVisibility', function(ply, ent)
 		for _, data in ipairs(entities_queue) do
-			if data.ply == ply and data.ent == ent then
-				AddOriginToPVS(ent:GetPos())
+			if IsValid(data.ent) and data.ply == ply then
+				AddOriginToPVS(data.ent:GetPos())
 			end
 		end
 	end)
