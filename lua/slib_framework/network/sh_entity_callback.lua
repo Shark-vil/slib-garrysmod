@@ -52,11 +52,11 @@ if SERVER then
 		if not IsValid(ent) then return end
 		if not IsValid(ply) or not ply:slibIsSpawn() then return end
 		
-		for _, v in ipairs(entities_queue) do
-			if v.name == name and v.ply == ply and v.ent == ent then
-				return
-			end
-		end
+		-- for _, v in ipairs(entities_queue) do
+		-- 	if v.name == name and v.ply == ply and v.ent == ent then
+		-- 		return
+		-- 	end
+		-- end
 
 		table.insert(entities_queue, {
 			uid = ply:UserID() .. ent:EntIndex() .. tostring(RealTime()) .. tostring(SysTime()),
