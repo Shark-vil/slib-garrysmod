@@ -71,8 +71,8 @@ if SERVER then
 	end
 
 	snet.EntityInvokeAll = function(name, ent, ...)
-		for _, ply in ipairs(player.GetAll()) do
-			if IsValid(ply) and ply:IsSpawn() and IsValid(ent) then
+		for _, ply in ipairs(slib.GetAllLoadedPlayers()) do
+			if IsValid(ply) and IsValid(ent) then
 				snet.EntityInvoke(name, ply, ent, ...)
 			end
 		end
