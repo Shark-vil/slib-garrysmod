@@ -50,13 +50,13 @@ end
 if SERVER then
 	snet.EntityInvoke = function(name, ply, ent, ...)
 		if not IsValid(ent) then return end
-		if not IsValid(ply) or not ply:IsSpawn() then return end
+		if not IsValid(ply) or not ply.slibIsSpawn then return end
 		
-		for _, v in ipairs(entities_queue) do
-			if v.name == name and v.ply == ply and v.ent == ent then
-				return
-			end
-		end
+		-- for _, v in ipairs(entities_queue) do
+		-- 	if v.name == name and v.ply == ply and v.ent == ent then
+		-- 		return
+		-- 	end
+		-- end
 
 		table.insert(entities_queue, {
 			uid = ply:UserID() .. ent:EntIndex() .. tostring(RealTime()) .. tostring(SysTime()),
@@ -71,8 +71,8 @@ if SERVER then
 	end
 
 	snet.EntityInvokeAll = function(name, ent, ...)
-		for _, ply in ipairs(player.GetAll()) do
-			if IsValid(ply) and ply:IsSpawn() and IsValid(ent) then
+		for _, ply in ipairs(slib.GetAllLoadedPlayers()) do
+			if IsValid(ply) and IsValid(ent) then
 				snet.EntityInvoke(name, ply, ent, ...)
 			end
 		end
@@ -93,8 +93,8 @@ if SERVER then
 
 	hook.Add('SetupPlayerVisibility', 'Slib_TemporaryEntityNetworkVisibility', function(ply, ent)
 		for _, data in ipairs(entities_queue) do
-			if data.ply == ply and data.ent == ent then
-				AddOriginToPVS(ent:GetPos())
+			if IsValid(data.ent) and data.ply == ply then
+				AddOriginToPVS(data.ent:GetPos())
 			end
 		end
 	end)
