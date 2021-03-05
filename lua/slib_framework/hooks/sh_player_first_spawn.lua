@@ -3,13 +3,12 @@ if SERVER then
       if ply.slibIsSpawn then return end
 
 		timer.Simple(3, function()
-			if not IsValid(ply) or ply.slibIsSpawn then return end
+			if not IsValid(ply) then return end
 
 			ply.slibIsSpawn = true
          hook.Run('SlibPlayerFirstSpawn', ply)
 
-			timer.Simple(1, function()
-				if not IsValid(ply) then return end
+			timer.Simple(0.5, function()
 				snet.Invoke(slib.GetNetworkString('Slib', 'FirstPlayerSpawn'), ply)
 			end)
 		end)

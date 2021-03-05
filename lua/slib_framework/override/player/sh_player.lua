@@ -1,5 +1,5 @@
-local meta = FindMetaTable('Player')
+-- local meta = FindMetaTable('Player')
 
-function meta:slibIsSpawn()
-   return self.slibIsSpawn or false
-end
+-- function meta:slibIsSpawn()
+--    return self.slibIsSpawn or false
+-- end

@@ -50,7 +50,7 @@ end
 if SERVER then
 	snet.EntityInvoke = function(name, ply, ent, ...)
 		if not IsValid(ent) then return end
-		if not IsValid(ply) or not ply:slibIsSpawn() then return end
+		if not IsValid(ply) or not ply.slibIsSpawn then return end
 		
 		-- for _, v in ipairs(entities_queue) do
 		-- 	if v.name == name and v.ply == ply and v.ent == ent then
