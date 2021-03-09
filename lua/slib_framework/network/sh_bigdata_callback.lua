@@ -88,7 +88,10 @@ if SERVER then
             data_string = data_string .. util.Decompress(data)
          end
 
-         snet.execute(name, ply, util.JSONToTable(data_string))
+         pcall(function()
+            snet.execute(name, ply, util.JSONToTable(data_string))
+         end)
+
          processing_data[ply][index] = nil
       else
          net.Start('slib_cl_bigdata_receive_ok')
@@ -210,7 +213,9 @@ else
             data_string = data_string .. util.Decompress(data)
          end
 
-         snet.execute(name, ply, util.JSONToTable(data_string))
+         pcall(function()
+            snet.execute(name, ply, util.JSONToTable(data_string))
+         end)
          
          if data.progress_id ~= '' and data.progress_text ~= '' then
             notification.Kill(data.progress_id)
