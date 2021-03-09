@@ -24,7 +24,9 @@ else
 		end
 		
 		local vars = net.ReadType()
-		snet.execute(name, ply, ent, unpack(vars))
+		pcall(function()
+			snet.execute(name, ply, ent, unpack(vars))
+		end)
 
 		net.Start('sv_entity_network_rpc_result')
 		net.WriteString(uid)

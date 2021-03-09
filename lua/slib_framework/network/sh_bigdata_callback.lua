@@ -2,17 +2,26 @@ local processing_data = {}
 local send_data = {}
 
 if SERVER then
-	util.AddNetworkString('slib_sv_bigdata_processing')
-   util.AddNetworkString('slib_sv_bigdata_processing_ok')
-	
+	util.AddNetworkString('slib_sv_bigdata_processing')	
    util.AddNetworkString('slib_cl_bigdata_processing')
-   util.AddNetworkString('slib_cl_bigdata_processing_ok')
    
    util.AddNetworkString('slib_sv_bigdata_receive')
    util.AddNetworkString('slib_sv_bigdata_receive_ok')
+   util.AddNetworkString('slib_sv_bigdata_receive_error')
 
 	util.AddNetworkString('slib_cl_bigdata_receive')
    util.AddNetworkString('slib_cl_bigdata_receive_ok')
+   util.AddNetworkString('slib_cl_bigdata_receive_error')
+
+   hook.Add('PlayerDisconnected', 'SlibBigDataPlayerDisconnected', function(ply)
+      processing_data[ply] = nil
+
+      for i = #send_data, 1, -1 do
+         if send_data[i].ply == ply then
+            table.remove(send_data, i)
+         end
+      end
+   end)
 
    --[[
       Сервер принимает
@@ -20,12 +29,25 @@ if SERVER then
    net.Receive('slib_sv_bigdata_receive', function(len, ply)
       local name = net.ReadString()
       
-      if snet.storage[name] == nil then return end
-      if snet.storage[name].adminOnly then
-         if not ply:IsAdmin() and not ply:IsSuperAdmin() then return end
+      local error = false
+      if snet.storage[name] == nil then
+         error = true
+      elseif snet.storage[name].adminOnly then
+         if not ply:IsAdmin() and not ply:IsSuperAdmin() then
+            error = true
+         end
       end
 
       local index = net.ReadInt(10)
+
+      if error then
+         net.Start('slib_cl_bigdata_receive_error')
+         net.WriteString(name)
+         net.WriteInt(index, 10)
+         net.Send(ply)
+         return
+      end
+
       local max_parts = net.ReadInt(10)
 
       processing_data[ply] = processing_data[ply] or {}
@@ -66,7 +88,10 @@ if SERVER then
             data_string = data_string .. util.Decompress(data)
          end
 
-         snet.execute(name, ply, util.JSONToTable(data_string))
+         pcall(function()
+            snet.execute(name, ply, util.JSONToTable(data_string))
+         end)
+
          processing_data[ply][index] = nil
       else
          net.Start('slib_cl_bigdata_receive_ok')
@@ -103,6 +128,18 @@ if SERVER then
          send_data[index] = nil
       end
    end)
+
+   net.Receive('slib_sv_bigdata_receive_error', function(len, ply)
+      local name = net.ReadString()
+      local index = net.ReadInt(10)
+
+      local data = send_data[index]
+
+      if data ~= nil and data.ply == ply then
+         hook.Run('Slib_BigDataFailed', ply, name, data)
+         send_data[index] = nil
+      end
+   end)
 else
    --[[
       Клиент принимает
@@ -111,12 +148,25 @@ else
       local ply = LocalPlayer()
       local name = net.ReadString()
       
-      if snet.storage[name] == nil then return end
-      if snet.storage[name].adminOnly then
-         if not ply:IsAdmin() and not ply:IsSuperAdmin() then return end
+      local error = false
+      if snet.storage[name] == nil then
+         error = true
+      elseif snet.storage[name].adminOnly then
+         if not ply:IsAdmin() and not ply:IsSuperAdmin() then
+            error = true
+         end
       end
 
       local index = net.ReadInt(10)
+      
+      if error then
+         net.Start('slib_sv_bigdata_receive_error')
+         net.WriteString(name)
+         net.WriteInt(index, 10)
+         net.SendToServer()
+         return
+      end
+
       local max_parts = net.ReadInt(10)
       local progress_id = net.ReadString()
       local progress_text = net.ReadString()
@@ -163,7 +213,9 @@ else
             data_string = data_string .. util.Decompress(data)
          end
 
-         snet.execute(name, ply, util.JSONToTable(data_string))
+         pcall(function()
+            snet.execute(name, ply, util.JSONToTable(data_string))
+         end)
          
          if data.progress_id ~= '' and data.progress_text ~= '' then
             notification.Kill(data.progress_id)
@@ -216,27 +268,29 @@ else
          send_data[index] = nil
       end
    end)
+
+   net.Receive('slib_cl_bigdata_receive_error', function(len)
+      local name = net.ReadString()
+      local index = net.ReadInt(10)
+
+      local data = send_data[index]
+
+      if data ~= nil then
+         hook.Run('Slib_BigDataFailed', LocalPlayer(), name, data)
+         send_data[index] = nil
+      end
+   end)
 end
 
-local function splitByChunk(text, chunkSize)
-   local s = {}
-   for i = 1, #text, chunkSize do
-      s[ #s + 1 ] = text:sub(i, i + chunkSize - 1)
+local function getNetParts(text, max_size)
+   local parts = {}
+   for i = 1, #text, max_size do
+      parts[ #parts + 1 ] = text:sub(i, i + max_size - 1)
+
+      coroutine.yield()
    end
-   return s
-end
 
-snet.InvokeBigData = function(name, ply, string_data, max_size, progress_id, progress_text)
-   if not istable(string_data) then return end
-
-   progress_id = progress_id or ''
-   progress_text = progress_text or ''
-   
-   max_size = max_size or 4000
-
-   local parts = splitByChunk(util.TableToJSON(string_data), max_size)
    local net_parts = {}
-
    for _, string_part in ipairs(parts) do
       local compressed_data = util.Compress(string_part)
       local compressed_length = string.len(compressed_data)
@@ -245,31 +299,80 @@ snet.InvokeBigData = function(name, ply, string_data, max_size, progress_id, pro
          data = compressed_data,
          length = compressed_length
       })
+
+      coroutine.yield()
+   end
+   
+   return coroutine.yield(net_parts)
+end
+
+local uid = 0
+snet.InvokeBigData = function(name, ply, request_data, max_size, progress_id, progress_text)
+   if istable(request_data) then request_data = util.TableToJSON(request_data) end
+   if not isstring(request_data) then return end
+
+   if CLIENT then
+      for _, v in ipairs(send_data) do
+         if v.name == name then return end
+      end
+   else
+      for _, v in ipairs(send_data) do
+         if v.name == name and v.ply == ply then return end
+      end
    end
 
-   local max_parts = #net_parts
+   progress_id = progress_id or ''
+   progress_text = progress_text or ''
+   
+   max_size = max_size or 5000
+   uid = uid + 1
+
+   local hook_name = 'SlibNetBigDataSender_' .. name .. uid
+   local thread = coroutine.create(getNetParts)
+
    local index = table.insert(send_data, {
       name = name,
-      net_parts = net_parts,
-      max_parts = max_parts,
+      ply = ply,
+      net_parts = nil,
+      max_parts = nil,
       current_part = 0,
       progress_id = progress_id,
       progress_text = progress_text,
    })
+   
+   hook.Add('Think', hook_name, function()
+      if coroutine.status(thread) == 'dead' then
+         table.remove(send_data, index)
+         hook.Remove('Think', hook_name)
+         return
+      end
 
-   if SERVER then
-      net.Start('slib_cl_bigdata_receive')
-      net.WriteString(name)
-      net.WriteInt(index, 10)
-      net.WriteInt(max_parts, 10)
-      net.WriteString(progress_id)
-      net.WriteString(progress_text)
-      net.Send(ply)
-   else
-      net.Start('slib_sv_bigdata_receive')
-      net.WriteString(name)
-      net.WriteInt(index, 10)
-      net.WriteInt(max_parts, 10)
-      net.SendToServer()
-   end
+      local worked, result = coroutine.resume(thread, request_data, max_size)
+      if result == nil then return end
+      hook.Remove('Think', hook_name)
+
+      local net_parts = result
+      local max_parts = #net_parts
+
+      if net_parts == nil or #net_parts == 0 then return end
+
+      send_data[index].net_parts = net_parts
+      send_data[index].max_parts = max_parts
+   
+      if SERVER then
+         net.Start('slib_cl_bigdata_receive')
+         net.WriteString(name)
+         net.WriteInt(index, 10)
+         net.WriteInt(max_parts, 10)
+         net.WriteString(progress_id)
+         net.WriteString(progress_text)
+         net.Send(ply)
+      else
+         net.Start('slib_sv_bigdata_receive')
+         net.WriteString(name)
+         net.WriteInt(index, 10)
+         net.WriteInt(max_parts, 10)
+         net.SendToServer()
+      end
+   end)
 end
