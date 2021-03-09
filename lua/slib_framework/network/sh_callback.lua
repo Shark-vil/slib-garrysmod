@@ -1,29 +1,28 @@
-local storage = {}
+function snet.execute(name, ply, ...)
+	if CLIENT then ply = LocalPlayer() end
+
+	if snet.storage[name] == nil then return end
+
+	local data = snet.storage[name]
+
+	if data.adminOnly then
+		if ply:IsAdmin() or ply:IsSuperAdmin() then
+			data.execute(ply, ...)
+		end
+	else
+		data.execute(ply, ...)
+	end
+
+	if data.onRemove then
+		net.RemoveCallback(name)
+	end
+end
 
 local function network_callback(len, ply)
-	if CLIENT then
-		ply = LocalPlayer()
-	end
-
 	local name = net.ReadString()
+	local vars = net.ReadType()
 
-	if storage[name] ~= nil then
-		local data = storage[name]
-
-		if data.adminOnly then
-			if ply:IsAdmin() or ply:IsSuperAdmin() then
-				local vars = net.ReadType()
-				data.execute(ply, unpack(vars))
-			end
-		else
-			local vars = net.ReadType()
-			data.execute(ply, unpack(vars))
-		end
-
-		if data.onRemove then
-			net.RemoveCallback(name)
-		end
-	end
+	snet.execute(name, ply, unpack(vars))
 end
 
 if SERVER then
@@ -63,7 +62,7 @@ end
 snet.RegisterCallback = function(name, func, onRemove, adminOnly)
 	adminOnly = adminOnly or false
 	onRemove = onRemove or false
-	storage[name] = {
+	snet.storage[name] = {
 		adminOnly = adminOnly,
 		execute = func,
 		onRemove = onRemove
@@ -71,5 +70,5 @@ snet.RegisterCallback = function(name, func, onRemove, adminOnly)
 end
 
 snet.RemoveCallback = function(name)
-	storage[name] = nil
+	snet.storage[name] = nil
 end

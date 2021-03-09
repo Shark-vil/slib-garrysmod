@@ -1,5 +1,4 @@
 local entities_queue = {}
-local storage = {}
 
 if SERVER then
 	util.AddNetworkString('sv_entity_network_rpc_result')
@@ -13,37 +12,24 @@ else
 		local name = net.ReadString()
 		local uid = net.ReadString()
 	
-		if storage[name] ~= nil then
-			local ent = net.ReadEntity()
-			if not IsValid(ent) then
-				net.Start('sv_entity_network_rpc_result')
-				net.WriteString(uid)
-				net.WriteBool(false)
-				net.SendToServer()
-				return
-			end
-
-			local data = storage[name]
-	
-			if data.adminOnly then
-				if ply:IsAdmin() or ply:IsSuperAdmin() then
-					local vars = net.ReadType()
-					data.execute(ply, ent, unpack(vars))
-				end
-			else
-				local vars = net.ReadType()
-				data.execute(ply, ent, unpack(vars))
-			end
-	
-			if data.onRemove then
-				net.RemoveCallback(name)
-			end
-	
+		if snet.storage[name] == nil then return end
+		
+		local ent = net.ReadEntity()
+		if not IsValid(ent) then
 			net.Start('sv_entity_network_rpc_result')
 			net.WriteString(uid)
-			net.WriteBool(true)
+			net.WriteBool(false)
 			net.SendToServer()
+			return
 		end
+		
+		local vars = net.ReadType()
+		snet.execute(name, ply, ent, unpack(vars))
+
+		net.Start('sv_entity_network_rpc_result')
+		net.WriteString(uid)
+		net.WriteBool(true)
+		net.SendToServer()
 	end)
 end
 
@@ -137,7 +123,7 @@ else
 	snet.RegisterEntityCallback = function(name, func, onRemove, adminOnly)
 		adminOnly = adminOnly or false
 		onRemove = onRemove or false
-		storage[name] = {
+		snet.storage[name] = {
 			adminOnly = adminOnly,
 			execute = func,
 			onRemove = onRemove
@@ -145,6 +131,6 @@ else
 	end
 
 	snet.RemoveEntityCallback = function(name)
-		storage[name] = nil
+		snet.storage[name] = nil
 	end
 end
