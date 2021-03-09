@@ -118,11 +118,15 @@ else
 
       local index = net.ReadInt(10)
       local max_parts = net.ReadInt(10)
+      local progress_id = net.ReadString()
+      local progress_text = net.ReadString()
 
       processing_data[index] = {
          max_parts = max_parts,
          current_part = 0,
-         parts_data = {}
+         parts_data = {},
+         progress_id = progress_id,
+         progress_text = progress_text,
       }
 
       net.Start('slib_sv_bigdata_receive_ok')
@@ -147,6 +151,11 @@ else
       data.current_part = current_part
       table.insert(data.parts_data, compressed_data)
 
+      if data.progress_id ~= '' and data.progress_text ~= '' then
+         notification.AddProgress(data.progress_id, data.progress_text, (1 / data.max_parts) 
+            * data.current_part)
+      end
+
       if data.current_part >= data.max_parts then
          local data_string = ''
 
@@ -155,6 +164,12 @@ else
          end
 
          snet.execute(name, ply, util.JSONToTable(data_string))
+         
+         if data.progress_id ~= '' and data.progress_text ~= '' then
+            notification.Kill(data.progress_id)
+            notification.AddLegacy('Success! ' .. data.progress_text, NOTIFY_GENERIC, 3)
+         end
+
          processing_data[index] = nil
       else
          net.Start('slib_sv_bigdata_receive_ok')
@@ -186,8 +201,13 @@ else
       net.WriteData(part.data, part.length)
       net.SendToServer()
 
+      if data.progress_id ~= '' and data.progress_text ~= '' then
+         notification.AddProgress(data.progress_id, data.progress_text, (1 / data.max_parts) 
+            * data.current_part)
+      end
+
       if data.current_part >= data.max_parts then
-         if data.progress_id and data.progress_text then
+         if data.progress_id ~= '' and data.progress_text ~= '' then
             notification.Kill(data.progress_id)
             notification.AddLegacy('Success! ' .. data.progress_text, NOTIFY_GENERIC, 3)
          end
@@ -209,12 +229,10 @@ end
 snet.InvokeBigData = function(name, ply, string_data, max_size, progress_id, progress_text)
    if not istable(string_data) then return end
 
-   if SERVER then
-      progress_id = nil
-      progress_text = nil
-   end
-
-   max_size = max_size or 5000
+   progress_id = progress_id or ''
+   progress_text = progress_text or ''
+   
+   max_size = max_size or 4000
 
    local parts = splitByChunk(util.TableToJSON(string_data), max_size)
    local net_parts = {}
@@ -244,6 +262,8 @@ snet.InvokeBigData = function(name, ply, string_data, max_size, progress_id, pro
       net.WriteString(name)
       net.WriteInt(index, 10)
       net.WriteInt(max_parts, 10)
+      net.WriteString(progress_id)
+      net.WriteString(progress_text)
       net.Send(ply)
    else
       net.Start('slib_sv_bigdata_receive')
@@ -251,9 +271,5 @@ snet.InvokeBigData = function(name, ply, string_data, max_size, progress_id, pro
       net.WriteInt(index, 10)
       net.WriteInt(max_parts, 10)
       net.SendToServer()
-
-      if progress_id and progress_text then
-         notification.AddProgress(progress_id, progress_text)
-      end
    end
 end
