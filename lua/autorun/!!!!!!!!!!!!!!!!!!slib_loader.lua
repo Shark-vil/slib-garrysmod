@@ -1,5 +1,6 @@
 slib = slib or {}
 snet = snet or net
+snet.storage = {}
 
 local root_directory = 'slib_framework'
 
@@ -34,6 +35,7 @@ using('network/sh_addnetwork.lua')
 using('network/sh_callback.lua')
 using('network/sh_validator.lua')
 using('network/sh_entity_callback.lua')
+using('network/sh_bigdata_callback.lua')
 
 using('override/entity/sh_entity.lua')
 using('override/entity/sv_entity.lua')
