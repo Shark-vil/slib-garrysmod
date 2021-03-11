@@ -90,7 +90,12 @@ if SERVER then
 
          processing_data[ply][index] = nil
 
-         snet.execute(name, ply, util.JSONToTable(data_string))
+         local result_data = util.JSONToTable(data_string)
+         if result_data.type == 'table' then
+            snet.execute(name, ply, util.JSONToTable(result_data.data))
+         elseif result_data.type == 'string' then
+            snet.execute(name, ply, result_data.data)
+         end
       else
          net.Start('slib_cl_bigdata_receive_ok')
          net.WriteString(name)
@@ -218,7 +223,12 @@ else
 
          processing_data[index] = nil
 
-         snet.execute(name, ply, util.JSONToTable(data_string))
+         local result_data = util.JSONToTable(data_string)
+         if result_data.type == 'table' then
+            snet.execute(name, ply, util.JSONToTable(result_data.data))
+         elseif result_data.type == 'string' then
+            snet.execute(name, ply, result_data.data)
+         end
       else
          net.Start('slib_sv_bigdata_receive_ok')
          net.WriteString(name)
@@ -303,9 +313,22 @@ local function getNetParts(text, max_size)
 end
 
 local uid = 0
-snet.InvokeBigData = function(name, ply, request_data, max_size, progress_id, progress_text)
-   if istable(request_data) then request_data = util.TableToJSON(request_data) end
-   if not isstring(request_data) then return end
+snet.InvokeBigData = function(name, ply, data, max_size, progress_id, progress_text)
+   local request_data = ''
+
+   if istable(data) then
+      request_data = util.TableToJSON({
+         type = 'table',
+         data = util.TableToJSON(data)
+      })
+   elseif isstring(data) then
+      request_data = util.TableToJSON({
+         type = 'string',
+         data = data
+      })
+   else
+      return
+   end
 
    if CLIENT then
       for _, v in ipairs(send_data) do

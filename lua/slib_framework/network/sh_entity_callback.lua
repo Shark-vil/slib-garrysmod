@@ -28,7 +28,7 @@ else
 		net.WriteBool(true)
 		net.SendToServer()
 
-		local vars = net.ReadType()
+		local vars = net.ReadTable()
 		snet.execute(name, ply, ent, unpack(vars))
 	end)
 end
@@ -109,7 +109,7 @@ if SERVER then
 						net.WriteString(name)
 						net.WriteString(data.uid)
 						net.WriteEntity(data.ent)
-						net.WriteType(data.args)
+						net.WriteTable(data.args)
 						net.Send(ply)
 						
 						data.equalDelay = RealTime() + 1.5 + delay_infelicity
