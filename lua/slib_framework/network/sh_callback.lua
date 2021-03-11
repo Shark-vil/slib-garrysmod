@@ -22,9 +22,7 @@ local function network_callback(len, ply)
 	local name = net.ReadString()
 	local vars = net.ReadType()
 
-	pcall(function()
-		snet.execute(name, ply, unpack(vars))
-	end)
+	snet.execute(name, ply, unpack(vars))
 end
 
 if SERVER then
