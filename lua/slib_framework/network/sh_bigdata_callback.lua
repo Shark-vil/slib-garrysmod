@@ -81,6 +81,10 @@ if SERVER then
       data.current_part = current_part
       table.insert(data.parts_data, compressed_data)
 
+      if data.current_part == 1 then
+         hook.Run('Slib_StartBigdataSending', ply, name)
+      end
+
       if data.current_part >= data.max_parts then
          local data_string = ''
 
@@ -204,6 +208,10 @@ else
       data.current_part = current_part
       table.insert(data.parts_data, compressed_data)
 
+      if data.current_part == 1 then
+         hook.Run('Slib_StartBigdataSending', ply, name)
+      end
+
       if data.progress_id ~= '' and data.progress_text ~= '' then
          notification.AddProgress(data.progress_id, data.progress_text, (1 / data.max_parts) 
             * data.current_part)
@@ -282,6 +290,10 @@ else
       local data = send_data[index]
 
       if data ~= nil then
+         if data.progress_id ~= '' and data.progress_text ~= '' then
+            notification.AddLegacy('An error occurred while sending data!', NOTIFY_ERROR, 5)
+         end
+
          hook.Run('Slib_BigDataFailed', LocalPlayer(), name, data)
          send_data[index] = nil
       end
@@ -359,10 +371,30 @@ snet.InvokeBigData = function(name, ply, data, max_size, progress_id, progress_t
       progress_text = progress_text,
    })
    
+   if SERVER then
+      hook.Run('Slib_PreparingBigdataSending', ply, name)
+   else
+      if progress_id ~= '' and progress_text ~= '' then
+         notification.AddProgress('SlibBigDataPreparing_' .. name, "Data is being prepared for upload...")
+      end
+      hook.Run('Slib_PreparingBigdataSending', LocalPlayer(), name)
+   end
+
    hook.Add('Think', hook_name, function()
       if coroutine.status(thread) == 'dead' then
          table.remove(send_data, index)
          hook.Remove('Think', hook_name)
+
+         if SERVER then
+            hook.Run('Slib_StopBigdataSending', ply, name)
+         else
+            if progress_id ~= '' and progress_text ~= '' then
+               notification.Kill('SlibBigDataPreparing_' .. name)
+               notification.AddLegacy('Failed to pack data to send!', NOTIFY_ERROR, 4)
+            end
+
+            hook.Run('Slib_StopBigdataSending', LocalPlayer(), name)
+         end
          return
       end
 
@@ -392,6 +424,12 @@ snet.InvokeBigData = function(name, ply, data, max_size, progress_id, progress_t
          net.WriteInt(index, 10)
          net.WriteInt(max_parts, 10)
          net.SendToServer()
+
+         if progress_id ~= '' and progress_text ~= '' then
+            notification.Kill('SlibBigDataPreparing_' .. name)
+         end
       end
+
+      hook.Run('Slib_StartBigdataSending', ply, name)
    end)
 end
