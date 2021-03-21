@@ -22,16 +22,14 @@ else
 			net.SendToServer()
 			return
 		end
-		
-		local vars = net.ReadType()
-		pcall(function()
-			snet.execute(name, ply, ent, unpack(vars))
-		end)
 
 		net.Start('sv_entity_network_rpc_result')
 		net.WriteString(uid)
 		net.WriteBool(true)
 		net.SendToServer()
+
+		local vars = net.ReadTable()
+		snet.execute(name, ply, ent, unpack(vars))
 	end)
 end
 
@@ -111,7 +109,7 @@ if SERVER then
 						net.WriteString(name)
 						net.WriteString(data.uid)
 						net.WriteEntity(data.ent)
-						net.WriteType(data.args)
+						net.WriteTable(data.args)
 						net.Send(ply)
 						
 						data.equalDelay = RealTime() + 1.5 + delay_infelicity

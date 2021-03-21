@@ -20,11 +20,9 @@ end
 
 local function network_callback(len, ply)
 	local name = net.ReadString()
-	local vars = net.ReadType()
+	local vars = net.ReadTable()
 
-	pcall(function()
-		snet.execute(name, ply, unpack(vars))
-	end)
+	snet.execute(name, ply, unpack(vars))
 end
 
 if SERVER then
@@ -42,12 +40,12 @@ snet.Invoke = function(name, ply, ...)
 		
 		net.Start('cl_network_rpc_callback')
 		net.WriteString(name)
-		net.WriteType({ ... })
+		net.WriteTable({ ... })
 		net.Send(ply)
 	else
 		net.Start('sv_network_rpc_callback')
 		net.WriteString(name)
-		net.WriteType({ ... })
+		net.WriteTable({ ... })
 		net.SendToServer()
 	end
 end
@@ -56,7 +54,7 @@ snet.InvokeAll = function(name, ...)
 	if SERVER then
 		net.Start('cl_network_rpc_callback')
 		net.WriteString(name)
-		net.WriteType({ ... })
+		net.WriteTable({ ... })
 		net.Broadcast()
 	end
 end

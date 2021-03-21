@@ -50,3 +50,5 @@ using('cvars/gcvars/cl_gcvars.lua')
 using('hooks/sh_player_first_spawn.lua')
 
 using('extension/sh_player.lua')
+
+using('debug/sh_profiler.lua')
