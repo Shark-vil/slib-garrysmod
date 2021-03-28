@@ -1,9 +1,36 @@
+snet.storage.default = snet.storage.default or {}
+
+function snet.GetNormalizeDataTable(data, entity_to_table)
+	local data = data
+	local entity_to_table = entity_to_table or false
+	local new_data = {}
+
+	if isentity(data) then data = data:GetTable() end
+	if not istable(data) then return new_data end
+
+	for k, v in pairs(data) do
+		if isfunction(v) or isfunction(k) or v == nil or k == nil then goto skip end
+
+		if istable(v) then
+			new_data[k] = snet.GetNormalizeDataTable(v)
+		elseif entity_to_table and isentity(v) then
+			new_data[k] = snet.GetNormalizeDataTable(v:GetTable())
+		else
+			new_data[k] = v
+		end
+
+		::skip::
+	end
+
+	return new_data
+end
+
 function snet.execute(name, ply, ...)
 	if CLIENT then ply = LocalPlayer() end
 
-	if snet.storage[name] == nil then return end
+	if snet.storage.default[name] == nil then return end
 
-	local data = snet.storage[name]
+	local data = snet.storage.default[name]
 
 	if data.adminOnly then
 		if ply:IsAdmin() or ply:IsSuperAdmin() then
@@ -40,12 +67,12 @@ snet.Invoke = function(name, ply, ...)
 		
 		net.Start('cl_network_rpc_callback')
 		net.WriteString(name)
-		net.WriteTable({ ... })
+		net.WriteTable(snet.GetNormalizeDataTable({ ... }))
 		net.Send(ply)
 	else
 		net.Start('sv_network_rpc_callback')
 		net.WriteString(name)
-		net.WriteTable({ ... })
+		net.WriteTable(snet.GetNormalizeDataTable({ ... }))
 		net.SendToServer()
 	end
 end
@@ -54,7 +81,7 @@ snet.InvokeAll = function(name, ...)
 	if SERVER then
 		net.Start('cl_network_rpc_callback')
 		net.WriteString(name)
-		net.WriteTable({ ... })
+		net.WriteTable(snet.GetNormalizeDataTable({ ... }))
 		net.Broadcast()
 	end
 end
@@ -62,7 +89,7 @@ end
 snet.RegisterCallback = function(name, func, onRemove, adminOnly)
 	adminOnly = adminOnly or false
 	onRemove = onRemove or false
-	snet.storage[name] = {
+	snet.storage.default[name] = {
 		adminOnly = adminOnly,
 		execute = func,
 		onRemove = onRemove
@@ -70,5 +97,5 @@ snet.RegisterCallback = function(name, func, onRemove, adminOnly)
 end
 
 snet.RemoveCallback = function(name)
-	snet.storage[name] = nil
+	snet.storage.default[name] = nil
 end
