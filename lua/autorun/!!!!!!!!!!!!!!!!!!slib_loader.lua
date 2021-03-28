@@ -4,58 +4,38 @@ snet.storage = {}
 
 local root_directory = 'slib_framework'
 
-local function p_include(file_path)
-	include(file_path)
-	MsgN('[SLIB] Script load - ' .. file_path)
+if SERVER then
+	AddCSLuaFile(root_directory .. '/extension/sh_script_include.lua')
 end
+include(root_directory .. '/extension/sh_script_include.lua')
 
-local function using(local_file_path, network_type, not_root_directory)
-	local file_path = local_file_path
+local script = slib.CreateIncluder(root_directory, '[SLibrary] Script load - {file}')
 
-	if not not_root_directory then
-		file_path = root_directory .. '/' .. local_file_path
-	end
+script:using('network/sh_addnetwork.lua')
+script:using('network/sh_callback.lua')
+script:using('network/validator/sh_validator.lua')
+script:using('network/entity/sh_entity_callback.lua')
 
-	network_type = network_type or string.sub(string.GetFileFromFilename(local_file_path), 1, 2)
-	network_type = string.lower(network_type)
+script:using('network/bigdata/sh_callback_bigdata.lua')
+script:using('network/bigdata/server/sv_init_networkstring.lua')
+script:using('network/bigdata/server/sv_processing.lua')
+script:using('network/bigdata/server/sv_ok_or_error.lua')
+script:using('network/bigdata/client/cl_processing.lua')
+script:using('network/bigdata/client/cl_ok_or_error.lua')
 
-	if network_type == 'cl' or network_type == 'sh' then
-		if SERVER then AddCSLuaFile(file_path) end
-		if CLIENT and network_type == 'cl' then
-			p_include(file_path)
-		elseif network_type == 'sh' then
-			p_include(file_path)
-		end
-	elseif network_type == 'sv' and SERVER then
-		p_include(file_path)
-	end
-end
+script:using('override/entity/sh_entity.lua')
+script:using('override/entity/sv_entity.lua')
+script:using('override/entity/cl_entity.lua')
 
-using('network/sh_addnetwork.lua')
-using('network/sh_callback.lua')
-using('network/sh_validator.lua')
-using('network/sh_entity_callback.lua')
--- using('network/sh_bigdata_callback.lua')
+script:using('cvars/gcvars/sh_gcvars.lua')
+script:using('cvars/gcvars/sv_gcvars.lua')
+script:using('cvars/gcvars/cl_gcvars.lua')
 
-using('network/bigdata/sh_callback_bigdata.lua')
-using('network/bigdata/server/sv_init_networkstring.lua')
-using('network/bigdata/server/sv_processing.lua')
-using('network/bigdata/server/sv_ok_or_error.lua')
-using('network/bigdata/client/cl_processing.lua')
-using('network/bigdata/client/cl_ok_or_error.lua')
+script:using('hooks/sh_player_first_spawn.lua')
 
-using('override/entity/sh_entity.lua')
-using('override/entity/sv_entity.lua')
-using('override/entity/cl_entity.lua')
+script:using('extension/sh_player.lua')
 
--- using('override/player/sh_player.lua')
+script:using('debug/sh_profiler.lua')
 
-using('cvars/gcvars/sh_gcvars.lua')
-using('cvars/gcvars/sv_gcvars.lua')
-using('cvars/gcvars/cl_gcvars.lua')
-
-using('hooks/sh_player_first_spawn.lua')
-
-using('extension/sh_player.lua')
-
-using('debug/sh_profiler.lua')
+-- To connect scripts that depend on the library
+slib.usingDirectory('slib_autoloader')

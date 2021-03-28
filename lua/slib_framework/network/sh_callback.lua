@@ -11,9 +11,9 @@ function snet.GetNormalizeDataTable(data, entity_to_table)
 		if isfunction(v) or isfunction(k) or v == nil or k == nil then goto skip end
 
 		if istable(v) then
-			new_data[k] = snet.GetNormalizeDataTable(v)
+			new_data[k] = snet.GetNormalizeDataTable(v, entity_to_table)
 		elseif entity_to_table and isentity(v) then
-			new_data[k] = snet.GetNormalizeDataTable(v:GetTable())
+			new_data[k] = snet.GetNormalizeDataTable(v:GetTable(), entity_to_table)
 		else
 			new_data[k] = v
 		end
