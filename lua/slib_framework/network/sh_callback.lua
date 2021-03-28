@@ -5,7 +5,6 @@ function snet.GetNormalizeDataTable(data, entity_to_table)
 	local entity_to_table = entity_to_table or false
 	local new_data = {}
 
-	if isentity(data) then data = data:GetTable() end
 	if not istable(data) then return new_data end
 
 	for k, v in pairs(data) do
