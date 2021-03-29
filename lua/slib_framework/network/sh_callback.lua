@@ -1,11 +1,12 @@
 snet.storage.default = snet.storage.default or {}
 
 function snet.GetNormalizeDataTable(data, entity_to_table)
-	local data = data
 	local entity_to_table = entity_to_table or false
 	local new_data = {}
 
 	if not istable(data) then return new_data end
+	if data.snet_sync_disable then return new_data end
+	if data.GetSnetData and isfunction(data.GetSnetData) then return data:GetSnetData() end
 
 	for k, v in pairs(data) do
 		if isfunction(v) or isfunction(k) or v == nil or k == nil then goto skip end
@@ -20,6 +21,8 @@ function snet.GetNormalizeDataTable(data, entity_to_table)
 
 		::skip::
 	end
+
+	-- PrintTable(new_data)
 
 	return new_data
 end
@@ -61,6 +64,8 @@ else
 end
 
 snet.Invoke = function(name, ply, ...)
+	-- MsgN(SERVER, ' ', CLIENT, ' snet.Invoke - ', name)
+
 	if SERVER then
 		if not IsValid(ply) or not ply:IsPlayer() then return end
 		
@@ -77,6 +82,8 @@ snet.Invoke = function(name, ply, ...)
 end
 
 snet.InvokeAll = function(name, ...)
+	-- MsgN(SERVER, ' ', CLIENT, ' snet.InvokeAll - ', name)
+
 	if SERVER then
 		net.Start('cl_network_rpc_callback')
 		net.WriteString(name)
