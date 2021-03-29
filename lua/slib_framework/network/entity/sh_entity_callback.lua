@@ -1,12 +1,11 @@
 if CLIENT then
-	snet.RegisterCallback('snet_cl_entity_network_callback', function(_, name, uid, ent, vars)
-		if snet.storage.default[name] == nil then return end
-		
-		if not IsValid(ent) then
-			return
-		end
+	snet.RegisterCallback('snet_cl_entity_network_callback', function(_, name, uid, ent)
+		if not IsValid(ent) then return end
+		snet.Invoke('snet_sv_entity_network_success', nil, uid)
+	end)
 
-		snet.Invoke('snet_sv_entity_network_success', uid)
+	snet.RegisterCallback('snet_cl_entity_network_success', function(_, name, ent, vars)
+		if snet.storage.default[name] == nil then return end
 		snet.execute(name, LocalPlayer(), ent, unpack(vars))
 	end)
 end
@@ -47,8 +46,8 @@ end
 snet.RegisterCallback('snet_sv_entity_network_success', function(ply, uid)
 	for _, data in ipairs(entities_queue) do
 		if not data.isSuccess and data.uid == uid then
+			snet.Invoke('snet_cl_entity_network_success', ply, data.name, data.ent, data.args)
 			data.isSuccess = true
-			-- hook.Run('Slib_InvokeEntitySuccess', ply, data.ent, unpack(data.args))
 			return
 		end
 	end
@@ -77,7 +76,7 @@ hook.Add('Tick', 'Slib_TemporaryEntityNetworkVisibilityChecker', function()
 			hook.Run('Slib_EntitySuccessInvoked', name, ply, ent)
 			table.remove(entities_queue, i)
 		elseif data.equalDelay < RealTime() then
-			snet.Invoke('snet_cl_entity_network_callback', ply, name, data.uid, data.ent, data.args)
+			snet.Invoke('snet_cl_entity_network_callback', ply, name, data.uid, data.ent)
 			data.equalDelay = RealTime() + 0.5 + delay_infelicity
 			delay_infelicity = delay_infelicity + 0.1
 		end
