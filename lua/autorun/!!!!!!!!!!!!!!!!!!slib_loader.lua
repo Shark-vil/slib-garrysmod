@@ -35,6 +35,7 @@ script:using('hooks/sh_player_first_spawn.lua')
 
 script:using('extension/sh_player.lua')
 script:using('extension/sh_table.lua')
+script:using('extension/sh_sound_duration.lua')
 
 script:using('debug/sh_profiler.lua')
 

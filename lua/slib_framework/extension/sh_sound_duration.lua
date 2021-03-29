@@ -212,7 +212,7 @@ local soundDecoders = {
 	end
 }
 
-function slib.NewSoundDuration(soundPath)
+function slib.SoundDuration(soundPath)
 	local extension = soundPath:GetExtensionFromFilename()
 	if extension and soundDecoders[extension] then
 		local buffer = file.Open(soundPath, "r", "GAME")
