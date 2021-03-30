@@ -72,7 +72,9 @@ function slib.usingDirectory(root_scripts_directory_path, loading_text)
 
 	for i = #files_list, 1, -1 do
 		local fileData = files_list[i]
-		inc:using(root_scripts_directory_path .. '/' .. fileData.path)
+		if fileData.type == 'cl' then
+			inc:using(root_scripts_directory_path .. '/' .. fileData.path)
+		end
    end
 
    for _, directory_path in ipairs(directories) do
