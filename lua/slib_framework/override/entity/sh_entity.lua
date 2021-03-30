@@ -1,4 +1,9 @@
 local meta = FindMetaTable('Entity')
+local list_door_classes = {
+   "func_door",
+   "func_door_rotating",
+   "prop_door_rotating",
+}
 
 function meta:slibSetVar(key, value)
    if isfunction(value) then return end
@@ -60,4 +65,8 @@ function meta:slibAddChangeVarCallback(key, func)
    self.slibVariablesChangeCallback[key] = self.slibVariablesChangeCallback[key] or {}
 
    table.insert(self.slibVariablesChangeCallback[key], func)
+end
+
+function meta:IsDoor()
+   return table.IHasValue(list_door_classes, self:GetClass())
 end
