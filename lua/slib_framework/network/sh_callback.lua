@@ -176,6 +176,22 @@ snet.Create = function(name, unreliable)
 	return obj
 end
 
+snet.Invoke = function(name, receiver)
+	return snet.Create(name).Invoke(receiver)
+end
+
+snet.InvokeAll = function(name)
+	return snet.Create(name).InvokeAll()
+end
+
+snet.InvokeIgnore = function(name, receiver)
+	return snet.Create(name).InvokeIgnore(receiver)
+end
+
+snet.InvokeServer = function(name)
+	return snet.Create(name).InvokeServer()
+end
+
 local request_id = 0
 local last_time_request_id_generate = -1
 snet.GenerateRequestID = function()
@@ -240,22 +256,6 @@ snet.Callback = function(name, func)
 	end
 
 	return obj
-end
-
-snet.Invoke = function(name, receiver)
-	return snet.Create(name).Invoke(receiver)
-end
-
-snet.InvokeAll = function(name)
-	return snet.Create(name).InvokeAll()
-end
-
-snet.InvokeIgnore = function(name, receiver)
-	return snet.Create(name).InvokeIgnore(receiver)
-end
-
-snet.InvokeServer = function(name)
-	return snet.Create(name).InvokeServer()
 end
 
 -- Outdated method for backward compatibility
