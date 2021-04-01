@@ -113,6 +113,12 @@ snet.Create = function(name, unreliable)
 		return obj
 	end
 
+	function obj.InvokeBigData(receiver, max_size, progress_text)
+		if CLIENT then return end
+		snet.InvokeBigData(obj.name, receiver, obj.data[1], max_size, progress_text)
+		return obj
+	end
+
 	function obj.InvokeAll()
 		if CLIENT then return end
 		obj.AddRequestToList()
@@ -149,6 +155,12 @@ snet.Create = function(name, unreliable)
 		net.WriteTable(obj.data)
 		net.SendToServer()
 
+		return obj
+	end
+
+	function obj.InvokeServerBigData(max_size, progress_text)
+		if SERVER then return end
+		snet.InvokeBigData(obj.name, nil, obj.data[1], max_size, progress_text)
 		return obj
 	end
 

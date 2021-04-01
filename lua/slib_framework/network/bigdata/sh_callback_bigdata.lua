@@ -1,11 +1,11 @@
-snet.storage.bigdata = snet.storage.bigdata or {}
+snet.storage.bigdata = {}
 
 local function getNetParts(text, max_size)
    local parts = {}
    for i = 1, #text, max_size do
       parts[ #parts + 1 ] = text:sub(i, i + max_size - 1)
 
-      coroutine.yield()
+      -- coroutine.yield()
    end
 
    local net_parts = {}
@@ -25,7 +25,7 @@ local function getNetParts(text, max_size)
 end
 
 local uid = 0
-snet.InvokeBigData = function(name, ply, data, max_size, progress_id, progress_text)
+snet.InvokeBigData = function(name, ply, data, max_size, progress_text, progress_id)
    local request_data = ''
 
    if istable(data) then
@@ -52,8 +52,8 @@ snet.InvokeBigData = function(name, ply, data, max_size, progress_id, progress_t
       end
    end
 
-   progress_id = progress_id or ''
    progress_text = progress_text or ''
+   progress_id = progress_id or tostring(util.CRC(RealTime() .. 'bigdata' .. progress_text))
    max_size = max_size or 10000
    uid = uid + 1
 
