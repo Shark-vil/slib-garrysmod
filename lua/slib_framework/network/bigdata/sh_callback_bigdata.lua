@@ -1,4 +1,4 @@
-snet.storage.bigdata = {}
+snet.storage.bigdata = snet.storage.bigdata or {}
 
 local function getNetParts(text, max_size)
    local parts = {}
