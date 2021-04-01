@@ -176,21 +176,28 @@ snet.Create = function(name, unreliable)
 	return obj
 end
 
-snet.Invoke = function(name, receiver)
-	return snet.Create(name).Invoke(receiver)
+-- [ START BLOCK ] --
+-- Deprecated methods. Not recommended for use.
+snet.Invoke = function(name, receiver, ...)
+	if CLIENT then
+		return snet.Create(name).SetData(...).InvokeServer()
+	end
+
+	return snet.Create(name).SetData(...).Invoke(receiver)
 end
 
-snet.InvokeAll = function(name)
-	return snet.Create(name).InvokeAll()
+snet.InvokeAll = function(name, ...)
+	return snet.Create(name).SetData(...).InvokeAll()
 end
 
-snet.InvokeIgnore = function(name, receiver)
-	return snet.Create(name).InvokeIgnore(receiver)
+snet.InvokeIgnore = function(name, receiver, ...)
+	return snet.Create(name).SetData(...).InvokeIgnore(receiver)
 end
 
-snet.InvokeServer = function(name)
-	return snet.Create(name).InvokeServer()
+snet.InvokeServer = function(name, ...)
+	return snet.Create(name).SetData(...).InvokeServer()
 end
+-- [ END BLOCK ] --
 
 local request_id = 0
 local last_time_request_id_generate = -1
