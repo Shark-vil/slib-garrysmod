@@ -35,9 +35,9 @@ function meta:slibSetVar(key, value)
 
    if SERVER then
       if new_value == nil then
-         snet.EntityInvokeAll('slib_entity_variable_del', self, key)
+         snet.Create('slib_entity_variable_del').SetData(self, key).InvokeAll()
       else
-         snet.EntityInvokeAll('slib_entity_variable_set', self, key, value)
+         snet.Create('slib_entity_variable_set').SetData(self, key, value).InvokeAll()
       end
    end
 end
@@ -67,6 +67,19 @@ function meta:slibAddChangeVarCallback(key, func)
    table.insert(self.slibVariablesChangeCallback[key], func)
 end
 
-function meta:IsDoor()
+function meta:slibCreateTimer(timer_name, delay, repetitions, func)
+   local timer_name = 'SLIB_ENTITY_TIMER_' .. util.CRC(self:EntIndex() .. timer_name)
+   timer.Create(timer_name, delay, repetitions, function()
+      if not IsValid(self) then timer.Remove(timer_name) return end
+      func(self)
+   end)
+end
+
+function meta:slibRemoveTimer(timer_name, func)
+   local timer_name = 'SLIB_ENTITY_TIMER_' .. util.CRC(self:EntIndex() .. timer_name)
+   if timer.Exists(timer_name) then timer.Remove(timer_name) end
+end
+
+function meta:slibIsDoor()
    return table.IHasValue(list_door_classes, self:GetClass())
 end

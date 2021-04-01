@@ -1,7 +1,7 @@
-snet.RegisterCallback('slib_entity_variable_set', function (_, ent, key, value)
+snet.Callback('slib_entity_variable_set', function (_, ent, key, value)
    ent:slibSetVar(key, value)
-end)
+end).Validator(SNET_ENTITY_VALIDATOR).Register()
 
-snet.RegisterCallback('slib_entity_variable_del', function (_, ent, key)
+snet.Callback('slib_entity_variable_del', function (_, ent, key)
    ent:slibSetVar(key, nil)
-end)
+end).Validator(SNET_ENTITY_VALIDATOR).Register()
