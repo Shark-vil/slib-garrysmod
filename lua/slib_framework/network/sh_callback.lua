@@ -244,7 +244,7 @@ end
 
 -- Outdated method for backward compatibility
 snet.RegisterCallback = function(name, func)
-	return snet.Callback(name, func)
+	return snet.Callback(name, func).Register()
 end
 
 snet.RemoveCallback = function(name)
