@@ -243,8 +243,12 @@ snet.Callback = function(name, func)
 end
 
 -- Outdated method for backward compatibility
-snet.RegisterCallback = function(name, func)
-	return snet.Callback(name, func).Register()
+snet.RegisterCallback = function(name, func, autoremove, isadmin)
+	local callback = snet.Callback(name, func)
+	if autoremove then callback.AutoRemove() end
+	if isadmin then callback.Protect() end
+	callback.Register()
+	return callback
 end
 
 snet.RemoveCallback = function(name)
