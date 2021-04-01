@@ -242,6 +242,22 @@ snet.Callback = function(name, func)
 	return obj
 end
 
+snet.Invoke = function(name, receiver)
+	return snet.Create(name).Invoke(receiver)
+end
+
+snet.InvokeAll = function(name)
+	return snet.Create(name).InvokeAll()
+end
+
+snet.InvokeIgnore = function(name, receiver)
+	return snet.Create(name).InvokeIgnore(receiver)
+end
+
+snet.InvokeServer = function(name)
+	return snet.Create(name).InvokeServer()
+end
+
 -- Outdated method for backward compatibility
 snet.RegisterCallback = function(name, func, autoremove, isadmin)
 	local callback = snet.Callback(name, func)
