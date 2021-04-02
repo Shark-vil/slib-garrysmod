@@ -197,7 +197,7 @@ snet.Create = function(name, unreliable)
 		net.WriteString(obj.id)
 		net.WriteString(obj.name)
 		net.WriteUInt(obj.c_len, 32)
-		net.WriteData(obj.c_data)
+		net.WriteData(obj.c_data, obj.c_len)
 		net.WriteBool(obj.backward)
 		net.Send(receiver)
 		return obj
@@ -205,9 +205,7 @@ snet.Create = function(name, unreliable)
 
 	function obj.InvokeAll()
 		if CLIENT then return end
-		obj.c_data = snet.Serialize(obj.data)
-		obj.c_len = string.len(obj.c_data)
-
+		obj.OnSerializeData()
 		obj.Invoke(slib.GetAllLoadedPlayers())
 		return obj
 	end
@@ -250,7 +248,7 @@ snet.Create = function(name, unreliable)
 		net.WriteString(obj.id)
 		net.WriteString(obj.name)
 		net.WriteUInt(obj.c_len, 32)
-		net.WriteData(obj.c_data)
+		net.WriteData(obj.c_data, obj.c_len)
 		net.WriteBool(obj.backward)
 		net.SendToServer()
 		return obj
