@@ -10,7 +10,7 @@ if SERVER then
       success = validator_method(ply, uid, ...)
 
       snet.Create(netowrk_name_to_client).SetData(uid, success).Invoke(ply)
-   end)
+   end).Period(0.1, 5).Register()
 else
    local callback_data = {}
 
@@ -18,17 +18,19 @@ else
       validator_name = validator_name or 'entity'
       
       local uid = slib.GenerateUid(validator_name)
+      local func = func_callback
+
       callback_data[uid] = function(ply, result)
          timer.Remove('SNetServerValidatorTimeout_' .. uid)
-         func_callback(ply, result)
+         if func and isfunction(func) then
+            func(ply, result)
+         end
          callback_data[uid] = nil
       end
 
       timer.Create('SNetServerValidatorTimeout_' .. uid, 1.5, 1, function()
          local data_callback = callback_data[uid]
-         if data_callback ~= nil then
-            data_callback(LocalPlayer(), false)
-         end
+         if data_callback then data_callback(LocalPlayer(), false) end
       end)
 
       snet.Create(netowrk_name_to_server).SetData(uid, validator_name, ...).InvokeServer()
@@ -36,8 +38,6 @@ else
 
    net.Callback(netowrk_name_to_client, function(ply, uid, success)
       local data_callback = callback_data[uid]
-      if data_callback ~= nil then
-         data_callback(ply, success)
-      end
-   end)
+      if data_callback then data_callback(ply, success) end
+   end).Register()
 end

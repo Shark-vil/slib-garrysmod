@@ -2,6 +2,7 @@ snet.storage.default = snet.storage.default or {}
 snet.requests = snet.requests or {}
 
 local REQUEST_LIFE_TIME = 10
+local REQUEST_LIMITS_LIST = {}
 
 function snet.ValueIsValid(value)
 	if isfunction(value) then return false end
@@ -46,6 +47,46 @@ function snet.execute(id, name, ply, ...)
 	if data.isAdmin then
 		if not ply:IsAdmin() and not ply:IsSuperAdmin() then
 			return false
+		end
+	end
+
+	if data.limits then
+		local isExist = false
+
+		for i = #REQUEST_LIMITS_LIST, 1, -1 do
+			local value = REQUEST_LIMITS_LIST[i]
+			if value.ply == ply and value.name == name then
+				isExist = true
+
+				if value.nextTime <= RealTime() then
+					table.remove(REQUEST_LIMITS_LIST, i)
+					break
+				end
+				
+				if value.current == value.limit then
+					value.warning(ply, name)
+				else
+					value.current = value.current + 1
+				end
+
+				value.nextTime = RealTime() + data.limits.delay
+				return
+			end
+		end
+
+		if not isExist then
+			table.insert(REQUEST_LIMITS_LIST, {
+				ply = ply,
+				name = name,
+				nextTime = RealTime() + data.limits.delay,
+				limit = data.limits.limit,
+				current = 0,
+				warning = data.limits.warning or function(ply, name)
+					MsgN('Attention! An attempt to hack or disable '
+					.. 'the server is possible! Player - "' .. tostring(ply) 
+					..'" is sending too many validation checks on the hook "'..name..'"!')
+				end
+			})
 		end
 	end
 
@@ -242,6 +283,7 @@ snet.Callback = function(name, func)
 	obj.validator = nil
 	obj.isAdmin = false
 	obj.autoRemove = false
+	obj.limits = nil
 
 	function obj.Protect()
 		obj.isAdmin = true
@@ -259,12 +301,22 @@ snet.Callback = function(name, func)
 		return obj
 	end
 
+	function obj.Period(delay, limit, warning)
+		obj.limits = {
+			delay = delay,
+			limit = limit,
+			warning = warning
+		}
+		return obj
+	end
+
 	function obj.Register()
 		snet.storage.default[name] = {
 			execute = obj.execute,
 			validaotr = obj.validator,
 			isAdmin = obj.isAdmin,
-			autoRemove = obj.autoRemove
+			autoRemove = obj.autoRemove,
+			limits = obj.limits,
 		}
 		return obj
 	end
