@@ -80,7 +80,7 @@ function snet.Serialize(data, notcompress)
 
    local notcompress = notcompress or false
    if not notcompress then
-      return util.Compress(util.TableToJSON(datatable))
+      return util.TableToJSON(datatable)
    else
       return datatable
    end
@@ -125,7 +125,7 @@ function snet.Deserialize(json_datatable)
    local getdatatable
 
    if t_type == 'string' then
-      getdatatable = util.JSONToTable(util.Decompress(json_datatable))
+      getdatatable = util.JSONToTable(json_datatable)
    elseif t_type == 'table' then
       getdatatable = json_datatable
    else

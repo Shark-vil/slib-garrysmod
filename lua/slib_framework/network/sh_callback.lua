@@ -93,7 +93,7 @@ local function network_callback(len, ply)
 	local compressed_length = net.ReadUInt(32)
 	local compressed_data = net.ReadData(compressed_length)
 	local backward = net.ReadBool()
-	local vars = snet.Deserialize(compressed_data)
+	local vars = snet.Deserialize(util.Decompress(compressed_data))
 	local reuslt = snet.execute(id, name, ply, backward, unpack(vars))
 	hook.Run('SNetRequestResult', id, name, reuslt, vars)
 end
@@ -191,11 +191,7 @@ snet.Create = function(name, unreliable)
 		end
 
 		obj.AddRequestToList()
-
-		if not obj.c_data and not obj.c_len then
-			obj.c_data = snet.Serialize(obj.data)
-			obj.c_len = string.len(obj.c_data)
-		end
+		obj.OnSerializeData()
 
 		net.Start('cl_network_rpc_callback', obj.unreliable)
 		net.WriteString(obj.id)
@@ -218,8 +214,7 @@ snet.Create = function(name, unreliable)
 
 	function obj.InvokeIgnore(receiver)
 		if CLIENT then return end
-		obj.c_data = snet.Serialize(obj.data)
-		obj.c_len = string.len(obj.c_data)
+		obj.OnSerializeData()
 
 		local receivers = {}
 
@@ -249,9 +244,7 @@ snet.Create = function(name, unreliable)
 		end
 
 		obj.AddRequestToList()
-
-		obj.c_data = snet.Serialize(obj.data)
-		obj.c_len = string.len(obj.c_data)
+		obj.OnSerializeData()
 
 		net.Start('sv_network_rpc_callback', obj.unreliable)
 		net.WriteString(obj.id)
@@ -271,6 +264,14 @@ snet.Create = function(name, unreliable)
 			resetTime = RealTime() + obj.lifetime
 		})
 
+		return obj
+	end
+
+	function obj.OnSerializeData()
+		if not obj.c_data and not obj.c_len then
+			obj.c_data = util.Compress(snet.Serialize(obj.data))
+			obj.c_len = string.len(obj.c_data)
+		end
 		return obj
 	end
 
