@@ -204,8 +204,6 @@ snet.Create = function(name, unreliable)
 	return obj
 end
 
--- [ START BLOCK ] --
--- Deprecated methods. Not recommended for use.
 snet.Invoke = function(name, receiver, ...)
 	if CLIENT then
 		return snet.Create(name).SetData(...).InvokeServer()
@@ -225,7 +223,6 @@ end
 snet.InvokeServer = function(name, ...)
 	return snet.Create(name).SetData(...).InvokeServer()
 end
--- [ END BLOCK ] --
 
 local request_id = 0
 local last_time_request_id_generate = -1
