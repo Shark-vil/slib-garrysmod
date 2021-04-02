@@ -4,37 +4,6 @@ snet.requests = snet.requests or {}
 local REQUEST_LIFE_TIME = 3
 local REQUEST_LIMITS_LIST = {}
 
-function snet.ValueIsValid(value)
-	if isfunction(value) then return false end
-	if value == nil then return false end
-	return true
-end
-
-function snet.GetNormalizeDataTable(data, entity_to_table)
-	local entity_to_table = entity_to_table or false
-	local new_data = {}
-
-	if not istable(data) then return new_data end
-	if data._snet_disable then return new_data end
-	if data._snet_getdata and isfunction(data._snet_getdata) then return data:_snet_getdata() end
-
-	for k, v in pairs(data) do
-		if not snet.ValueIsValid(k) or not snet.ValueIsValid(v) then goto skip end
-
-		if istable(v) then
-			new_data[k] = snet.GetNormalizeDataTable(v, entity_to_table)
-		elseif entity_to_table and isentity(v) then
-			new_data[k] = snet.GetNormalizeDataTable(v:GetTable(), entity_to_table)
-		else
-			new_data[k] = v
-		end
-
-		::skip::
-	end
-
-	return new_data
-end
-
 function snet.execute(id, name, ply, backward, ...)
 	if CLIENT then ply = LocalPlayer() end
 
@@ -163,6 +132,8 @@ snet.Create = function(name, unreliable)
 	obj.id = 'none'
 	obj.name = name
 	obj.data = {}
+	obj.c_data = nil
+	obj.c_len = nil
 	obj.unreliable = unreliable or false
 	obj.bigdata = nil
 	obj.backward = false
@@ -220,14 +191,16 @@ snet.Create = function(name, unreliable)
 
 		obj.AddRequestToList()
 
-		local compressed_data = snet.Serialize(obj.data)
-		local compressed_length = string.len(compressed_data)
+		if not obj.c_data and not obj.c_len then
+			obj.c_data = snet.Serialize(obj.data)
+			obj.c_len = string.len(obj.c_data)
+		end
 
 		net.Start('cl_network_rpc_callback', obj.unreliable)
 		net.WriteString(obj.id)
 		net.WriteString(obj.name)
-		net.WriteInt(compressed_length, 10)
-		net.WriteData(compressed_data)
+		net.WriteInt(obj.c_len, 10)
+		net.WriteData(obj.c_data)
 		net.WriteBool(obj.backward)
 		net.Send(receiver)
 		return obj
@@ -235,12 +208,18 @@ snet.Create = function(name, unreliable)
 
 	function obj.InvokeAll()
 		if CLIENT then return end
+		obj.c_data = snet.Serialize(obj.data)
+		obj.c_len = string.len(obj.c_data)
+
 		obj.Invoke(slib.GetAllLoadedPlayers())
 		return obj
 	end
 
 	function obj.InvokeIgnore(receiver)
 		if CLIENT then return end
+		obj.c_data = snet.Serialize(obj.data)
+		obj.c_len = string.len(obj.c_data)
+
 		local receivers = {}
 
 		if isentity(receiver) then
@@ -270,14 +249,14 @@ snet.Create = function(name, unreliable)
 
 		obj.AddRequestToList()
 
-		local compressed_data = snet.Serialize(obj.data)
-		local compressed_length = string.len(compressed_data)
+		obj.c_data = snet.Serialize(obj.data)
+		obj.c_len = string.len(obj.c_data)
 
 		net.Start('sv_network_rpc_callback', obj.unreliable)
 		net.WriteString(obj.id)
 		net.WriteString(obj.name)
-		net.WriteInt(compressed_length, 10)
-		net.WriteData(compressed_data)
+		net.WriteInt(obj.c_len, 10)
+		net.WriteData(obj.c_data)
 		net.WriteBool(obj.backward)
 		net.SendToServer()
 		return obj

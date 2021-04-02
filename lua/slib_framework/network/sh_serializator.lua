@@ -31,6 +31,9 @@ local ValueSerialize = {
    [TYPE_MATRIX] = function(datatable, t, v)
       table.insert(datatable, { t, v:ToTable() })
    end,
+   [TYPE_COLOR] = function(datatable, t, v)
+      table.insert(datatable, { t, v:ToTable() })
+   end,
 }
 
 function snet.Serialize(data, notcompress)
@@ -42,9 +45,16 @@ function snet.Serialize(data, notcompress)
 
    for i = 1, #data do
       local value = data[i]
-      local t = TypeID(value)
-		local converter = ValueSerialize[t]
-      if converter then converter(datatable, t, value) end
+      local typeid
+
+      if IsColor(value) then
+         typeid = TYPE_COLOR
+      else
+         typeid = TypeID(value)
+      end
+
+		local converter = ValueSerialize[typeid]
+      if converter then converter(datatable, typeid, value) end
 	end
 
    local notcompress = notcompress or false
@@ -84,6 +94,9 @@ local ValueDeserialize = {
    [TYPE_MATRIX] = function(datatable, v)
       table.insert(datatable, Matrix(v))
    end,
+   [TYPE_COLOR] = function(datatable, v)
+      table.insert(datatable, Color(v[1], v[2], v[3], v[4]))
+   end,
 }
 
 function snet.Deserialize(json_datatable)
@@ -106,4 +119,40 @@ function snet.Deserialize(json_datatable)
    end
 
    return datatable
+end
+
+
+function snet.ValueIsValid(value)
+	local typeid = TypeID(value)
+   if typeid == TYPE_TABLE or typeid == TYPE_NUMBER
+   or typeid == TYPE_STRING or typeid == TYPE_BOOL
+   or typeid == TYPE_ENTITY or typeid == TYPE_VECTOR
+   or typeid == TYPE_ANGLE or typeid == TYPE_MATRIX
+   or typeid == TYPE_COLOR
+   then
+      return true
+   end
+   return false
+end
+
+function snet.GetNormalizeDataTable(data)
+	local new_data = {}
+
+	if not istable(data) then return new_data end
+	if data._snet_disable then return new_data end
+	if data._snet_getdata and isfunction(data._snet_getdata) then return data:_snet_getdata() end
+
+	for k, v in pairs(data) do
+		if not snet.ValueIsValid(k) or not snet.ValueIsValid(v) then goto skip end
+
+		if istable(v) then
+			new_data[k] = snet.GetNormalizeDataTable(v)
+		else
+			new_data[k] = v
+		end
+
+		::skip::
+	end
+
+	return new_data
 end
