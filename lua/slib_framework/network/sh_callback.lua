@@ -189,14 +189,6 @@ end
 snet.InvokeAll = function(name, ...)
 	return snet.Create(name).SetData(...).InvokeAll()
 end
-
-snet.InvokeIgnore = function(name, receiver, ...)
-	return snet.Create(name).SetData(...).InvokeIgnore(receiver)
-end
-
-snet.InvokeServer = function(name, ...)
-	return snet.Create(name).SetData(...).InvokeServer()
-end
 -- [ END BLOCK ] --
 
 local request_id = 0
