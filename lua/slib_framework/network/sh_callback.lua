@@ -121,13 +121,13 @@ snet.Create = function(name, unreliable)
 			return obj
 		end
 
-		obj.AddRequestToList()
-
 		local bigdata = obj.bigdata
 		if bigdata then
 			snet.InvokeBigData(obj.name, receiver, bigdata.data, bigdata.max_size, bigdata.progress_text)
 			return obj
 		end
+
+		obj.AddRequestToList()
 
 		net.Start('cl_network_rpc_callback', obj.unreliable)
 		net.WriteString(obj.id)
@@ -145,8 +145,6 @@ snet.Create = function(name, unreliable)
 
 	function obj.InvokeIgnore(receiver)
 		if CLIENT then return end
-		obj.AddRequestToList()
-
 		local receivers = {}
 
 		if isentity(receiver) then
@@ -168,13 +166,13 @@ snet.Create = function(name, unreliable)
 
 	function obj.InvokeServer()
 		if SERVER then return end
-		obj.AddRequestToList()
-
 		local bigdata = obj.bigdata
 		if bigdata then
 			snet.InvokeBigData(obj.name, nil, bigdata.data, bigdata.max_size, bigdata.progress_text)
 			return
 		end
+
+		obj.AddRequestToList()
 
 		net.Start('sv_network_rpc_callback', obj.unreliable)
 		net.WriteString(obj.id)
