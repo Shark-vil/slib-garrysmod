@@ -39,26 +39,27 @@ local ValueSerialize = {
 function snet.Serialize(data, notcompress)
    local datatable = {}
 
-   if not istable(data) then return datatable end
-	if data._snet_disable then return datatable end
-	if data._snet_getdata and isfunction(data._snet_getdata) then return data:_snet_getdata() end
-
-   for i = 1, #data do
-      local value = data[i]
-      local typeid
-
-      if IsColor(value) then
-         typeid = TYPE_COLOR
+   if istable(data) and not data._snet_disable then
+      if data._snet_getdata and isfunction(data._snet_getdata) then
+         datatable = data:_snet_getdata()
       else
-         typeid = TypeID(value)
-      end
+         for i = 1, #data do
+            local value = data[i]
+            local typeid
 
-		local converter = ValueSerialize[typeid]
-      if converter then converter(datatable, typeid, value) end
-	end
+            if IsColor(value) then
+               typeid = TYPE_COLOR
+            else
+               typeid = TypeID(value)
+            end
+
+            local converter = ValueSerialize[typeid]
+            if converter then converter(datatable, typeid, value) end
+         end
+      end
+   end
 
    local notcompress = notcompress or false
-
    if not notcompress then
       return util.Compress(util.TableToJSON(datatable))
    else
