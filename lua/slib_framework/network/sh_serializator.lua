@@ -41,7 +41,8 @@ function snet.Serialize(data, notcompress)
 
    if istable(data) and not data._snet_disable then
       if data._snet_getdata and isfunction(data._snet_getdata) then
-         datatable = data:_snet_getdata()
+         local getdata = data:_snet_getdata()
+         if istable(getdata) then datatable = getdata end
       else
          for i = 1, #data do
             local value = data[i]
