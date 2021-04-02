@@ -119,7 +119,7 @@ snet.Create = function(name, unreliable)
 		return obj
 	end
 
-	function obj.InvokeAll()
+	function obj.InvokeAll(ignore_receiver)
 		if CLIENT then return end
 		obj.AddRequestToList()
 
@@ -127,20 +127,11 @@ snet.Create = function(name, unreliable)
 		net.WriteString(obj.id)
 		net.WriteString(obj.name)
 		net.WriteTable(obj.data)
-		net.Broadcast()
-
-		return obj
-	end
-
-	function obj.InvokeIgnore(receiver)
-		if CLIENT then return end
-		obj.AddRequestToList()
-
-		net.Start('cl_network_rpc_callback', obj.unreliable)
-		net.WriteString(obj.id)
-		net.WriteString(obj.name)
-		net.WriteTable(obj.data)
-		net.SendOmit(receiver)
+		if ignore_receiver then
+			net.SendOmit(ignore_receiver)
+		else
+			net.Broadcast()
+		end
 
 		return obj
 	end
@@ -188,14 +179,6 @@ end
 
 snet.InvokeAll = function(name, ...)
 	return snet.Create(name).SetData(...).InvokeAll()
-end
-
-snet.InvokeIgnore = function(name, receiver, ...)
-	return snet.Create(name).SetData(...).InvokeIgnore(receiver)
-end
-
-snet.InvokeServer = function(name, ...)
-	return snet.Create(name).SetData(...).InvokeServer()
 end
 -- [ END BLOCK ] --
 
