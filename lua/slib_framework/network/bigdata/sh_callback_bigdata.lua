@@ -71,12 +71,12 @@ snet.InvokeBigData = function(name, ply, data, max_size, progress_text, progress
    })
    
    if SERVER then
-      hook.Run('Slib_PreparingBigdataSending', ply, name)
+      hook.Run('SlibPreparingBigdataSending', ply, name)
    else
       if progress_id ~= '' and progress_text ~= '' then
          notification.AddProgress('SlibBigDataPreparing_' .. name, "Data is being prepared for upload...")
       end
-      hook.Run('Slib_PreparingBigdataSending', LocalPlayer(), name)
+      hook.Run('SlibPreparingBigdataSending', LocalPlayer(), name)
    end
 
    hook.Add('Think', hook_name, function()
@@ -85,14 +85,14 @@ snet.InvokeBigData = function(name, ply, data, max_size, progress_text, progress
          hook.Remove('Think', hook_name)
 
          if SERVER then
-            hook.Run('Slib_StopBigdataSending', ply, name)
+            hook.Run('SlibStopBigdataSending', ply, name)
          else
             if progress_id ~= '' and progress_text ~= '' then
                notification.Kill('SlibBigDataPreparing_' .. name)
                notification.AddLegacy('Failed to pack data to send!', NOTIFY_ERROR, 4)
             end
 
-            hook.Run('Slib_StopBigdataSending', LocalPlayer(), name)
+            hook.Run('SlibStopBigdataSending', LocalPlayer(), name)
          end
          return
       end
@@ -129,6 +129,6 @@ snet.InvokeBigData = function(name, ply, data, max_size, progress_text, progress
          end
       end
 
-      hook.Run('Slib_StartBigdataSending', ply, name)
+      hook.Run('SnetBigDataStartSending', ply, name)
    end)
 end

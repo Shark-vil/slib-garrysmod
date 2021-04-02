@@ -20,7 +20,7 @@ net.Receive('slib_sv_bigdata_receive_ok', function(len, ply)
    net.Send(ply)
 
    if data.current_part >= data.max_parts then
-      hook.Run('Slib_BigDataFinished', ply, name, data)
+      hook.Run('SnetBigDataFinished', ply, name, data)
       snet.storage.bigdata[index] = nil
    end
 end)
@@ -34,7 +34,7 @@ net.Receive('slib_sv_bigdata_receive_error', function(len, ply)
    local data = snet.storage.bigdata[index]
 
    if data ~= nil and data.ply == ply then
-      hook.Run('Slib_BigDataFailed', ply, name, data)
+      hook.Run('SnetBigDataFailed', ply, name, data)
       snet.storage.bigdata[index] = nil
    end
 end)

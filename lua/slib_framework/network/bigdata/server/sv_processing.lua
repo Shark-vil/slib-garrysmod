@@ -70,7 +70,7 @@ net.Receive('slib_sv_bigdata_processing', function(len, ply)
    table.insert(data.parts_data, compressed_data)
 
    if data.current_part == 1 then
-      hook.Run('Slib_StartBigdataSending', ply, name)
+      hook.Run('SnetBigDataStartSending', ply, name)
    end
 
    if data.current_part >= data.max_parts then

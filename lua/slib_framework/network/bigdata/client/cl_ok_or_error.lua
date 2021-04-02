@@ -30,7 +30,7 @@ net.Receive('slib_cl_bigdata_receive_ok', function()
          notification.AddLegacy('Success! ' .. data.progress_text, NOTIFY_GENERIC, 3)
       end
 
-      hook.Run('Slib_BigDataFinished', LocalPlayer(), name, data)
+      hook.Run('SnetBigDataFinished', LocalPlayer(), name, data)
       snet.storage.bigdata[index] = nil
    end
 end)
@@ -48,7 +48,7 @@ net.Receive('slib_cl_bigdata_receive_error', function(len)
          notification.AddLegacy('An error occurred while sending data!', NOTIFY_ERROR, 5)
       end
 
-      hook.Run('Slib_BigDataFailed', LocalPlayer(), name, data)
+      hook.Run('SnetBigDataFailed', LocalPlayer(), name, data)
       snet.storage.bigdata[index] = nil
    end
 end)

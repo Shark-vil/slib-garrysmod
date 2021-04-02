@@ -62,7 +62,7 @@ net.Receive('slib_cl_bigdata_processing', function(len)
    table.insert(data.parts_data, compressed_data)
 
    if data.current_part == 1 then
-      hook.Run('Slib_StartBigdataSending', ply, name)
+      hook.Run('SnetBigDataStartSending', ply, name)
    end
 
    if data.progress_id ~= '' and data.progress_text ~= '' then
