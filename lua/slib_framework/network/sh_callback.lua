@@ -1,7 +1,7 @@
 snet.storage.default = snet.storage.default or {}
 snet.requests = snet.requests or {}
 
-local REQUEST_LIFE_TIME = 3
+local REQUEST_LIFE_TIME = 2
 local REQUEST_LIMITS_LIST = {}
 
 function snet.execute(id, name, ply, backward, ...)
