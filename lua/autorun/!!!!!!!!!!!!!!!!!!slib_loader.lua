@@ -14,6 +14,8 @@ local script = slib.CreateIncluder(root_directory, '[SLibrary] Script load - {fi
 script:using('network/sh_addnetwork.lua')
 script:using('network/sh_callback.lua')
 script:using('network/validator/sh_validator.lua')
+script:using('network/validator/sh_validator_server.lua')
+script:using('network/validator/sh_validator_client.lua')
 script:using('network/entity/sh_entity_callback.lua')
 
 script:using('network/bigdata/sh_callback_bigdata.lua')
@@ -33,6 +35,7 @@ script:using('cvars/gcvars/cl_gcvars.lua')
 
 script:using('hooks/sh_player_first_spawn.lua')
 
+script:using('extension/sh_generators.lua')
 script:using('extension/sh_player.lua')
 script:using('extension/sh_table.lua')
 script:using('extension/sh_sound_duration.lua')

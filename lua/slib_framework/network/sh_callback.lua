@@ -184,7 +184,7 @@ snet.Create = function(name, unreliable)
 	end
 
 	function obj.AddRequestToList()
-		obj.id = snet.GenerateRequestID()
+		obj.id = slib.GenerateUid(obj.name)
 
 		table.insert(snet.requests, {
 			request = obj,
@@ -223,24 +223,6 @@ end
 snet.InvokeServer = function(name, ...)
 	return snet.Create(name).SetData(...).InvokeServer()
 end
-
-local request_id = 0
-local last_time_request_id_generate = -1
-snet.GenerateRequestID = function()
-	local time = RealTime()
-	request_id = request_id + 1
-	last_time_request_id_generate = time
-	return tostring(util.CRC(time + request_id))
-end
-
--- Reset unique request IDs if there is no activity for a long time.
-timer.Create('SNet_RequestIdResetToZero', 1, 0, function()
-	if last_time_request_id_generate == -1 then return end
-	if last_time_request_id_generate + 60 < RealTime() then
-		request_id = 0
-		last_time_request_id_generate = -1
-	end
-end)
 
 snet.FindRequestByID = function(id)
 	for i = 1, #snet.requests do
