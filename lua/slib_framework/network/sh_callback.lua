@@ -1,7 +1,7 @@
 snet.storage.default = snet.storage.default or {}
 snet.requests = snet.requests or {}
 
-local REQUEST_LIFE_TIME = 10
+local REQUEST_LIFE_TIME = 3
 local REQUEST_LIMITS_LIST = {}
 
 function snet.ValueIsValid(value)
@@ -16,7 +16,7 @@ function snet.GetNormalizeDataTable(data, entity_to_table)
 
 	if not istable(data) then return new_data end
 	if data._snet_disable then return new_data end
-	if data._get_snet_data and isfunction(data._get_snet_data) then return data:_get_snet_data() end
+	if data._snet_getdata and isfunction(data._snet_getdata) then return data:_snet_getdata() end
 
 	for k, v in pairs(data) do
 		if not snet.ValueIsValid(k) or not snet.ValueIsValid(v) then goto skip end
@@ -35,7 +35,7 @@ function snet.GetNormalizeDataTable(data, entity_to_table)
 	return new_data
 end
 
-function snet.execute(id, name, ply, ...)
+function snet.execute(id, name, ply, backward, ...)
 	if CLIENT then ply = LocalPlayer() end
 
 	if snet.storage.default[name] == nil then
@@ -99,6 +99,18 @@ function snet.execute(id, name, ply, ...)
 
 	data.execute(ply, ...)
 
+	if backward then
+		if CLIENT then
+			net.Start('sv_network_rpc_success')
+			net.WriteString(id)
+			net.SendToServer()
+		else
+			net.Start('cl_network_rpc_success')
+			net.WriteString(id)
+			net.Send(ply)
+		end
+	end
+
 	if data.autoRemove then
 		net.RemoveCallback(name)
 	end
@@ -106,21 +118,44 @@ function snet.execute(id, name, ply, ...)
 	return true
 end
 
-local function network_callback(len, ply)
+local function network_callback(len, ply)	
 	local id = net.ReadString()
 	local name = net.ReadString()
-	local vars = net.ReadTable()
-	local reuslt = snet.execute(id, name, ply, unpack(vars))
+	local compressed_length = net.ReadInt(10)
+	local compressed_data = net.ReadData(compressed_length)
+	local backward = net.ReadBool()
+	local vars = snet.Deserialize(compressed_data)
+	local reuslt = snet.execute(id, name, ply, backward, unpack(vars))
 	hook.Run('SNetRequestResult', id, name, reuslt, vars)
 end
 
 if SERVER then
 	util.AddNetworkString('sv_network_rpc_callback')
 	util.AddNetworkString('cl_network_rpc_callback')
+	util.AddNetworkString('sv_network_rpc_success')
+	util.AddNetworkString('cl_network_rpc_success')
 
 	snet.Receive('sv_network_rpc_callback', network_callback)
+
+	-- Success result
+	snet.Receive('sv_network_rpc_success', function(len, ply)
+		local id = net.ReadString()
+		local request = snet.FindRequestById(id)
+		if not request or not request.func_success then return end
+		request.func_success(ply, request)
+		snet.RemoveRequestById(id)
+	end)
 else
 	snet.Receive('cl_network_rpc_callback', network_callback)
+
+	-- Success result
+	snet.Receive('cl_network_rpc_success', function(len, ply)
+		local id = net.ReadString()
+		local request = snet.FindRequestById(id)
+		if not request or not request.func_success then return end
+		request.func_success(LocalPlayer(), request)
+		snet.RemoveRequestById(id)
+	end)
 end
 
 snet.Create = function(name, unreliable)
@@ -130,9 +165,12 @@ snet.Create = function(name, unreliable)
 	obj.data = {}
 	obj.unreliable = unreliable or false
 	obj.bigdata = nil
+	obj.backward = false
+	obj.func_success = nil
+	obj.lifetime = REQUEST_LIFE_TIME
 
 	function obj.SetData(...)
-		obj.data = snet.GetNormalizeDataTable({ ... })
+		obj.data = { ... }
 		return obj
 	end
 
@@ -154,6 +192,18 @@ snet.Create = function(name, unreliable)
 		return obj
 	end
 
+	function obj.SetLifeTime(time)
+		obj.lifetime = time
+		return obj
+	end
+
+	function obj.Success(func)
+		if not func or not isfunction(func) then return end
+		obj.func_success = func
+		obj.backward = true
+		return obj
+	end
+
 	function obj.Invoke(receiver)
 		if CLIENT then return end
 
@@ -170,10 +220,15 @@ snet.Create = function(name, unreliable)
 
 		obj.AddRequestToList()
 
+		local compressed_data = snet.Serialize(obj.data)
+		local compressed_length = string.len(compressed_data)
+
 		net.Start('cl_network_rpc_callback', obj.unreliable)
 		net.WriteString(obj.id)
 		net.WriteString(obj.name)
-		net.WriteTable(obj.data)
+		net.WriteInt(compressed_length, 10)
+		net.WriteData(compressed_data)
+		net.WriteBool(obj.backward)
 		net.Send(receiver)
 		return obj
 	end
@@ -215,12 +270,16 @@ snet.Create = function(name, unreliable)
 
 		obj.AddRequestToList()
 
+		local compressed_data = snet.Serialize(obj.data)
+		local compressed_length = string.len(compressed_data)
+
 		net.Start('sv_network_rpc_callback', obj.unreliable)
 		net.WriteString(obj.id)
 		net.WriteString(obj.name)
-		net.WriteTable(obj.data)
+		net.WriteInt(compressed_length, 10)
+		net.WriteData(compressed_data)
+		net.WriteBool(obj.backward)
 		net.SendToServer()
-
 		return obj
 	end
 
@@ -229,7 +288,7 @@ snet.Create = function(name, unreliable)
 
 		table.insert(snet.requests, {
 			request = obj,
-			resetTime = RealTime() + REQUEST_LIFE_TIME
+			resetTime = RealTime() + obj.lifetime
 		})
 
 		return obj
@@ -239,6 +298,9 @@ snet.Create = function(name, unreliable)
 		local clone = snet.Create(obj.name, obj.unreliable)
 		clone.data = obj.data
 		clone.bigdata = obj.bigdata
+		clone.backward = obj.backward
+		clone.func_success = obj.func_success
+		clone.lifetime = obj.lifetime 
 		return clone
 	end
 
@@ -265,15 +327,28 @@ snet.InvokeServer = function(name, ...)
 	return snet.Create(name).SetData(...).InvokeServer()
 end
 
-snet.FindRequestByID = function(id)
-	for i = 1, #snet.requests do
+snet.FindRequestById = function(id, to_extend)
+	to_extend = to_extend or false
+
+	for i = #snet.requests, 1, -1 do
 		local data = snet.requests[i]
 		if data.request and data.request.id == id then
-			data.resetTime = RealTime() + REQUEST_LIFE_TIME
+			if to_extend then data.resetTime = RealTime() + data.request.lifetime end
 			return data.request
 		end
 	end
 	return nil
+end
+
+snet.RemoveRequestById = function(id)
+	for i = #snet.requests, 1, -1 do
+		local data = snet.requests[i]
+		if data.request and data.request.id == id then
+			table.remove(snet.requests, i)
+			return true
+		end
+	end
+	return false
 end
 
 snet.Callback = function(name, func)

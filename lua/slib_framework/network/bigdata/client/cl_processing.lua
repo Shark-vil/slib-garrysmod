@@ -86,9 +86,9 @@ net.Receive('slib_cl_bigdata_processing', function(len)
 
       local result_data = util.JSONToTable(data_string)
       if result_data.type == 'table' then
-         snet.execute('none', name, ply, util.JSONToTable(result_data.data))
+         snet.execute('none', name, ply, false, util.JSONToTable(result_data.data))
       elseif result_data.type == 'string' then
-         snet.execute('none', name, ply, result_data.data)
+         snet.execute('none', name, ply, false, result_data.data)
       end
    else
       net.Start('slib_sv_bigdata_receive_ok')

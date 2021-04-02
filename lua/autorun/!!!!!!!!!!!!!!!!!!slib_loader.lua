@@ -12,6 +12,7 @@ include(root_directory .. '/extension/sh_script_include.lua')
 local script = slib.CreateIncluder(root_directory, '[SLibrary] Script load - {file}')
 
 script:using('network/sh_addnetwork.lua')
+script:using('network/sh_serializator.lua')
 script:using('network/sh_callback.lua')
 script:using('network/validator/sh_validator.lua')
 script:using('network/validator/sh_validator_server.lua')

@@ -2,7 +2,7 @@ if SERVER then
 	local entities_queue = {}
 
 	snet.Callback('snet_sv_entity_network_start', function(ply, id)
-		local request = snet.FindRequestByID(id)
+		local request = snet.FindRequestById(id, true)
 		if not request then return end
 
 		local ent = request.data[1]
@@ -15,6 +15,7 @@ if SERVER then
 				name = request.name,
 				vars = request.data,
 				unreliable = request.unreliable,
+				func_success = request.func_success
 			},
 			ply = ply,
 			ent = ent,
@@ -61,6 +62,7 @@ if SERVER then
 			elseif data.equalDelay < real_time then
 				snet.Create('snet_cl_entity_network_callback', requestData.unreliable)
 					.SetData(requestData.id, requestData.name, requestData.vars)
+					.Success(requestData.func_success)
 					.Invoke(ply)
 
 				data.equalDelay = real_time + 0.5 + delay_infelicity
@@ -80,7 +82,7 @@ else
 		snet.Create('snet_sv_entity_network_success').AddValue(id).InvokeServer()
 		table.insert(uids_block, id)
 
-		snet.execute(id, name, ply, unpack(vars))
+		snet.execute(id, name, ply, false, unpack(vars))
 	end).Register()
 
 	snet.Callback('snet_cl_entity_network_success', function(_, uid)
