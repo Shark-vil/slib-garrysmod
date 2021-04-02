@@ -190,13 +190,8 @@ snet.Create = function(name, unreliable)
 			return obj
 		end
 
-		obj.OnSerializeData()
 		obj.AddRequestToList()
-
-		if obj.c_data == nil or obj.c_len == nil then
-			ErrorNoHalt('Invoke - Fuck!!!')
-			return
-		end
+		obj.OnSerializeData()
 
 		net.Start('cl_network_rpc_callback', obj.unreliable)
 		net.WriteString(obj.id)
@@ -210,7 +205,9 @@ snet.Create = function(name, unreliable)
 
 	function obj.InvokeAll()
 		if CLIENT then return end
-		obj.OnSerializeData()
+		obj.c_data = snet.Serialize(obj.data)
+		obj.c_len = string.len(obj.c_data)
+
 		obj.Invoke(slib.GetAllLoadedPlayers())
 		return obj
 	end
@@ -246,13 +243,8 @@ snet.Create = function(name, unreliable)
 			return
 		end
 
-		obj.OnSerializeData()
 		obj.AddRequestToList()
-
-		if obj.c_data == nil or obj.c_len == nil then
-			ErrorNoHalt('InvokeServer - Fuck!!!')
-			return
-		end
+		obj.OnSerializeData()
 
 		net.Start('sv_network_rpc_callback', obj.unreliable)
 		net.WriteString(obj.id)
@@ -276,9 +268,9 @@ snet.Create = function(name, unreliable)
 	end
 
 	function obj.OnSerializeData()
-		if obj.c_data == nil and obj.c_len == nil then
+		if not obj.c_data and not obj.c_len then
 			obj.c_data = util.Compress(snet.Serialize(obj.data))
-			obj.c_len = #obj.c_data
+			obj.c_len = string.len(obj.c_data)
 		end
 		return obj
 	end
