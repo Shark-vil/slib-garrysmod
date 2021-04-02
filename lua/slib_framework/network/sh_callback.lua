@@ -87,7 +87,7 @@ function snet.execute(id, name, ply, backward, ...)
 	return true
 end
 
-local function network_callback(len, ply)	
+local function network_callback(len, ply)
 	local id = net.ReadString()
 	local name = net.ReadString()
 	local compressed_length = net.ReadUInt(32)
@@ -169,9 +169,10 @@ snet.Create = function(name, unreliable)
 	end
 
 	function obj.Success(func)
-		if not func or not isfunction(func) then return end
-		obj.func_success = func
-		obj.backward = true
+		if func and isfunction(func) then
+			obj.func_success = func
+			obj.backward = true
+		end
 		return obj
 	end
 

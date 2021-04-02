@@ -1,61 +1,79 @@
 local ValueSerialize = {
-   [TYPE_TABLE] = function(datatable, t, v)
+   [TYPE_TABLE] = function(t, v)
       local getdatatable = snet.Serialize(v, true)
-      if getdatatable and #getdatatable ~= 0 then
-         table.insert(datatable, { t, getdatatable })
+      if getdatatable then
+         return t, getdatatable
       end
    end,
-   [TYPE_NUMBER] = function(datatable, t, v)
-      table.insert(datatable, { t, v })
+   [TYPE_NUMBER] = function(t, v)
+      return t, v
    end,
-   [TYPE_STRING] = function(datatable, t, v)
-      table.insert(datatable, { t, v })
+   [TYPE_STRING] = function(t, v)
+      return t, v
    end,
-   [TYPE_BOOL] = function(datatable, t, v)
-      table.insert(datatable, { t, v })
+   [TYPE_BOOL] = function(t, v)
+      return t, v
    end,
-   [TYPE_ENTITY] = function(datatable, t, v)
+   [TYPE_ENTITY] = function(t, v)
       if not v or not IsValid(v) then return end
 
       local index = v:EntIndex()
       if index == -1 then return end
 
-      table.insert(datatable, { t, index })
+      return t, index
    end,
-   [TYPE_VECTOR] = function(datatable, t, v)
-      table.insert(datatable, { t, v:ToTable() })
+   [TYPE_VECTOR] = function(t, v)
+      return t, v:ToTable()
    end,
-   [TYPE_ANGLE] = function(datatable, t, v)
-      table.insert(datatable, { t, v:ToTable() })
+   [TYPE_ANGLE] = function(t, v)
+      return t, v:ToTable()
    end,
-   [TYPE_MATRIX] = function(datatable, t, v)
-      table.insert(datatable, { t, v:ToTable() })
+   [TYPE_MATRIX] = function(t, v)
+      return t, v:ToTable()
    end,
-   [TYPE_COLOR] = function(datatable, t, v)
-      table.insert(datatable, { t, v:ToTable() })
+   [TYPE_COLOR] = function(t, v)
+      return t, v:ToTable()
    end,
 }
+
+local function GetValueType(value)
+   local typeid
+   if IsColor(value) then typeid = TYPE_COLOR else typeid = TypeID(value) end
+   return typeid
+end
 
 function snet.Serialize(data, notcompress)
    local datatable = {}
 
    if istable(data) and not data._snet_disable then
       if data._snet_getdata and isfunction(data._snet_getdata) then
-         local getdata = data:_snet_getdata()
+         local getdata = data._snet_getdata()
          if istable(getdata) then datatable = getdata end
       else
-         for i = 1, #data do
-            local value = data[i]
-            local typeid
+         for k, v in pairs(data) do
+            local key_type, key_data, val_type, val_data
 
-            if IsColor(value) then
-               typeid = TYPE_COLOR
-            else
-               typeid = TypeID(value)
+            do
+               local typeid = GetValueType(k)
+               local converter = ValueSerialize[typeid]
+               if converter then 
+                  key_type, key_data = converter(typeid, k)
+               end
             end
 
-            local converter = ValueSerialize[typeid]
-            if converter then converter(datatable, typeid, value) end
+            if key_type ~= nil and key_data ~= nil then
+               do
+                  local typeid = GetValueType(v)
+                  local converter = ValueSerialize[typeid]
+                  if converter then 
+                     val_type, val_data = converter(typeid, v)
+                     table.insert(datatable, {
+                        key_type, key_data,
+                        val_type, val_data,
+                     })
+                  end
+               end
+            end
          end
       end
    end
@@ -69,35 +87,35 @@ function snet.Serialize(data, notcompress)
 end
 
 local ValueDeserialize = {
-   [TYPE_TABLE] = function(datatable, v)
+   [TYPE_TABLE] = function(v)
       local getdatatable = snet.Deserialize(v)
-      if getdatatable and #getdatatable ~= 0 then
-         table.insert(datatable, getdatatable)
+      if getdatatable then
+         return getdatatable
       end
    end,
-   [TYPE_NUMBER] = function(datatable, v)
-      table.insert(datatable, v)
+   [TYPE_NUMBER] = function(v)
+      return v
    end,
-   [TYPE_STRING] = function(datatable, v)
-      table.insert(datatable, v)
+   [TYPE_STRING] = function(v)
+      return v
    end,
-   [TYPE_BOOL] = function(datatable, v)
-      table.insert(datatable, v)
+   [TYPE_BOOL] = function(v)
+      return v
    end,
-   [TYPE_ENTITY] = function(datatable, v)
-      table.insert(datatable, Entity(v))
+   [TYPE_ENTITY] = function(v)
+      return Entity(v)
    end,
-   [TYPE_VECTOR] = function(datatable, v)
-      table.insert(datatable, Vector(v[1], v[2], v[3]))
+   [TYPE_VECTOR] = function(v)
+      return Vector(v[1], v[2], v[3])
    end,
-   [TYPE_ANGLE] = function(datatable, v)
-      table.insert(datatable, Angle(v[1], v[2], v[3]))
+   [TYPE_ANGLE] = function(v)
+      return Angle(v[1], v[2], v[3])
    end,
-   [TYPE_MATRIX] = function(datatable, v)
-      table.insert(datatable, Matrix(v))
+   [TYPE_MATRIX] = function(v)
+      return Matrix(v)
    end,
-   [TYPE_COLOR] = function(datatable, v)
-      table.insert(datatable, Color(v[1], v[2], v[3], v[4]))
+   [TYPE_COLOR] = function(v)
+      return Color(v[1], v[2], v[3], v[4])
    end,
 }
 
@@ -115,9 +133,23 @@ function snet.Deserialize(json_datatable)
    end
 
    for i = 1, #getdatatable do
+      local key, value
       local data = getdatatable[i]
-      local deconverter = ValueDeserialize[data[1]]
-      if deconverter then deconverter(datatable, data[2]) end
+
+      do
+         local deconverter = ValueDeserialize[data[1]]
+         if deconverter then
+            key = deconverter(data[2])
+         end
+      end
+
+      if key ~= nil then
+         local deconverter = ValueDeserialize[data[3]]
+         if deconverter then
+            value = deconverter(data[4])
+            datatable[key] = value
+         end
+      end
    end
 
    return datatable
@@ -142,7 +174,11 @@ function snet.GetNormalizeDataTable(data)
 
 	if not istable(data) then return new_data end
 	if data._snet_disable then return new_data end
-	if data._snet_getdata and isfunction(data._snet_getdata) then return data:_snet_getdata() end
+	if data._snet_getdata and isfunction(data._snet_getdata) then
+      local getdata = data._snet_getdata()
+      if istable(getdata) then return getdata end
+      return new_data
+   end
 
 	for k, v in pairs(data) do
 		if not snet.ValueIsValid(k) or not snet.ValueIsValid(v) then goto skip end
