@@ -84,13 +84,26 @@ end
 
 snet.Create = function(name, unreliable)
 	local obj = {}
-	obj.id = snet.GenerateRequestID()
+	obj.id = 'none'
 	obj.name = name
 	obj.data = {}
 	obj.unreliable = unreliable or false
+	obj.bigdata = nil
 
 	function obj.SetData(...)
 		obj.data = snet.GetNormalizeDataTable({ ... })
+		return obj
+	end
+
+	function obj.SetBigData(data, max_size, progress_text)
+		if not istable(data) and not isstring(data) then return end
+
+		obj.bigdata = {
+			data = data,
+			max_size = max_size,
+			progress_text = progress_text
+		}
+
 		return obj
 	end
 
@@ -102,33 +115,31 @@ snet.Create = function(name, unreliable)
 
 	function obj.Invoke(receiver)
 		if CLIENT then return end
+
+		if istable(receiver) then
+			for i = 1, #receiver do obj.Clone().Invoke(receiver[i]) end
+			return obj
+		end
+
 		obj.AddRequestToList()
+
+		local bigdata = obj.bigdata
+		if bigdata then
+			snet.InvokeBigData(obj.name, receiver, bigdata.data, bigdata.max_size, bigdata.progress_text)
+			return obj
+		end
 
 		net.Start('cl_network_rpc_callback', obj.unreliable)
 		net.WriteString(obj.id)
 		net.WriteString(obj.name)
 		net.WriteTable(obj.data)
 		net.Send(receiver)
-
-		return obj
-	end
-
-	function obj.InvokeBigData(receiver, max_size, progress_text)
-		if CLIENT then return end
-		snet.InvokeBigData(obj.name, receiver, obj.data[1], max_size, progress_text)
 		return obj
 	end
 
 	function obj.InvokeAll()
 		if CLIENT then return end
-		obj.AddRequestToList()
-
-		net.Start('cl_network_rpc_callback', obj.unreliable)
-		net.WriteString(obj.id)
-		net.WriteString(obj.name)
-		net.WriteTable(obj.data)
-		net.Broadcast()
-
+		obj.Invoke(slib.GetAllLoadedPlayers())
 		return obj
 	end
 
@@ -136,11 +147,21 @@ snet.Create = function(name, unreliable)
 		if CLIENT then return end
 		obj.AddRequestToList()
 
-		net.Start('cl_network_rpc_callback', obj.unreliable)
-		net.WriteString(obj.id)
-		net.WriteString(obj.name)
-		net.WriteTable(obj.data)
-		net.SendOmit(receiver)
+		local receivers = {}
+
+		if isentity(receiver) then
+			table.insert(receivers, receiver)
+		end
+
+		if #receivers == 0 then
+			obj.Invoke(slib.GetAllLoadedPlayers())
+		else
+			for _, ply in ipairs(slib.GetAllLoadedPlayers()) do
+				if not table.IHasValue(receivers, ply) then
+					obj.Clone().Invoke(ply)
+				end
+			end
+		end
 
 		return obj
 	end
@@ -148,6 +169,12 @@ snet.Create = function(name, unreliable)
 	function obj.InvokeServer()
 		if SERVER then return end
 		obj.AddRequestToList()
+
+		local bigdata = obj.bigdata
+		if bigdata then
+			snet.InvokeBigData(obj.name, nil, bigdata.data, bigdata.max_size, bigdata.progress_text)
+			return
+		end
 
 		net.Start('sv_network_rpc_callback', obj.unreliable)
 		net.WriteString(obj.id)
@@ -158,19 +185,22 @@ snet.Create = function(name, unreliable)
 		return obj
 	end
 
-	function obj.InvokeServerBigData(max_size, progress_text)
-		if SERVER then return end
-		snet.InvokeBigData(obj.name, nil, obj.data[1], max_size, progress_text)
-		return obj
-	end
-
 	function obj.AddRequestToList()
+		obj.id = snet.GenerateRequestID()
+
 		table.insert(snet.requests, {
 			request = obj,
 			resetTime = RealTime() + REQUEST_LIFE_TIME
 		})
 
 		return obj
+	end
+
+	function obj:Clone()
+		local clone = snet.Create(obj.name, obj.unreliable)
+		clone.data = obj.data
+		clone.bigdata = obj.bigdata
+		return clone
 	end
 
 	return obj
