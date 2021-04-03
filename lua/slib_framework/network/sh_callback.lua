@@ -127,25 +127,33 @@ else
 	end)
 end
 
-snet.Create = function(name, unreliable)
+local function AddRequestToList(request)
+	table.insert(snet.requests, {
+		request = request,
+		resetTime = RealTime() + (request.lifetime or REQUEST_LIFE_TIME)
+	})
+end
+
+local function GetSerializeRequestData(request_data)
+	local len, data = 0, {}
+	if #request_data ~= 0 then
+		data = util.Compress(snet.Serialize(request_data))
+		len = #data
+	end
+	return data, len
+end
+
+snet.Create = function(name, ...)
 	local obj = {}
-	obj.id = 'none'
+	obj.id = slib.GenerateUid(name)
 	obj.name = name
-	obj.data = {}
-	obj.c_data = nil
-	obj.c_len = nil
-	obj.unreliable = unreliable or false
+	obj.data, obj.data_len = GetSerializeRequestData({ ... })
 	obj.bigdata = nil
 	obj.backward = false
 	obj.func_success = nil
 	obj.lifetime = REQUEST_LIFE_TIME
 
-	function obj.SetData(...)
-		obj.data = { ... }
-		return obj
-	end
-
-	function obj.SetBigData(data, max_size, progress_text)
+	function obj.BigData(data, max_size, progress_text)
 		if not istable(data) and not isstring(data) then return end
 
 		obj.bigdata = {
@@ -154,12 +162,6 @@ snet.Create = function(name, unreliable)
 			progress_text = progress_text
 		}
 
-		return obj
-	end
-
-	function obj.AddValue(value)
-		if not snet.ValueIsValid(value) then return end
-		table.insert(obj.data, value)
 		return obj
 	end
 
@@ -176,7 +178,7 @@ snet.Create = function(name, unreliable)
 		return obj
 	end
 
-	function obj.Invoke(receiver)
+	function obj.Invoke(receiver, unreliable)
 		if CLIENT then return end
 
 		if istable(receiver) then
@@ -190,10 +192,10 @@ snet.Create = function(name, unreliable)
 			return obj
 		end
 
-		obj.AddRequestToList()
-		obj.OnSerializeData()
+		AddRequestToList(obj)
+		unreliable = unreliable or false
 
-		net.Start('cl_network_rpc_callback', obj.unreliable)
+		net.Start('cl_network_rpc_callback', unreliable)
 		net.WriteString(obj.id)
 		net.WriteString(obj.name)
 		net.WriteUInt(obj.c_len, 32)
@@ -203,17 +205,14 @@ snet.Create = function(name, unreliable)
 		return obj
 	end
 
-	function obj.InvokeAll()
+	function obj.InvokeAll(unreliable)
 		if CLIENT then return end
-		obj.OnSerializeData()
-		obj.Invoke(slib.GetAllLoadedPlayers())
+		obj.Invoke(slib.GetAllLoadedPlayers(), unreliable)
 		return obj
 	end
 
-	function obj.InvokeIgnore(receiver)
+	function obj.InvokeIgnore(receiver, unreliable)
 		if CLIENT then return end
-		obj.OnSerializeData()
-
 		local receivers = {}
 
 		if isentity(receiver) then
@@ -221,11 +220,11 @@ snet.Create = function(name, unreliable)
 		end
 
 		if #receivers == 0 then
-			obj.Invoke(slib.GetAllLoadedPlayers())
+			obj.Invoke(slib.GetAllLoadedPlayers(), unreliable)
 		else
 			for _, ply in ipairs(slib.GetAllLoadedPlayers()) do
 				if not table.IHasValue(receivers, ply) then
-					obj.Clone().Invoke(ply)
+					obj.Clone().Invoke(ply, unreliable)
 				end
 			end
 		end
@@ -233,7 +232,7 @@ snet.Create = function(name, unreliable)
 		return obj
 	end
 
-	function obj.InvokeServer()
+	function obj.InvokeServer(unreliable)
 		if SERVER then return end
 		local bigdata = obj.bigdata
 		if bigdata then
@@ -241,35 +240,16 @@ snet.Create = function(name, unreliable)
 			return
 		end
 
-		obj.AddRequestToList()
-		obj.OnSerializeData()
+		AddRequestToList(obj)
+		unreliable = unreliable or false
 
-		net.Start('sv_network_rpc_callback', obj.unreliable)
+		net.Start('sv_network_rpc_callback', unreliable)
 		net.WriteString(obj.id)
 		net.WriteString(obj.name)
 		net.WriteUInt(obj.c_len, 32)
 		net.WriteData(obj.c_data, obj.c_len)
 		net.WriteBool(obj.backward)
 		net.SendToServer()
-		return obj
-	end
-
-	function obj.AddRequestToList()
-		obj.id = slib.GenerateUid(obj.name)
-
-		table.insert(snet.requests, {
-			request = obj,
-			resetTime = RealTime() + obj.lifetime
-		})
-
-		return obj
-	end
-
-	function obj.OnSerializeData()
-		if not obj.c_data and not obj.c_len then
-			obj.c_data = util.Compress(snet.Serialize(obj.data))
-			obj.c_len = string.len(obj.c_data)
-		end
 		return obj
 	end
 
@@ -288,22 +268,21 @@ end
 
 snet.Invoke = function(name, receiver, ...)
 	if CLIENT then
-		return snet.Create(name).SetData(...).InvokeServer()
+		return snet.Create(name, ...).InvokeServer()
 	end
-
-	return snet.Create(name).SetData(...).Invoke(receiver)
+	return snet.Create(name, ...).Invoke(receiver)
 end
 
 snet.InvokeAll = function(name, ...)
-	return snet.Create(name).SetData(...).InvokeAll()
+	return snet.Create(name, ...).InvokeAll()
 end
 
 snet.InvokeIgnore = function(name, receiver, ...)
-	return snet.Create(name).SetData(...).InvokeIgnore(receiver)
+	return snet.Create(name, ...).InvokeIgnore(receiver)
 end
 
 snet.InvokeServer = function(name, ...)
-	return snet.Create(name).SetData(...).InvokeServer()
+	return snet.Create(name, ...).InvokeServer()
 end
 
 snet.FindRequestById = function(id, to_extend)

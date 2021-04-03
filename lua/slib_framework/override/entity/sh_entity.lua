@@ -35,11 +35,9 @@ function meta:slibSetVar(key, value)
 
    if SERVER then
       if new_value == nil then
-         snet.Create('slib_entity_variable_del')
-            .SetLifeTime(1.5).SetData(self, key).InvokeAll()
+         snet.Create('slib_entity_variable_del', self, key).SetLifeTime(1.5).InvokeAll()
       else
-         snet.Create('slib_entity_variable_set')
-            .SetLifeTime(1.5).SetData(self, key, value).InvokeAll()
+         snet.Create('slib_entity_variable_set', self, key, value).SetLifeTime(1.5).InvokeAll()
       end
    end
 end

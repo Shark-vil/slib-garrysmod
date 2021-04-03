@@ -23,7 +23,7 @@ if SERVER then
          if data_callback then data_callback(ply, false) end
       end)
 
-      snet.Create(netowrk_name_to_client).SetData(uid, validator_name, ...).Invoke(ply)
+      snet.Create(netowrk_name_to_client, uid, validator_name, ...).Invoke(ply)
    end
 
    net.Callback(netowrk_name_to_server, function(ply, uid, success)
@@ -38,6 +38,6 @@ else
       
       success = validator_method(ply, uid, ...)
 
-      snet.Create(netowrk_name_to_server).SetData(uid, success).InvokeServer()
+      snet.Create(netowrk_name_to_server, uid, success).InvokeServer()
    end).Register()
 end

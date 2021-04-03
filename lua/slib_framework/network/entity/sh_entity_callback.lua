@@ -28,7 +28,7 @@ if SERVER then
 	snet.Callback('snet_sv_entity_network_success', function(ply, id)
 		for _, data in ipairs(entities_queue) do
 			if not data.isSuccess and data.id == id then
-				snet.Create('snet_cl_entity_network_success').AddValue(id).Invoke(ply)
+				snet.Create('snet_cl_entity_network_success', id).Invoke(ply)
 				data.isSuccess = true
 				return
 			end
@@ -60,8 +60,7 @@ if SERVER then
 				hook.Run('SNetEntitySuccessInvoked', true, requestData.name, ply, ent)
 				table.remove(entities_queue, i)
 			elseif data.equalDelay < real_time then
-				snet.Create('snet_cl_entity_network_callback', requestData.unreliable)
-					.SetData(requestData.id, requestData.name, requestData.vars)
+				snet.Create('snet_cl_entity_network_callback', requestData.id, requestData.name, requestData.vars)
 					.Success(requestData.func_success)
 					.Invoke(ply)
 
@@ -79,7 +78,7 @@ else
 		if not ent or not isentity(ent) or not IsValid(ent) then return end
 		if table.IHasValue(uids_block, id) then return end
 
-		snet.Create('snet_sv_entity_network_success').AddValue(id).InvokeServer()
+		snet.Create('snet_sv_entity_network_success', id).InvokeServer()
 		table.insert(uids_block, id)
 
 		snet.execute(id, name, ply, false, unpack(vars))
@@ -92,7 +91,7 @@ else
 	SNET_ENTITY_VALIDATOR = function(id, name, ply, ent)
 		if not ent or not isentity(ent) then return end
 		if not IsValid(ent) then
-			snet.Create('snet_sv_entity_network_start').AddValue(id).InvokeServer()
+			snet.Create('snet_sv_entity_network_start', id).InvokeServer()
 			return false
 		end
 	end

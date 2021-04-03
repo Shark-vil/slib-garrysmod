@@ -9,7 +9,7 @@ if SERVER then
       
       success = validator_method(ply, uid, ...)
 
-      snet.Create(netowrk_name_to_client).SetData(uid, success).Invoke(ply)
+      snet.Create(netowrk_name_to_client, uid, success).Invoke(ply)
    end).Period(0.1, 5).Register()
 else
    local callback_data = {}
@@ -33,7 +33,7 @@ else
          if data_callback then data_callback(LocalPlayer(), false) end
       end)
 
-      snet.Create(netowrk_name_to_server).SetData(uid, validator_name, ...).InvokeServer()
+      snet.Create(netowrk_name_to_server, uid, validator_name, ...).InvokeServer()
    end
 
    net.Callback(netowrk_name_to_client, function(ply, uid, success)
