@@ -6,7 +6,7 @@ local list_door_classes = {
 }
 
 function meta:slibSetVar(key, value)
-   if isfunction(value) then return end
+   if not snet.ValueIsValid(value) then return end
 
    self.slibVariables = self.slibVariables or {}
    self.slibVariablesChangeCallback = self.slibVariablesChangeCallback or {}
