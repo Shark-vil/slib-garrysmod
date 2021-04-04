@@ -138,8 +138,9 @@ snet.Create = function(name, ...)
 	local obj = {}
 	obj.id = slib.GenerateUid(name)
 	obj.name = name
-	obj.data = util.Compress(snet.Serialize({ ... }))
-	obj.data_len = #obj.data
+	obj.data = { ... }
+	obj.compressed_data = util.Compress(snet.Serialize(obj.data))
+	obj.compressed_length = #obj.compressed_data
 	obj.bigdata = nil
 	obj.backward = false
 	obj.func_success = nil
@@ -190,8 +191,8 @@ snet.Create = function(name, ...)
 		net.Start('cl_network_rpc_callback', unreliable)
 		net.WriteString(obj.id)
 		net.WriteString(obj.name)
-		net.WriteUInt(obj.data_len, 32)
-		net.WriteData(obj.data, obj.data_len)
+		net.WriteUInt(obj.compressed_length, 32)
+		net.WriteData(obj.compressed_data, obj.compressed_length)
 		net.WriteBool(obj.backward)
 		net.Send(receiver)
 		return obj
@@ -238,8 +239,8 @@ snet.Create = function(name, ...)
 		net.Start('sv_network_rpc_callback', unreliable)
 		net.WriteString(obj.id)
 		net.WriteString(obj.name)
-		net.WriteUInt(obj.data_len, 32)
-		net.WriteData(obj.data, obj.data_len)
+		net.WriteUInt(obj.compressed_length, 32)
+		net.WriteData(obj.compressed_data, obj.compressed_length)
 		net.WriteBool(obj.backward)
 		net.SendToServer()
 		return obj
@@ -248,7 +249,8 @@ snet.Create = function(name, ...)
 	function obj:Clone()
 		local clone = snet.Create(obj.name, obj.unreliable)
 		clone.data = obj.data
-		clone.data_len = obj.data_len
+		clone.compressed_data = obj.compressed_data
+		clone.compressed_length = obj.compressed_length
 		clone.bigdata = obj.bigdata
 		clone.backward = obj.backward
 		clone.func_success = obj.func_success
