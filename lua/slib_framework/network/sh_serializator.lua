@@ -51,27 +51,21 @@ function snet.Serialize(data, notcompress)
          if istable(getdata) then datatable = getdata end
       else
          for k, v in pairs(data) do
-            local key_type, key_data, val_type, val_data
+            local key_type, key_data, val_type, val_data, typeid, converter
 
-            do
-               local typeid = GetValueType(k)
-               local converter = ValueSerialize[typeid]
+            typeid = GetValueType(k)
+            converter = ValueSerialize[typeid]
+            if converter then 
+               key_type, key_data = converter(typeid, k)
+
+               typeid = GetValueType(v)
+               converter = ValueSerialize[typeid]
                if converter then 
-                  key_type, key_data = converter(typeid, k)
-               end
-            end
-
-            if key_type ~= nil and key_data ~= nil then
-               do
-                  local typeid = GetValueType(v)
-                  local converter = ValueSerialize[typeid]
-                  if converter then 
-                     val_type, val_data = converter(typeid, v)
-                     table.insert(datatable, {
-                        key_type, key_data,
-                        val_type, val_data,
-                     })
-                  end
+                  val_type, val_data = converter(typeid, v)
+                  table.insert(datatable, {
+                     key_type, key_data,
+                     val_type, val_data,
+                  })
                end
             end
          end

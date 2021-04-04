@@ -134,20 +134,12 @@ local function AddRequestToList(request)
 	})
 end
 
-local function GetSerializeRequestData(request_data)
-	local len, data = 0, {}
-	if #request_data ~= 0 then
-		data = util.Compress(snet.Serialize(request_data))
-		len = #data
-	end
-	return data, len
-end
-
 snet.Create = function(name, ...)
 	local obj = {}
 	obj.id = slib.GenerateUid(name)
 	obj.name = name
-	obj.data, obj.data_len = GetSerializeRequestData({ ... })
+	obj.data = util.Compress(snet.Serialize({ ... }))
+	obj.data_len = #obj.data
 	obj.bigdata = nil
 	obj.backward = false
 	obj.func_success = nil
@@ -198,8 +190,8 @@ snet.Create = function(name, ...)
 		net.Start('cl_network_rpc_callback', unreliable)
 		net.WriteString(obj.id)
 		net.WriteString(obj.name)
-		net.WriteUInt(obj.c_len, 32)
-		net.WriteData(obj.c_data, obj.c_len)
+		net.WriteUInt(obj.data_len, 32)
+		net.WriteData(obj.data, obj.data_len)
 		net.WriteBool(obj.backward)
 		net.Send(receiver)
 		return obj
@@ -246,8 +238,8 @@ snet.Create = function(name, ...)
 		net.Start('sv_network_rpc_callback', unreliable)
 		net.WriteString(obj.id)
 		net.WriteString(obj.name)
-		net.WriteUInt(obj.c_len, 32)
-		net.WriteData(obj.c_data, obj.c_len)
+		net.WriteUInt(obj.data_len, 32)
+		net.WriteData(obj.data, obj.data_len)
 		net.WriteBool(obj.backward)
 		net.SendToServer()
 		return obj
@@ -256,6 +248,7 @@ snet.Create = function(name, ...)
 	function obj:Clone()
 		local clone = snet.Create(obj.name, obj.unreliable)
 		clone.data = obj.data
+		clone.data_len = obj.data_len
 		clone.bigdata = obj.bigdata
 		clone.backward = obj.backward
 		clone.func_success = obj.func_success
