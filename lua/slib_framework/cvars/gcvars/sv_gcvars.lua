@@ -19,8 +19,6 @@ net.Receive(n_gcvar_change_from_serer, function(len, ply)
 end)
 
 hook.Add("SlibPlayerFirstSpawn", "Slib_GCvars_RegisterForPlayer", function(ply)
-   MsgN('Pre GCvarsIsLoad - ' .. tostring(ply:slibGetVar('GCvarsIsLoad')))
-
    if ply:slibGetVar('GCvarsIsLoad') then return end
    
    ply:slibSetVar('GCvarsIsLoad', true)
@@ -28,6 +26,4 @@ hook.Add("SlibPlayerFirstSpawn", "Slib_GCvars_RegisterForPlayer", function(ply)
    net.Start(n_gcvar_register_cvars)
    net.WriteTable(slib.GlobalCvars)
    net.Send(ply)
-
-   MsgN('Post GCvarsIsLoad - ' .. tostring(ply:slibGetVar('GCvarsIsLoad')))
 end)

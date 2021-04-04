@@ -8,11 +8,10 @@ local function NormalizeNetworkName(category_name, network_string_name)
    return category_name .. '_' .. network_string_name
 end
 
-if SERVER then
-   function slib.AddNetworkString(category_name, network_string_name)
-      local normalize_name = NormalizeNetworkName(category_name, network_string_name)
-      util.AddNetworkString(normalize_name)
-   end
+function slib.AddNetworkString(category_name, network_string_name)
+   local normalize_name = NormalizeNetworkName(category_name, network_string_name)
+   if SERVER then util.AddNetworkString(normalize_name) end
+   return normalize_name
 end
 
 function slib.GetNetworkString(category_name, network_string_name)
