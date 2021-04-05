@@ -26,6 +26,11 @@ script:using('network/bigdata/server/sv_ok_or_error.lua')
 script:using('network/bigdata/client/cl_processing.lua')
 script:using('network/bigdata/client/cl_ok_or_error.lua')
 
+script:using('network/file/sv_netfile_reader.lua')
+script:using('network/file/cl_netfile_reader.lua')
+script:using('network/file/cl_netfile_writer.lua')
+script:using('network/file/sv_netfile_writer.lua')
+
 script:using('override/entity/sh_entity.lua')
 script:using('override/entity/sv_entity.lua')
 script:using('override/entity/cl_entity.lua')
@@ -44,6 +49,8 @@ script:using('extension/sh_generators.lua')
 script:using('extension/sh_player.lua')
 script:using('extension/sh_table.lua')
 script:using('extension/sh_sound_duration.lua')
+script:using('extension/file/sh_filereader.lua')
+script:using('extension/file/sh_filewriter.lua')
 
 script:using('debug/sh_profiler.lua')
 
