@@ -83,3 +83,60 @@ end
 function meta:slibIsDoor()
    return table.IHasValue(list_door_classes, self:GetClass())
 end
+
+if SERVER then
+   function snet.ClientRPC(ent, function_name, ...)
+      local ent = ent
+      if not isentity(ent) and ent.Weapon then
+         ent = ent.Weapon
+      end
+
+      if not ent or not IsValid(ent) then return end
+
+      local ply
+      local owner = ent:GetOwner()
+      if IsValid(owner) and owner:IsPlayer() then ply = owner end
+
+      if ply and ent:GetClass() == 'gmod_tool' then
+         local tool = ply:GetTool()
+         local isExistServerFunction = (tool[function_name] ~= nil and isfunction(tool[function_name]))
+
+         snet.Invoke('snet_entity_tool_call_client_rpc', ply, ent, isExistServerFunction, tool:GetMode(), function_name, ...)
+      else
+         local isExistServerFunction = (ent[function_name] ~= nil and isfunction(ent[function_name]))
+
+         if ply then
+            snet.Invoke('snet_entity_call_client_rpc', ply, ent, isExistServerFunction, function_name, ...)
+         else
+            snet.InvokeAll('snet_entity_call_client_rpc', ent, isExistServerFunction, function_name, ...)
+         end
+      end
+   end
+
+   function meta:slibClientRPC(function_name, ...)
+      snet.ClientRPC(self, function_name, ...)
+   end
+else
+   function snet.ServerRPC(ent, function_name, ...)
+      local ent = ent
+      if not isentity(ent) and ent.Weapon then
+         ent = ent.Weapon
+      end
+
+      if not ent or not IsValid(ent) then return end
+
+      local owner = ent:GetOwner()
+      if IsValid(owner) and owner:IsPlayer() and owner ~= LocalPlayer() then return end
+
+      if ent:GetClass() == 'gmod_tool' then
+         local tool = LocalPlayer():GetTool()
+         snet.InvokeServer('snet_entity_tool_call_server_rpc', ent, tool:GetMode(), function_name, ...)
+      else
+         snet.InvokeServer('snet_entity_call_server_rpc', ent, function_name, ...)
+      end
+   end
+
+   function meta:slibServerRPC(function_name, ...)
+      snet.ServerRPC(self, function_name, ...)
+   end
+end

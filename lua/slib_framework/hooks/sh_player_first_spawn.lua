@@ -14,7 +14,7 @@ if SERVER then
 					ply.slibIsSpawn = true
 					hook.Run('SlibPlayerFirstSpawn', ply)
 		
-					timer.Simple(1, function() snet.Invoke(n_slib_first_player_spawn, ply) end)
+					snet.Invoke(n_slib_first_player_spawn, ply)
 				end)
 
 				hook.Remove("SetupMove", hook_name)
