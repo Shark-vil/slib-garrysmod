@@ -30,9 +30,9 @@ script:using('override/entity/sh_entity.lua')
 script:using('override/entity/sv_entity.lua')
 script:using('override/entity/cl_entity.lua')
 
-script:using('override/entity/sh_player.lua')
-script:using('override/entity/sv_player.lua')
-script:using('override/entity/cl_player.lua')
+script:using('override/player/sh_player.lua')
+script:using('override/player/sv_player.lua')
+script:using('override/player/cl_player.lua')
 
 script:using('cvars/gcvars/sh_gcvars.lua')
 script:using('cvars/gcvars/sv_gcvars.lua')
