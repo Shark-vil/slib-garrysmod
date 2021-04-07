@@ -8,14 +8,11 @@ if SERVER then
 		local hook_name = 'SlibFirstSpawn' .. slib.GenerateUid(ply:UserID())
 		hook.Add("SetupMove", hook_name, function(p, mv, cmd)
 			if p == ply and not cmd:IsForced() then
-				timer.Simple(3, function()
-					if not IsValid(ply) then return end
+				if not IsValid(ply) then return end
 		
-					ply.slibIsSpawn = true
-					hook.Run('SlibPlayerFirstSpawn', ply)
-		
-					snet.Invoke(n_slib_first_player_spawn, ply)
-				end)
+				ply.slibIsSpawn = true
+				hook.Run('SlibPlayerFirstSpawn', ply)
+				snet.Invoke(n_slib_first_player_spawn, ply)
 
 				hook.Remove("SetupMove", hook_name)
 			end

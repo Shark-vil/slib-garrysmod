@@ -84,6 +84,13 @@ function meta:slibIsDoor()
    return table.IHasValue(list_door_classes, self:GetClass())
 end
 
+function meta:slibDoorIsLocked()
+   if not self:slibIsDoor() then return true end
+   local result = self:GetInternalVariable('m_bLocked')
+   if isbool(result) then return result end
+   return true
+end
+
 if SERVER then
    function snet.ClientRPC(ent, function_name, ...)
       local ent = ent

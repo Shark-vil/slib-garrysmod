@@ -57,3 +57,5 @@ script:using('debug/sh_profiler.lua')
 
 -- To connect scripts that depend on the library
 slib.usingDirectory('slib_autoloader')
+
+SLibraryIsLoaded = true

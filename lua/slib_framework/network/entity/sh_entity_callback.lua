@@ -62,6 +62,7 @@ if SERVER then
 			elseif data.equalDelay < real_time then
 				snet.Create('snet_cl_entity_network_callback', requestData.id, requestData.name, requestData.vars)
 					.Success(requestData.func_success)
+					.Error(requestData.func_error)
 					.Invoke(ply)
 
 				data.equalDelay = real_time + 0.5 + delay_infelicity

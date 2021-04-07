@@ -39,7 +39,7 @@ function snet.execute(id, name, ply, backward, ...)
 				end
 
 				value.nextTime = RealTime() + data.limits.delay
-				return
+				return false
 			end
 		end
 
@@ -68,18 +68,6 @@ function snet.execute(id, name, ply, backward, ...)
 
 	data.execute(ply, ...)
 
-	if backward then
-		if CLIENT then
-			net.Start('sv_network_rpc_success')
-			net.WriteString(id)
-			net.SendToServer()
-		else
-			net.Start('cl_network_rpc_success')
-			net.WriteString(id)
-			net.Send(ply)
-		end
-	end
-
 	if data.autoRemove then
 		net.RemoveCallback(name)
 	end
@@ -95,6 +83,27 @@ local function network_callback(len, ply)
 	local backward = net.ReadBool()
 	local vars = snet.Deserialize(util.Decompress(compressed_data))
 	local reuslt = snet.execute(id, name, ply, backward, unpack(vars))
+
+	if backward then
+		if CLIENT then
+			if reuslt then
+				net.Start('sv_network_rpc_success')
+			else
+				net.Start('sv_network_rpc_error')
+			end
+			net.WriteString(id)
+			net.SendToServer()
+		else
+			if reuslt then
+				net.Start('cl_network_rpc_success')
+			else
+				net.Start('cl_network_rpc_error')
+			end
+			net.WriteString(id)
+			net.Send(ply)
+		end
+	end
+
 	hook.Run('SNetRequestResult', id, name, reuslt, vars)
 end
 
@@ -103,6 +112,8 @@ if SERVER then
 	util.AddNetworkString('cl_network_rpc_callback')
 	util.AddNetworkString('sv_network_rpc_success')
 	util.AddNetworkString('cl_network_rpc_success')
+	util.AddNetworkString('sv_network_rpc_error')
+	util.AddNetworkString('cl_network_rpc_error')
 
 	snet.Receive('sv_network_rpc_callback', network_callback)
 
@@ -114,6 +125,14 @@ if SERVER then
 		request.func_success(ply, request)
 		snet.RemoveRequestById(id)
 	end)
+
+	-- Error result
+	snet.Receive('sv_network_rpc_error', function(len, ply)
+		local id = net.ReadString()
+		local request = snet.FindRequestById(id)
+		if not request or not request.func_error then return end
+		request.func_error(ply, request)
+	end)
 else
 	snet.Receive('cl_network_rpc_callback', network_callback)
 
@@ -124,6 +143,14 @@ else
 		if not request or not request.func_success then return end
 		request.func_success(LocalPlayer(), request)
 		snet.RemoveRequestById(id)
+	end)
+
+	-- Error result
+	snet.Receive('cl_network_rpc_error', function(len, ply)
+		local id = net.ReadString()
+		local request = snet.FindRequestById(id)
+		if not request or not request.func_error then return end
+		request.func_error(LocalPlayer(), request)
 	end)
 end
 
@@ -144,6 +171,7 @@ snet.Create = function(name, ...)
 	obj.bigdata = nil
 	obj.backward = false
 	obj.func_success = nil
+	obj.func_error = nil
 	obj.lifetime = REQUEST_LIFE_TIME
 
 	function obj.BigData(data, max_size, progress_text)
@@ -166,6 +194,14 @@ snet.Create = function(name, ...)
 	function obj.Success(func)
 		if func and isfunction(func) then
 			obj.func_success = func
+			obj.backward = true
+		end
+		return obj
+	end
+
+	function obj.Error(func)
+		if func and isfunction(func) then
+			obj.func_error = func
 			obj.backward = true
 		end
 		return obj
@@ -254,6 +290,7 @@ snet.Create = function(name, ...)
 		clone.bigdata = obj.bigdata
 		clone.backward = obj.backward
 		clone.func_success = obj.func_success
+		clone.func_error = obj.func_error
 		clone.lifetime = obj.lifetime 
 		return clone
 	end
