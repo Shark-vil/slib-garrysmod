@@ -45,6 +45,8 @@ script:using('cvars/gcvars/sh_gcvars.lua')
 script:using('cvars/gcvars/sv_gcvars.lua')
 script:using('cvars/gcvars/cl_gcvars.lua')
 
+script:using('commands/gcommands/sh_gcommands.lua')
+
 script:using('hooks/sh_player_first_spawn.lua')
 
 script:using('extension/sh_generators.lua')
@@ -57,3 +59,5 @@ script:using('debug/sh_profiler.lua')
 
 -- To connect scripts that depend on the library
 slib.usingDirectory('slib_autoloader')
+
+SLibraryIsLoaded = true
