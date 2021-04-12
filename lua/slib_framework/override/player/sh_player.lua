@@ -14,6 +14,10 @@ function meta:slibNotify(text, type, length, sound)
    if sound then surface.PlaySound(sound) end
 end
 
+function meta:snetIsReady()
+   return self.slibIsSpawn or false
+end
+
 function meta:slibGetActiveTool(tool_name, ignore_gmod_tool_active)
    local ignore_gmod_tool_active = ignore_gmod_tool_active or false
 
