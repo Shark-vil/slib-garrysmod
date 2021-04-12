@@ -1,15 +1,11 @@
-local n_gcvar_register_cvars = slib.GetNetworkString('GCvars', 'RegisterCvars')
-local n_gcvar_change_from_serer = slib.GetNetworkString('GCvars', 'ChangeFromServer')
-local n_gcvar_change_from_client = slib.GetNetworkString('GCvars', 'ChangeFromClient')
-
 local cvar_locker = {}
 local cvar_locker_another = {}
 
-net.Receive(n_gcvar_register_cvars, function()
-   slib.GlobalCvars = net.ReadTable()
+snet.RegisterCallback('slib_gcvars_register', function(_, cvars_table)
+   slib.GlobalCvars = cvars_table
 
    for cvar_name, cvar_data in pairs(slib.GlobalCvars) do
-      if not tobool(GetConVar(cvar_name)) then
+      if not tobool(GetConVar(cvar_name)) then   
          ErrorNoHalt('The global variable must be created on both the server and client!')
          goto skip
       else
@@ -43,24 +39,17 @@ net.Receive(n_gcvar_register_cvars, function()
             end
          end
 
-         slib.GlobalCvars[convar_name].value = value_new
+         slib.GlobalCvarsUpdate(convar_name)
          
          if cvar_locker[convar_name] or cvar_locker_another[convar_name] then return end
-
-         net.Start(n_gcvar_change_from_serer)
-         net.WriteString(convar_name)
-         net.WriteFloat(value_new)
-         net.SendToServer()
+         snet.InvokeServer('slib_gcvars_change_from_server', convar_name, value_new)
       end)
 
       ::skip::
    end
 end)
 
-net.Receive(n_gcvar_change_from_client, function()
-   local cvar_name = net.ReadString()
-   local value = net.ReadFloat()
-
+snet.RegisterCallback('slib_gcvars_change_from_client', function(_, cvar_name, value)
    cvar_locker_another[cvar_name] = true
    RunConsoleCommand(cvar_name, value)
 
