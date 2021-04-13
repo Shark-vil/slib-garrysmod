@@ -91,6 +91,17 @@ function meta:slibDoorIsLocked()
    return true
 end
 
+function meta:slibIsPlayersSee()
+   local players = slib.GetAllLoadedPlayers()
+   for i = 1, #players do
+      local ply = players[i]
+      if ply:slibIsViewVector(self:GetPos()) then
+         return true
+      end
+   end
+   return false
+end
+
 if SERVER then
    function snet.ClientRPC(ent, function_name, ...)
       local ent = ent

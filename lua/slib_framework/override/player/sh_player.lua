@@ -31,3 +31,11 @@ function meta:slibGetActiveTool(tool_name, ignore_gmod_tool_active)
 
 	return tool
 end
+
+function meta:slibIsViewVector(pos, radius)
+	radius = radius or 90
+	local DirectionAngle = math.pi / radius
+	local EntityDifference = pos - self:EyePos()
+	local EntityDifferenceDot = self:GetAimVector():Dot(EntityDifference) / EntityDifference:Length()
+	return EntityDifferenceDot > DirectionAngle
+end
