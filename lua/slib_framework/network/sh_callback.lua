@@ -252,7 +252,7 @@ snet.Create = function(name, ...)
 			obj.Invoke(slib.GetAllLoadedPlayers(), unreliable)
 		else
 			for _, ply in ipairs(slib.GetAllLoadedPlayers()) do
-				if not table.IHasValue(receivers, ply) then
+				if not array.HasValue(receivers, ply) then
 					obj.Clone().Invoke(ply, unreliable)
 				end
 			end

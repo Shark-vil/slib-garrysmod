@@ -1,6 +1,7 @@
 slib = slib or {}
 snet = snet or net
-snet.storage = {}
+snet.storage = snet.storage or {}
+array = array or {}
 
 local root_directory = 'slib_framework'
 
@@ -51,9 +52,10 @@ script:using('hooks/sh_player_first_spawn.lua')
 
 script:using('extension/sh_generators.lua')
 script:using('extension/sh_player.lua')
-script:using('extension/sh_table.lua')
+script:using('extension/sh_array.lua')
 script:using('extension/sh_sound_duration.lua')
 script:using('extension/sh_file.lua')
+script:using('extension/sh_hook.lua')
 
 script:using('debug/sh_profiler.lua')
 

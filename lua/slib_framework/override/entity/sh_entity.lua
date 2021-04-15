@@ -12,6 +12,8 @@ function meta:slibSetVar(key, value)
    self.slibVariablesChangeCallback = self.slibVariablesChangeCallback or {}
    self.slibVariablesSetCallback = self.slibVariablesSetCallback or {}
 
+   if not self or not istable(self.slibVariables) then return end
+   
    local old_value = self.slibVariables[key]
    local new_value = value
 
@@ -43,7 +45,7 @@ function meta:slibSetVar(key, value)
 end
 
 function meta:slibGetVar(key, fallback)
-   if self.slibVariables == nil or self.slibVariables[key] == nil then
+   if not self.slibVariables or self.slibVariables[key] == nil then
       return fallback or false
    end
    return self.slibVariables[key]
@@ -81,7 +83,7 @@ function meta:slibRemoveTimer(timer_name, func)
 end
 
 function meta:slibIsDoor()
-   return table.IHasValue(list_door_classes, self:GetClass())
+   return array.HasValue(list_door_classes, self:GetClass())
 end
 
 function meta:slibDoorIsLocked()
