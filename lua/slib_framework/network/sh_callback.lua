@@ -28,7 +28,7 @@ function snet.execute(id, name, ply, ...)
 				isExist = true
 
 				if value.nextTime <= RealTime() then
-					table.remove(REQUEST_LIMITS_LIST, i)
+					array.remove(REQUEST_LIMITS_LIST, i)
 					break
 				end
 				
@@ -44,7 +44,7 @@ function snet.execute(id, name, ply, ...)
 		end
 
 		if not isExist then
-			table.insert(REQUEST_LIMITS_LIST, {
+			array.insert(REQUEST_LIMITS_LIST, {
 				ply = ply,
 				name = name,
 				nextTime = RealTime() + data.limits.delay,
@@ -155,7 +155,7 @@ else
 end
 
 local function AddRequestToList(request)
-	table.insert(snet.requests, {
+	array.insert(snet.requests, {
 		request = request,
 		resetTime = RealTime() + (request.lifetime or REQUEST_LIFE_TIME)
 	})
@@ -245,7 +245,7 @@ snet.Create = function(name, ...)
 		local receivers = {}
 
 		if isentity(receiver) then
-			table.insert(receivers, receiver)
+			array.insert(receivers, receiver)
 		end
 
 		if #receivers == 0 then
@@ -334,7 +334,7 @@ snet.RemoveRequestById = function(id)
 	for i = #snet.requests, 1, -1 do
 		local data = snet.requests[i]
 		if data.request and data.request.id == id then
-			table.remove(snet.requests, i)
+			array.remove(snet.requests, i)
 			return true
 		end
 	end
@@ -407,7 +407,7 @@ timer.Create('SNet_AutoResetRequestAfterTimeDealy', 1, 0, function()
 		for i = #snet.requests, 1, -1 do
 			local data = snet.requests[i]
 			if not data.request or data.resetTime < RealTime() then
-				table.remove(snet.requests, i)
+				array.remove(snet.requests, i)
 			end
 		end
 	end, function(error_message)
