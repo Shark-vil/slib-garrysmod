@@ -1,16 +1,17 @@
-function array.IsArray(t)
-   local past_key_type
+array = array or {}
+
+function array.isArray(t)
    local past_value_type
 
    for key, value in next, t do
-      local key_type = type(key)
-      local value_type = type(value)
+      if type(key) ~= 'number' then return false end
 
-      if past_key_type == nil and past_value_type == nil then
-         past_key_type = key_type
+      local value_type = type(value)
+      
+      if past_value_type == nil then
          past_value_type = value_type
-      else
-         if key_type ~= past_key_type or value_type ~= past_value_type then return false end
+      elseif value_type ~= past_value_type then
+         return false
       end
    end
 
@@ -38,7 +39,9 @@ function array.shuffle(t)
 end
 
 function array.Random(t)
-   return t[ math.random(#t) ]
+   local count = #t
+   if count == 0 then return nil end
+   return t[ math.random( count ) ]
 end
 
 function array.RandomOmit(t, v)
@@ -54,4 +57,36 @@ function array.RandomOmit(t, v)
    until random_value ~= v
 
    return random_value
+end
+
+function array.insert(t, v)
+   t[ #t + 1 ] = v
+end
+
+function array.remove(t, index)
+   t[ index ] = nil
+end
+
+function array.RemoveByValue(t, v)
+   for i = #t, 1, -1 do
+      if t[i] == v then
+         t[i] = nil
+         return true
+      end
+   end
+   return false
+end
+
+function array.RemoveAllByValue(t, v)
+   for i = #t, 1, -1 do
+      if t[i] == v then t[i] = nil end
+   end
+end
+
+function array.RemoveLastValue(t)
+   t[ #t ] = nil
+end
+
+function array.RemoveFirstValue(t)
+   t[1] = nil
 end

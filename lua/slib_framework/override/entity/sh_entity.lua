@@ -5,6 +5,18 @@ local list_door_classes = {
    "prop_door_rotating",
 }
 
+function meta:slibSetLocalVar(key, value)
+   self.slibLocalVariables = self.slibLocalVariables or {}
+   self.slibLocalVariables[key] = value
+end
+
+function meta:slibGetLocalVar(key, fallback)
+   if not self.slibLocalVariables or self.slibLocalVariables[key] == nil then
+      return fallback or false
+   end
+   return self.slibLocalVariables[key]
+end
+
 function meta:slibSetVar(key, value)
    if not snet.ValueIsValid(value) then return end
 
@@ -95,11 +107,9 @@ end
 
 function meta:slibIsPlayersSee()
    local players = slib.GetAllLoadedPlayers()
+   local position = self:GetPos()
    for i = 1, #players do
-      local ply = players[i]
-      if ply:slibIsViewVector(self:GetPos()) then
-         return true
-      end
+      if players[i]:slibIsViewVector(position) then return true end
    end
    return false
 end
@@ -107,10 +117,8 @@ end
 if SERVER then
    function snet.ClientRPC(ent, function_name, ...)
       local ent = ent
-      if not isentity(ent) and ent.Weapon then
-         ent = ent.Weapon
-      end
 
+      if not isentity(ent) and ent.Weapon then ent = ent.Weapon end
       if not ent or not IsValid(ent) then return end
 
       local ply
@@ -139,10 +147,8 @@ if SERVER then
 else
    function snet.ServerRPC(ent, function_name, ...)
       local ent = ent
-      if not isentity(ent) and ent.Weapon then
-         ent = ent.Weapon
-      end
 
+      if not isentity(ent) and ent.Weapon then ent = ent.Weapon end
       if not ent or not IsValid(ent) then return end
 
       local owner = ent:GetOwner()

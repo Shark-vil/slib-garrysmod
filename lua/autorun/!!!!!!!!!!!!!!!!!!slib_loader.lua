@@ -1,7 +1,6 @@
 slib = slib or {}
 snet = snet or net
 snet.storage = snet.storage or {}
-array = array or {}
 
 local root_directory = 'slib_framework'
 

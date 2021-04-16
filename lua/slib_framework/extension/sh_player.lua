@@ -1,9 +1,11 @@
 function slib.GetAllLoadedPlayers()
-   local players = {}
-   for _, ply in ipairs(player.GetAll()) do
-      if ply.slibIsSpawn then
-         table.insert(players, ply)
-      end
+   local players = player.GetAll()
+   local loaded_players = {}
+
+   for i = 1, #players do
+      local ply = players[i]
+      if ply.slibIsSpawn then array.insert(loaded_players, ply) end
    end
-   return players
+
+   return loaded_players
 end
