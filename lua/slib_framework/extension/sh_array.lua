@@ -49,7 +49,11 @@ function array.RandomOmit(t, v)
 
    local count = #t
    if count == 0 then return nil end
-   if count == 1 then return t[1] end
+   if count == 1 then
+      local first_value = t[1]
+      if first_value == v then return nil end
+      return first_value
+   end
 
    local random_value = v
    repeat
