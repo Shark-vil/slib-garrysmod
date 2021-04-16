@@ -4,7 +4,7 @@ snet.requests = snet.requests or {}
 local REQUEST_LIFE_TIME = 2
 local REQUEST_LIMITS_LIST = {}
 
-function snet.execute(id, name, ply, backward, ...)
+function snet.execute(id, name, ply, ...)
 	if CLIENT then ply = LocalPlayer() end
 
 	if snet.storage.default[name] == nil then
@@ -82,7 +82,7 @@ local function network_callback(len, ply)
 	local compressed_data = net.ReadData(compressed_length)
 	local backward = net.ReadBool()
 	local vars = snet.Deserialize(util.Decompress(compressed_data))
-	local reuslt = snet.execute(id, name, ply, backward, unpack(vars))
+	local reuslt = snet.execute(id, name, ply, unpack(vars))
 
 	if backward then
 		if CLIENT then
