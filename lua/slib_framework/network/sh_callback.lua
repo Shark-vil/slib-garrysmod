@@ -7,31 +7,24 @@ local REQUEST_LIMITS_LIST = {}
 function snet.execute(id, name, ply, ...)
 	if CLIENT then ply = LocalPlayer() end
 
-	if snet.storage.default[name] == nil then
-		return false
-	end
-
 	local data = snet.storage.default[name]
+	if not data then return false end
 
-	if data.isAdmin then
-		if not ply:IsAdmin() and not ply:IsSuperAdmin() then
-			return false
-		end
-	end
+	if data.isAdmin and (not ply:IsAdmin() and not ply:IsSuperAdmin()) then return false end
 
 	if data.limits then
 		local isExist = false
 
 		for i = #REQUEST_LIMITS_LIST, 1, -1 do
 			local value = REQUEST_LIMITS_LIST[i]
-			if value.ply == ply and value.name == name then
+			if value and value.ply == ply and value.name == name then
 				isExist = true
 
 				if value.nextTime <= RealTime() then
-					array.remove(REQUEST_LIMITS_LIST, i)
+					table.remove(REQUEST_LIMITS_LIST, i)
 					break
 				end
-				
+
 				if value.current == value.limit then
 					value.warning(ply, name)
 				else
@@ -52,8 +45,8 @@ function snet.execute(id, name, ply, ...)
 				current = 0,
 				warning = data.limits.warning or function(ply, name)
 					MsgN('Attention! An attempt to hack or disable '
-					.. 'the server is possible! Player - "' .. tostring(ply) 
-					..'" is sending too many validation checks on the hook "'..name..'"!')
+					.. 'the server is possible! Player - "' .. tostring(ply)
+					.. '" is sending too many validation checks on the hook "' .. name .. '"!')
 				end
 			})
 		end
@@ -61,16 +54,12 @@ function snet.execute(id, name, ply, ...)
 
 	if data.validaotr then
 		local validator_result = data.validaotr(id, name, ply, ...)
-		if isbool(validator_result) and not validator_result then
-			return false
-		end
+		if isbool(validator_result) and not validator_result then return false end
 	end
 
 	data.execute(ply, ...)
 
-	if data.autoRemove then
-		net.RemoveCallback(name)
-	end
+	if data.autoRemove then net.RemoveCallback(name) end
 
 	return true
 end
@@ -224,6 +213,8 @@ snet.Create = function(name, ...)
 		AddRequestToList(obj)
 		unreliable = unreliable or false
 
+		-- print(obj.name)
+
 		net.Start('cl_network_rpc_callback', unreliable)
 		net.WriteString(obj.id)
 		net.WriteString(obj.name)
@@ -272,6 +263,8 @@ snet.Create = function(name, ...)
 		AddRequestToList(obj)
 		unreliable = unreliable or false
 
+		-- print(obj.name)
+
 		net.Start('sv_network_rpc_callback', unreliable)
 		net.WriteString(obj.id)
 		net.WriteString(obj.name)
@@ -283,7 +276,7 @@ snet.Create = function(name, ...)
 	end
 
 	function obj:Clone()
-		local clone = snet.Create(obj.name, obj.unreliable)
+		local clone = snet.Create(obj.name)
 		clone.data = obj.data
 		clone.compressed_data = obj.compressed_data
 		clone.compressed_length = obj.compressed_length
@@ -291,7 +284,7 @@ snet.Create = function(name, ...)
 		clone.backward = obj.backward
 		clone.func_success = obj.func_success
 		clone.func_error = obj.func_error
-		clone.lifetime = obj.lifetime 
+		clone.lifetime = obj.lifetime
 		return clone
 	end
 
@@ -322,7 +315,7 @@ snet.FindRequestById = function(id, to_extend)
 
 	for i = #snet.requests, 1, -1 do
 		local data = snet.requests[i]
-		if data.request and data.request.id == id then
+		if data and data.request and data.request.id == id then
 			if to_extend then data.resetTime = RealTime() + data.request.lifetime end
 			return data.request
 		end
@@ -333,8 +326,8 @@ end
 snet.RemoveRequestById = function(id)
 	for i = #snet.requests, 1, -1 do
 		local data = snet.requests[i]
-		if data.request and data.request.id == id then
-			array.remove(snet.requests, i)
+		if data and data.request and data.request.id == id then
+			table.remove(snet.requests, i)
 			return true
 		end
 	end
@@ -406,9 +399,15 @@ timer.Create('SNet_AutoResetRequestAfterTimeDealy', 1, 0, function()
 	xpcall(function()
 		for i = #snet.requests, 1, -1 do
 			local data = snet.requests[i]
-			if not data.request or data.resetTime < RealTime() then
-				array.remove(snet.requests, i)
+			if not data or not data.request or data.resetTime < RealTime() then
+				table.remove(snet.requests, i)
 			end
+		end
+
+		local count = #snet.requests
+		-- print(count)
+		if count >= 500 then
+			print('SNET WARNING: Something is making too many requests (' .. count .. ')')
 		end
 	end, function(error_message)
 		print('Attention! Something is creating errors in the request queue!')

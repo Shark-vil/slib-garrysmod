@@ -82,7 +82,7 @@ else
 		snet.Create('snet_sv_entity_network_success', id).InvokeServer()
 		table.insert(uids_block, id)
 
-		snet.execute(id, name, ply, false, unpack(vars))
+		snet.execute(id, name, ply, unpack(vars))
 	end).Register()
 
 	snet.Callback('snet_cl_entity_network_success', function(_, uid)
