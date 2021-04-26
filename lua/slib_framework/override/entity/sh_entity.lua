@@ -17,7 +17,7 @@ function meta:slibGetLocalVar(key, fallback)
    return self.slibLocalVariables[key]
 end
 
-function meta:slibSetVar(key, value)
+function meta:slibSetVar(key, value, unreliable)
    if not snet.ValueIsValid(value) then return end
 
    self.slibVariables = self.slibVariables or {}
@@ -48,10 +48,11 @@ function meta:slibSetVar(key, value)
    end
 
    if SERVER then
+      unreliable = unreliable or false
       if new_value == nil then
          snet.Create('slib_entity_variable_del', self, key).SetLifeTime(1.5).InvokeAll()
       else
-         snet.Create('slib_entity_variable_set', self, key, value).SetLifeTime(1.5).InvokeAll()
+         snet.Create('slib_entity_variable_set', self, key, value).SetLifeTime(1.5).InvokeAll(unreliable)
       end
    end
 end
