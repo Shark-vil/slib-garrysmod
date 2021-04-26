@@ -7,7 +7,7 @@ function array.isArray(t)
       if type(key) ~= 'number' then return false end
 
       local value_type = type(value)
-      
+
       if past_value_type == nil then
          past_value_type = value_type
       elseif value_type ~= past_value_type then
@@ -23,6 +23,29 @@ function array.HasValue(t, val)
       if t[i] == val then return true end
    end
    return false
+end
+
+function array.WhereHasValue(t, condition)
+   for i = 1, #t do
+      if condition(i, t[i]) then return true end
+   end
+   return false
+end
+
+function array.Find(t, find_value)
+   for i = 1, #t do
+      local value = t[i]
+      if find_value == value then return i, value end
+   end
+   return -1, nil
+end
+
+function array.WhereFind(t, condition)
+   for i = 1, #t do
+      local value = t[i]
+      if condition(i, value) then return i, value end
+   end
+   return -1, nil
 end
 
 function array.shuffle(t)
@@ -68,7 +91,7 @@ function array.insert(t, v)
 end
 
 function array.remove(t, index)
-   t[ index ] = nil
+   table.remove(t, index)
 end
 
 function array.RemoveByValue(t, v)
@@ -88,9 +111,9 @@ function array.RemoveAllByValue(t, v)
 end
 
 function array.RemoveLastValue(t)
-   t[ #t ] = nil
+   table.remove(t, #t)
 end
 
 function array.RemoveFirstValue(t)
-   t[1] = nil
+   table.remove(t, 1)
 end
