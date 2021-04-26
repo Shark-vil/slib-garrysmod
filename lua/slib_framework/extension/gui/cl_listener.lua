@@ -6,8 +6,6 @@ local function ExecuteListener(panel, action_name, ...)
 end
 
 function sgui.SystemParentListener(PANEL)
-	if PANEL.sgui_listeners then return end
-
 	PANEL.sgui_listeners_enabled = {}
 	PANEL.sgui_listeners = {}
 
