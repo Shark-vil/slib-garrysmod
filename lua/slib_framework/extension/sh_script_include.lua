@@ -1,7 +1,7 @@
 local function exInclude(file_path, loading_text)
 	if loading_text and isstring(loading_text) then
 	   MsgN(string.Replace(loading_text, '{file}', file_path))
-   end
+	end
 
 	include(file_path)
 end
@@ -40,44 +40,44 @@ function slib.CreateIncluder(root_directory, loading_text)
 end
 
 function slib.usingDirectory(root_scripts_directory_path, loading_text)
-   local files, directories = file.Find(root_scripts_directory_path .. "/*", "LUA")
+	local files, directories = file.Find(root_scripts_directory_path .. '/*', 'LUA')
 	local files_list = {}
 
 	table.SortDesc(files)
 
 	for _, file_path in ipairs(files) do
-      table.insert(files_list, {
+		table.insert(files_list, {
 			path = file_path,
 			type = getFileNetworkType(file_path)
 		})
-   end
+	end
 
 	local inc = slib.CreateIncluder(nil, loading_text)
 
-   for i = #files_list, 1, -1 do
+	for i = #files_list, 1, -1 do
 		local fileData = files_list[i]
 		if fileData.type == 'sh' then
-      	inc:using(root_scripts_directory_path .. '/' .. fileData.path)
+			inc:using(root_scripts_directory_path .. '/' .. fileData.path)
 			table.remove(files_list, i)
 		end
-   end
+	end
 
 	for i = #files_list, 1, -1 do
 		local fileData = files_list[i]
 		if fileData.type == 'sv' then
-      	inc:using(root_scripts_directory_path .. '/' .. fileData.path)
+			inc:using(root_scripts_directory_path .. '/' .. fileData.path)
 			table.remove(files_list, i)
 		end
-   end
+	end
 
 	for i = #files_list, 1, -1 do
 		local fileData = files_list[i]
 		if fileData.type == 'cl' then
 			inc:using(root_scripts_directory_path .. '/' .. fileData.path)
 		end
-   end
+	end
 
-   for _, directory_path in ipairs(directories) do
-      slib.usingDirectory(root_scripts_directory_path .. '/' .. directory_path, loading_text)
-   end
+	for _, directory_path in ipairs(directories) do
+		slib.usingDirectory(root_scripts_directory_path .. '/' .. directory_path, loading_text)
+	end
 end
