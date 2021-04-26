@@ -12,6 +12,8 @@ function slib.FileRead(path)
 end
 
 function slib.FileWrite(path, data)
+	local filePath = path .. '.dat'
+	local directoryPath = string.GetPathFromFilename(filePath)
 	local fileData
 
 	if isstring(data) then
@@ -21,7 +23,9 @@ function slib.FileWrite(path, data)
 	end
 
 	if not fileData then return end
-	file.Write(path .. '.dat', util.Compress(util.TableToJSON(fileData)))
+
+	file.CreateDir(directoryPath)
+	file.Write(filePath, util.Compress(util.TableToJSON(fileData)))
 end
 
 function slib.FileDelete(path)
