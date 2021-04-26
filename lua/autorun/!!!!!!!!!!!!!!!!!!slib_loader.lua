@@ -1,4 +1,5 @@
 slib = slib or {}
+sgui = sgui or {}
 snet = snet or net
 snet.storage = snet.storage or {}
 
@@ -41,6 +42,8 @@ script:using('override/player/sh_player.lua')
 script:using('override/player/sv_player.lua')
 script:using('override/player/cl_player.lua')
 
+script:using('override/vgui/cl_vgui.lua')
+
 script:using('cvars/gcvars/sh_gcvars.lua')
 script:using('cvars/gcvars/sv_gcvars.lua')
 script:using('cvars/gcvars/cl_gcvars.lua')
@@ -55,6 +58,14 @@ script:using('extension/sh_array.lua')
 script:using('extension/sh_sound_duration.lua')
 script:using('extension/sh_file.lua')
 script:using('extension/sh_hook.lua')
+script:using('extension/sh_table.lua')
+script:using('extension/sh_async.lua')
+script:using('extension/sh_entity.lua')
+script:using('extension/gui/cl_helpers.lua')
+script:using('extension/gui/cl_listener.lua')
+script:using('extension/gui/cl_extension.lua')
+script:using('extension/gui/cl_default_listeners.lua')
+-- script:using('extension/sh_script_optimization.lua')
 
 script:using('debug/sh_profiler.lua')
 
