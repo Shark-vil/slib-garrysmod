@@ -1,8 +1,6 @@
 local function ExecuteListener(panel, action_name, ...)
 	local listeners = panel.sgui_listeners[action_name]
-	for _, f in ipairs(listeners) do
-		f(...)
-	end
+	for i = 1, #listeners do listeners[i](...) end
 end
 
 function sgui.SystemParentListener(PANEL)
@@ -10,16 +8,24 @@ function sgui.SystemParentListener(PANEL)
 	PANEL.sgui_listeners = {}
 
 	function PANEL:AddListener(action_name, func)
+		if type(func) ~= 'function' or type(action_name) ~= 'string' then return end
+
 		self.sgui_listeners[action_name] = self.sgui_listeners[action_name] or {}
 
-		table.insert(self.sgui_listeners[action_name], func)
-
 		if not self.sgui_listeners_enabled[action_name] then
+			local original_action = self[action_name]
+			if type(original_action) == 'function' then
+				table.insert(self.sgui_listeners[action_name], original_action)
+			end
+
 			self[action_name] = function(...)
 				ExecuteListener(self, action_name, ...)
 			end
+
 			self.sgui_listeners_enabled[action_name] = true
 		end
+
+		table.insert(self.sgui_listeners[action_name], func)
 	end
 
 	function PANEL:ClearListeners(action_name)
