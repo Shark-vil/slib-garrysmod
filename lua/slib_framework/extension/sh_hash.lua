@@ -1,4 +1,4 @@
-function slib.GetHash(data)
+local function get_string_data(data)
 	local datatype = type(data)
 
 	if datatype == 'nil' then
@@ -10,12 +10,26 @@ function slib.GetHash(data)
 	end
 
 	if datatype == 'table' then
-		return util.Base64Encode(util.TableToJSON(data))
+		return util.TableToJSON(data)
 	end
 
 	if datatype == 'Vector' or datatype == 'Angle' then
-		return util.Base64Encode(data.x .. data.y .. data.z)
+		return tostring(data.x) .. tostring(data.y) .. tostring(data.z)
 	end
 
-	return util.Base64Encode(tostring(data))
+	if datatype == 'Color' then
+		return tostring(data.r) .. tostring(data.g) .. tostring(data.b) .. tostring(data.a)
+	end
+
+	return tostring(data)
+end
+
+function slib.GetHash(data)
+	local normalize_data = get_string_data(data)
+	return util.Base64Encode(normalize_data)
+end
+
+function slib.GetHashSumm(data)
+	local normalize_data = get_string_data(data)
+	return util.CRC(normalize_data)
 end
