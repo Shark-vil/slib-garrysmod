@@ -77,12 +77,12 @@ else
 		local ent = vars[1]
 
 		if not ent or not isentity(ent) or not IsValid(ent) then return end
-		if table.IHasValue(uids_block, id) then return end
+		if array.HasValue(uids_block, id) then return end
 
 		snet.Create('snet_sv_entity_network_success', id).InvokeServer()
 		table.insert(uids_block, id)
 
-		snet.execute(id, name, ply, false, unpack(vars))
+		snet.execute(id, name, ply, unpack(vars))
 	end).Register()
 
 	snet.Callback('snet_cl_entity_network_success', function(_, uid)
