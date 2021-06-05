@@ -213,8 +213,6 @@ snet.Create = function(name, ...)
 		AddRequestToList(obj)
 		unreliable = unreliable or false
 
-		-- print(obj.name)
-
 		net.Start('cl_network_rpc_callback', unreliable)
 		net.WriteString(obj.id)
 		net.WriteString(obj.name)
@@ -262,8 +260,6 @@ snet.Create = function(name, ...)
 
 		AddRequestToList(obj)
 		unreliable = unreliable or false
-
-		-- print(obj.name)
 
 		net.Start('sv_network_rpc_callback', unreliable)
 		net.WriteString(obj.id)
