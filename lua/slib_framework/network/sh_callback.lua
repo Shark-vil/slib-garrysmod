@@ -52,8 +52,8 @@ function snet.execute(id, name, ply, ...)
 		end
 	end
 
-	if data.validaotr then
-		local validator_result = data.validaotr(id, name, ply, ...)
+	if data.validator then
+		local validator_result = data.validator(id, name, ply, ...)
 		if isbool(validator_result) and not validator_result then return false end
 	end
 
@@ -213,8 +213,6 @@ snet.Create = function(name, ...)
 		AddRequestToList(obj)
 		unreliable = unreliable or false
 
-		-- print(obj.name)
-
 		net.Start('cl_network_rpc_callback', unreliable)
 		net.WriteString(obj.id)
 		net.WriteString(obj.name)
@@ -262,8 +260,6 @@ snet.Create = function(name, ...)
 
 		AddRequestToList(obj)
 		unreliable = unreliable or false
-
-		-- print(obj.name)
 
 		net.Start('sv_network_rpc_callback', unreliable)
 		net.WriteString(obj.id)
@@ -335,47 +331,52 @@ snet.RemoveRequestById = function(id)
 end
 
 snet.Callback = function(name, func)
+	local private = {}
+	private.name = name
+
+	function private.SetParam(key, value)
+		snet.storage.default[private.name] = snet.storage.default[private.name] or {}
+		snet.storage.default[private.name][key] = value
+	end
+
 	local obj = {}
-	obj.name = name
-	obj.execute = func
-	obj.validator = nil
-	obj.isAdmin = false
-	obj.autoRemove = false
-	obj.limits = nil
+	private.SetParam('execute', func)
 
 	function obj.Protect()
-		obj.isAdmin = true
+		private.SetParam('isAdmin', true)
 		return obj
 	end
 
 	function obj.Validator(func_validator)
-		if not isfunction(func_validator) then return end
-		obj.validator = func_validator
+		assert(isfunction(func_validator), 'The variable "func_validator" must be a function!')
+		private.SetParam('validator', func_validator)
 		return obj
 	end
 
 	function obj.AutoRemove()
-		obj.autoRemove = true
+		private.SetParam('autoRemove', true)
 		return obj
 	end
 
 	function obj.Period(delay, limit, warning)
-		obj.limits = {
+		assert(isnumber(delay), 'The variable "delay" must be a number!')
+		assert(isnumber(limit), 'The variable "limit" must be a number!')
+
+		if warning ~= nil then
+			assert(isfunction(warning), 'The variable "warning" must be a function!')
+		end
+
+		private.SetParam('limits', {
 			delay = delay,
 			limit = limit,
 			warning = warning
-		}
+		})
+
 		return obj
 	end
 
+	-- Deprecated. The function does nothing.
 	function obj.Register()
-		snet.storage.default[name] = {
-			execute = obj.execute,
-			validaotr = obj.validator,
-			isAdmin = obj.isAdmin,
-			autoRemove = obj.autoRemove,
-			limits = obj.limits,
-		}
 		return obj
 	end
 
@@ -387,7 +388,6 @@ snet.RegisterCallback = function(name, func, autoremove, isadmin)
 	local callback = snet.Callback(name, func)
 	if autoremove then callback.AutoRemove() end
 	if isadmin then callback.Protect() end
-	callback.Register()
 	return callback
 end
 
