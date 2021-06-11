@@ -1,4 +1,6 @@
 slib = slib or {}
+slib.VERSION = '1.2.1'
+
 sgui = sgui or {}
 snet = snet or net
 snet.storage = snet.storage or {}
