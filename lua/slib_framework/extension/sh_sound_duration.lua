@@ -216,9 +216,11 @@ function slib.SoundDuration(soundPath)
 	local extension = soundPath:GetExtensionFromFilename()
 	if extension and soundDecoders[extension] then
 		local buffer = file.Open(soundPath, "r", "GAME")
-		local result = soundDecoders[extension](buffer)
-		buffer:Close()
-		return result
+		if buffer then
+			local result = soundDecoders[extension](buffer)
+			buffer:Close()
+			return result
+		end
 	end
 
 	return SoundDuration(soundPath)
