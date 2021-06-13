@@ -15,7 +15,7 @@ function meta:slibNotify(text, type, length, sound)
 end
 
 function meta:snetIsReady()
-   return self.slibIsSpawn or false
+   return self.snet_ready or false
 end
 
 function meta:slibGetActiveTool(tool_name, ignore_gmod_tool_active)

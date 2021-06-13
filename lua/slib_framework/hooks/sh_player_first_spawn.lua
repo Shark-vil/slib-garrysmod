@@ -2,15 +2,15 @@ local n_slib_first_player_spawn = slib.GetNetworkString('Slib', 'FirstPlayerSpaw
 
 if SERVER then	
 	hook.Add("PlayerSpawn", "Slib_PlayerFirstSpawnFixer", function(ply)
-      if ply.slibIsSpawn_plug then return end
-		ply.slibIsSpawn_plug = true
+      if ply.snet_ready_plug then return end
+		ply.snet_ready_plug = true
 
 		local hook_name = 'SlibFirstSpawn' .. slib.GenerateUid(ply:UserID())
 		hook.Add("SetupMove", hook_name, function(p, mv, cmd)
 			if p == ply and not cmd:IsForced() then
 				if not IsValid(ply) then return end
 		
-				ply.slibIsSpawn = true
+				ply.snet_ready = true
 				hook.Run('SlibPlayerFirstSpawn', ply)
 				snet.Invoke(n_slib_first_player_spawn, ply)
 
@@ -20,7 +20,7 @@ if SERVER then
 	end)
 else
 	snet.RegisterCallback(n_slib_first_player_spawn, function()
-		LocalPlayer().slibIsSpawn = true
+		LocalPlayer().snet_ready = true
 		hook.Run('SlibPlayerFirstSpawn', LocalPlayer())
 	end)
 end
