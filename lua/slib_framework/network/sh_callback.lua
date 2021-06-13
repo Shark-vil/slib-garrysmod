@@ -409,7 +409,6 @@ timer.Create('SNet_AutoResetRequestAfterTimeDealy', 1, 0, function()
 		end
 
 		local count = #snet.requests
-		-- print(count)
 		if count >= 500 then
 			print('SNET WARNING: Something is making too many requests (' .. count .. ')')
 		end
