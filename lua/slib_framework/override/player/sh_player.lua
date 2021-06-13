@@ -1,21 +1,21 @@
 local meta = FindMetaTable('Player')
 
-function meta:slibNotify(text, type, length, sound)
+function meta:slibNotify(text, notify_type, length, sound)
    text = text or ''
-   type = type or NOTIFY_GENERIC
+   notify_type = notify_type or NOTIFY_GENERIC
    length = length or 3
 
    if SERVER then
-      snet.Invoke('slib_player_notify', self, text, type, length, sound)
+      snet.Invoke('slib_player_notify', self, text, notify_type, length, sound)
       return
    end
 
-   notification.AddLegacy(text, type, length)
+   notification.AddLegacy(text, notify_type, length)
    if sound then surface.PlaySound(sound) end
 end
 
 function meta:snetIsReady()
-   return self.slibIsSpawn or false
+   return self.snet_ready or false
 end
 
 function meta:slibGetActiveTool(tool_name, ignore_gmod_tool_active)

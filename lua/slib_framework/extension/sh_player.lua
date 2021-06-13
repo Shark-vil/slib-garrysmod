@@ -4,7 +4,7 @@ function slib.GetAllLoadedPlayers()
 
    for i = 1, #players do
       local ply = players[i]
-      if ply.slibIsSpawn then array.insert(loaded_players, ply) end
+      if ply.snet_ready then array.insert(loaded_players, ply) end
    end
 
    return loaded_players
