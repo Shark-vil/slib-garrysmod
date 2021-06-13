@@ -155,7 +155,11 @@ snet.Create = function(name, ...)
 	obj.id = slib.GenerateUid(name)
 	obj.name = name
 	obj.data = { ... }
-	obj.compressed_data = util.Compress(snet.Serialize(obj.data))
+	obj.compressed_data = util.Compress(snet.Serialize(obj.data, false, true))
+	if not obj.compressed_data then
+		obj.compressed_data = util.Compress(snet.Serialize())
+		MsgN('[SNET ERROR] An error occurred while compressing data - ' .. name)
+	end
 	obj.compressed_length = #obj.compressed_data
 	obj.bigdata = nil
 	obj.backward = false
@@ -405,7 +409,6 @@ timer.Create('SNet_AutoResetRequestAfterTimeDealy', 1, 0, function()
 		end
 
 		local count = #snet.requests
-		-- print(count)
 		if count >= 500 then
 			print('SNET WARNING: Something is making too many requests (' .. count .. ')')
 		end

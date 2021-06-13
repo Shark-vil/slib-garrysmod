@@ -42,37 +42,57 @@ local function GetValueType(value)
    return typeid
 end
 
-function snet.Serialize(data, notcompress)
+local function GetValueToCompress(k, v)
+   local key_type, key_data, val_type, val_data, typeid, converter
+
+   typeid = GetValueType(k)
+   converter = ValueSerialize[typeid]
+
+   if converter then 
+      key_type, key_data = converter(typeid, k)
+
+      typeid = GetValueType(v)
+      converter = ValueSerialize[typeid]
+
+      if converter then 
+         val_type, val_data = converter(typeid, v)
+
+         return {
+            key_type, key_data,
+            val_type, val_data,
+         }
+      end
+   end
+
+   return nil
+end
+
+function snet.Serialize(data, notcompress, fastparser)
    local datatable = {}
 
-   if istable(data) and not data._snet_disable then
+   if type(data) == 'table' and not data._snet_disable then
       if data._snet_getdata and isfunction(data._snet_getdata) then
          local getdata = data._snet_getdata()
          if istable(getdata) then datatable = getdata end
       else
-         for k, v in pairs(data) do
-            local key_type, key_data, val_type, val_data, typeid, converter
-
-            typeid = GetValueType(k)
-            converter = ValueSerialize[typeid]
-            if converter then 
-               key_type, key_data = converter(typeid, k)
-
-               typeid = GetValueType(v)
-               converter = ValueSerialize[typeid]
-               if converter then 
-                  val_type, val_data = converter(typeid, v)
-                  table.insert(datatable, {
-                     key_type, key_data,
-                     val_type, val_data,
-                  })
+         if fastparser then
+            for k = 1, #data do
+               local result = GetValueToCompress(k, data[k])
+               if result then
+                  table.insert(datatable, result)
+               end
+            end
+         else
+            for k, v in pairs(data) do
+               local result = GetValueToCompress(k, v)
+               if result then
+                  table.insert(datatable, result)
                end
             end
          end
       end
    end
 
-   local notcompress = notcompress or false
    if not notcompress then
       return util.TableToJSON(datatable)
    else
