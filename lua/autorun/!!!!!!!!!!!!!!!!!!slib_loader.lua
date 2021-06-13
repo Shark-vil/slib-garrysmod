@@ -1,5 +1,5 @@
 slib = slib or {}
-slib.VERSION = '1.2.1'
+slib.VERSION = '1.2.2'
 
 sgui = sgui or {}
 snet = snet or net
