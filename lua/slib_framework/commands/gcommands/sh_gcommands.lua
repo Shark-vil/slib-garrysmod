@@ -16,7 +16,7 @@ else
    end).Protect().Register()
 end
 
-function slib:RegisterGlobalCommand(name, client_callback, server_callback, autoComplete, helpText, flags)
+function slib.RegisterGlobalCommand(name, client_callback, server_callback, autoComplete, helpText, flags)
    local autoComplete = autoComplete or nil
    local helpText = helpText or nil
    local flags = flags or 0
