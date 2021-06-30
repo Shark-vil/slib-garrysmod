@@ -96,7 +96,7 @@ function meta:slibRemoveTimer(timer_name, func)
 end
 
 function meta:slibIsDoor()
-   return array.HasValue(list_door_classes, self:GetClass())
+   return table.HasValueBySeq(list_door_classes, self:GetClass())
 end
 
 function meta:slibDoorIsLocked()
