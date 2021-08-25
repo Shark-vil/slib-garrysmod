@@ -3,6 +3,8 @@ local m_blur_color = Color(255, 255, 255)
 
 function sgui.DrawBlurBackground(panel, amount, passages)
 	local x, y = panel:LocalToScreen(0, 0)
+	local screen_width, screen_height = ScrW(), ScrH()
+
 	amount = amount or 0
 
 	surface.SetDrawColor(m_blur_color)
@@ -13,6 +15,6 @@ function sgui.DrawBlurBackground(panel, amount, passages)
 		m_blur_material:Recompute()
 
 		render.UpdateScreenEffectTexture()
-		surface.DrawTexturedRect(x * -1, y * -1, ScrW(), ScrH())
+		surface.DrawTexturedRect(x * -1, y * -1, screen_width, screen_height)
 	end
 end

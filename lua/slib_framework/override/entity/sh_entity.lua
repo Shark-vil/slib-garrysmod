@@ -12,7 +12,7 @@ end
 
 function meta:slibGetLocalVar(key, fallback)
    if not self.slibLocalVariables or self.slibLocalVariables[key] == nil then
-      return fallback or false
+      return fallback
    end
    return self.slibLocalVariables[key]
 end
@@ -96,7 +96,7 @@ function meta:slibRemoveTimer(timer_name, func)
 end
 
 function meta:slibIsDoor()
-   return array.HasValue(list_door_classes, self:GetClass())
+   return table.HasValueBySeq(list_door_classes, self:GetClass())
 end
 
 function meta:slibDoorIsLocked()
@@ -107,7 +107,7 @@ function meta:slibDoorIsLocked()
 end
 
 function meta:slibIsPlayersSee()
-   local players = slib.GetAllLoadedPlayers()
+   local players = player.GetAll()
    local position = self:GetPos()
    for i = 1, #players do
       if players[i]:slibIsViewVector(position) then return true end

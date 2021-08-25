@@ -1,5 +1,5 @@
 slib = slib or {}
-slib.VERSION = '1.2.3'
+slib.VERSION = '1.2.4'
 
 sgui = sgui or {}
 snet = snet or net
@@ -54,6 +54,8 @@ script:using('commands/gcommands/sh_gcommands.lua')
 
 script:using('hooks/sh_player_first_spawn.lua')
 
+script:using('extension/sh_debug.lua')
+script:using('extension/sh_function_type.lua')
 script:using('extension/sh_generators.lua')
 script:using('extension/sh_player.lua')
 script:using('extension/sh_array.lua')
@@ -68,6 +70,7 @@ script:using('extension/gui/cl_helpers.lua')
 script:using('extension/gui/cl_listener.lua')
 script:using('extension/gui/cl_extension.lua')
 script:using('extension/gui/cl_default_listeners.lua')
+script:using('extension/gui/sh_routes.lua')
 -- script:using('extension/sh_script_optimization.lua')
 
 script:using('debug/sh_profiler.lua')

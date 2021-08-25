@@ -37,7 +37,7 @@ function snet.execute(id, name, ply, ...)
 		end
 
 		if not isExist then
-			array.insert(REQUEST_LIMITS_LIST, {
+			table.push(REQUEST_LIMITS_LIST, {
 				ply = ply,
 				name = name,
 				nextTime = RealTime() + data.limits.delay,
@@ -144,7 +144,7 @@ else
 end
 
 local function AddRequestToList(request)
-	array.insert(snet.requests, {
+	table.push(snet.requests, {
 		request = request,
 		resetTime = RealTime() + (request.lifetime or REQUEST_LIFE_TIME)
 	})
@@ -229,7 +229,7 @@ snet.Create = function(name, ...)
 
 	function obj.InvokeAll(unreliable)
 		if CLIENT then return end
-		obj.Invoke(slib.GetAllLoadedPlayers(), unreliable)
+		obj.Invoke(player.GetAll(), unreliable)
 		return obj
 	end
 
@@ -238,14 +238,14 @@ snet.Create = function(name, ...)
 		local receivers = {}
 
 		if isentity(receiver) then
-			array.insert(receivers, receiver)
+			table.push(receivers, receiver)
 		end
 
 		if #receivers == 0 then
-			obj.Invoke(slib.GetAllLoadedPlayers(), unreliable)
+			obj.Invoke(player.GetAll(), unreliable)
 		else
-			for _, ply in ipairs(slib.GetAllLoadedPlayers()) do
-				if not array.HasValue(receivers, ply) then
+			for _, ply in ipairs(player.GetAll()) do
+				if not table.HasValueBySeq(receivers, ply) then
 					obj.Clone().Invoke(ply, unreliable)
 				end
 			end
