@@ -1,4 +1,9 @@
 local function exInclude(file_path, loading_text)
+	if not isstring(file_path) or not file.Exists(file_path, 'LUA') then
+		MsgN('[SLibrary] Script failed load - ' .. file_path)
+		return
+	end
+
 	if loading_text and isstring(loading_text) then
 	   MsgN(string.Replace(loading_text, '{file}', file_path))
 	end
