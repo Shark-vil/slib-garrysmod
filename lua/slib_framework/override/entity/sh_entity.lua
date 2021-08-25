@@ -12,7 +12,7 @@ end
 
 function meta:slibGetLocalVar(key, fallback)
    if not self.slibLocalVariables or self.slibLocalVariables[key] == nil then
-      return fallback or false
+      return fallback
    end
    return self.slibLocalVariables[key]
 end
