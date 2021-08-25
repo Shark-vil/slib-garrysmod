@@ -2,7 +2,7 @@ local n_slib_first_player_spawn = slib.GetNetworkString('Slib', 'FirstPlayerSpaw
 
 if SERVER then	
 	hook.Add("PlayerSpawn", "Slib_PlayerFirstSpawnFixer", function(ply)
-      if ply.snet_ready_plug then return end
+		if ply.snet_ready_plug then return end
 		ply.snet_ready_plug = true
 
 		local hook_name = 'SlibFirstSpawn' .. slib.GenerateUid(ply:UserID())
