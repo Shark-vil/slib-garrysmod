@@ -64,20 +64,20 @@ function table.GetFirstKeyByPairs(t)
    return nil
 end
 
-function table.RemoveByValue(t, val)
-   local tbl = {}
-   local deleted = false
+-- function table.RemoveByValue(t, val)
+--    local tbl = {}
+--    local deleted = false
 
-   for k, v in next, t do
-      if deleted or v ~= val then
-         tbl[ k ] = v
-      else
-         deleted = true
-      end
-   end
+--    for k, v in next, t do
+--       if deleted or v ~= val then
+--          tbl[ k ] = v
+--       else
+--          deleted = true
+--       end
+--    end
 
-   return tbl
-end
+--    return tbl
+-- end
 
 function table.RemoveAllByValue(t, val)
    local tbl = {}
