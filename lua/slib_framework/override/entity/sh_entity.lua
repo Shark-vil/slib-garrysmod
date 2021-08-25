@@ -107,7 +107,7 @@ function meta:slibDoorIsLocked()
 end
 
 function meta:slibIsPlayersSee()
-   local players = slib.GetAllLoadedPlayers()
+   local players = player.GetAll()
    local position = self:GetPos()
    for i = 1, #players do
       if players[i]:slibIsViewVector(position) then return true end
