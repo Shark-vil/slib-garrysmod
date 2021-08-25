@@ -229,7 +229,7 @@ snet.Create = function(name, ...)
 
 	function obj.InvokeAll(unreliable)
 		if CLIENT then return end
-		obj.Invoke(slib.GetAllLoadedPlayers(), unreliable)
+		obj.Invoke(player.GetAll(), unreliable)
 		return obj
 	end
 
@@ -242,9 +242,9 @@ snet.Create = function(name, ...)
 		end
 
 		if #receivers == 0 then
-			obj.Invoke(slib.GetAllLoadedPlayers(), unreliable)
+			obj.Invoke(player.GetAll(), unreliable)
 		else
-			for _, ply in ipairs(slib.GetAllLoadedPlayers()) do
+			for _, ply in ipairs(player.GetAll()) do
 				if not table.HasValueBySeq(receivers, ply) then
 					obj.Clone().Invoke(ply, unreliable)
 				end
