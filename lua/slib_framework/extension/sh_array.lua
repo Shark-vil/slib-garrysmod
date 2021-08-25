@@ -105,7 +105,7 @@ end
 function table.RemoveValueBySeq(t, v)
    for i = #t, 1, -1 do
       if t[i] == v then
-         t[i] = nil
+         table.remove(t, i)
          break
       end
    end
@@ -114,7 +114,7 @@ end
 
 function table.RemoveAllValueBySeq(t, v)
    for i = #t, 1, -1 do
-      if t[i] == v then t[i] = nil end
+      if t[i] == v then table.remove(t, i) end
    end
    return t
 end
