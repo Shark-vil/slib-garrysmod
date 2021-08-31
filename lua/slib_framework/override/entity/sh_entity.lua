@@ -116,7 +116,7 @@ function meta:slibIsPlayersSee()
 end
 
 if SERVER then
-   function snet.ClientRPC(ent, function_name, ...)
+   function snet.ClientRPC(ent, function_name,  ...)
       local ent = ent
 
       if not isentity(ent) and ent.Weapon then ent = ent.Weapon end
@@ -128,16 +128,12 @@ if SERVER then
 
       if ply and ent:GetClass() == 'gmod_tool' then
          local tool = ply:GetTool()
-         local isExistServerFunction = (tool[function_name] ~= nil and isfunction(tool[function_name]))
-
-         snet.Invoke('snet_entity_tool_call_client_rpc', ply, ent, isExistServerFunction, tool:GetMode(), function_name, ...)
+         snet.Invoke('snet_entity_tool_call_client_rpc', ply, ent, tool:GetMode(), function_name, ...)
       else
-         local isExistServerFunction = (ent[function_name] ~= nil and isfunction(ent[function_name]))
-
          if ply then
-            snet.Invoke('snet_entity_call_client_rpc', ply, ent, isExistServerFunction, function_name, ...)
+            snet.Invoke('snet_entity_call_client_rpc', ply, ent, function_name, ...)
          else
-            snet.InvokeAll('snet_entity_call_client_rpc', ent, isExistServerFunction, function_name, ...)
+            snet.InvokeAll('snet_entity_call_client_rpc', ent, function_name, ...)
          end
       end
    end
