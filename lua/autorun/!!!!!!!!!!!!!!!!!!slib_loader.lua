@@ -1,5 +1,5 @@
 slib = slib or {}
-slib.VERSION = '1.2.5'
+slib.VERSION = '1.3'
 slib.LOADED_PLAYERS = slib.LOADED_PLAYERS or {}
 
 sgui = sgui or {}
