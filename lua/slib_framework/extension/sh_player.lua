@@ -1,15 +1,8 @@
--- function slib.GetAllLoadedPlayers()
---    local players = player.GetAll()
---    local loaded_players = {}
+function slib.GetAllLoadedPlayers()
+   return slib.LOADED_PLAYERS
+end
 
---    for i = 1, #players do
---       local ply = players[i]
---       if ply.snet_ready then table.push(loaded_players, ply) end
---    end
-
---    return loaded_players
--- end
-
-function slib.PlayerReady(ply)
-   return ( ply and ply.snet_ready == true )
+function slib.PlayerIsNetReady(ply)
+   if not ply or not ply.snet_ready then return false end
+   return true
 end
