@@ -17,6 +17,7 @@ function meta:slibSetVar(key, value, unreliable)
 	self.slibVariables = self.slibVariables or {}
 	self.slibVariablesChangeCallback = self.slibVariablesChangeCallback or {}
 	self.slibVariablesSetCallback = self.slibVariablesSetCallback or {}
+	self.slibVariablesInstanceCallback = self.slibVariablesInstanceCallback or {}
 
 	if not self or not istable(self.slibVariables) then return end
 
@@ -31,6 +32,11 @@ function meta:slibSetVar(key, value, unreliable)
 		end
 	end
 
+	if self.slibVariables[key] == nil and self.slibVariablesInstanceCallback[key] then
+		for _, func in ipairs(self.slibVariablesInstanceCallback[key]) do
+			func(new_value)
+		end
+	end
 
 	self.slibVariables[key] = new_value
 
@@ -58,6 +64,12 @@ function meta:slibGetVar(key, fallback)
 	return self.slibVariables[key]
 end
 
+function meta:slibOnInstanceVarCallback(key, func)
+	if not isfunction(func) then return end
+	self.slibVariablesInstanceCallback = self.slibVariablesInstanceCallback or {}
+	self.slibVariablesInstanceCallback[key] = self.slibVariablesInstanceCallback[key] or {}
+	table.insert(self.slibVariablesInstanceCallback[key], func)
+end
 
 function meta:slibAddSetVarCallback(key, func)
 	if not isfunction(func) then return end
