@@ -130,6 +130,10 @@ function meta:slibIsPlayersSee()
 	return false
 end
 
+function meta:slibAutoDestroy(time)
+	self:slibCreateTimer('_system_timer_slib_auto_destroy_entity_', time, 1, function()
+		self:Remove()
+	end)
 end
 
 if SERVER then
