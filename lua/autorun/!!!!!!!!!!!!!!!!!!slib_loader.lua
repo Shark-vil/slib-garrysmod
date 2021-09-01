@@ -14,6 +14,9 @@ include(root_directory .. '/extension/sh_script_include.lua')
 
 local script = slib.CreateIncluder(root_directory, '[SLibrary] Script load - {file}')
 
+script:using('debug/sh_profiler.lua')
+script:using('debug/sh_message.lua')
+
 script:using('network/sh_addnetwork.lua')
 script:using('network/sh_serializator.lua')
 script:using('network/sh_callback.lua')
@@ -73,8 +76,6 @@ script:using('extension/gui/cl_extension.lua')
 script:using('extension/gui/cl_default_listeners.lua')
 script:using('extension/gui/sh_routes.lua')
 -- script:using('extension/sh_script_optimization.lua')
-
-script:using('debug/sh_profiler.lua')
 
 -- To connect scripts that depend on the library
 slib.usingDirectory('slib_autoloader')
