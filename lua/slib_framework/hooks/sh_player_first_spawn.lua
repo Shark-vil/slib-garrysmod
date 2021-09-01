@@ -1,26 +1,88 @@
-local n_slib_first_player_spawn = slib.GetNetworkString('Slib', 'FirstPlayerSpawn')
+if SERVER then
+	hook.Add('PlayerDisconnected', 'Slib_PlayerDisconnectedRemoveLoadedPlayer', function(disconnected_player)
+		for i = #slib.LOADED_PLAYERS, 1, -1 do
+			local ply = slib.LOADED_PLAYERS[i]
+			if not IsValid(ply) or ply == disconnected_player then
+				slib.Log('The player ', ply, ' has disconnected from the server')
+				table.remove(slib.LOADED_PLAYERS, i)
+			end
+		end
 
-if SERVER then	
-	hook.Add("PlayerSpawn", "Slib_PlayerFirstSpawnFixer", function(ply)
-		if ply.snet_ready_plug then return end
-		ply.snet_ready_plug = true
+		snet.InvokeAll('slib_player_disconnected_sync', ply)
+	end)
+
+	hook.Add('PlayerSpawn', 'Slib_PlayerFirstSpawnFixer', function(ply)
+		if ply.slib_player_spawn then return end
+		ply.slib_player_spawn = true
 
 		local hook_name = 'SlibFirstSpawn' .. slib.GenerateUid(ply:UserID())
-		hook.Add("SetupMove", hook_name, function(p, mv, cmd)
+		hook.Add('SetupMove', hook_name, function(p, mv, cmd)
 			if p == ply and not cmd:IsForced() then
 				if not IsValid(ply) then return end
-		
-				ply.snet_ready = true
-				hook.Run('SlibPlayerFirstSpawn', ply)
-				snet.Invoke(n_slib_first_player_spawn, ply)
 
-				hook.Remove("SetupMove", hook_name)
+				ply.snet_ready = true
+				table.insert(slib.LOADED_PLAYERS, ply)
+
+				hook.Run('SlibPlayerFirstSpawn', ply)
+				snet.Create('slib_first_player_spawn', ply).InvokeAll()
+
+				hook.Remove('SetupMove', hook_name)
 			end
 		end)
 	end)
+
+	hook.Add('SlibPlayerFirstSpawn', 'Slib_SyncExistsNetworkVariable', function(ply)
+		for _, ent in ipairs(ents.GetAll()) do
+			if ent.slibVariables ~= nil and #ent.slibVariables ~= 0 then
+				for key, value in pairs(ent.slibVariables) do
+					if value ~= nil then
+						snet.Invoke('slib_entity_variable_set', ply, ent, key, value)
+					end
+				end
+			end
+		end
+
+		local players = {}
+
+		for _, aply in ipairs(player.GetAll()) do
+			if aply ~= ply and aply.snet_ready then
+				table.insert(players, aply)
+			end
+		end
+
+		snet.Invoke('slib_first_player_spawn_sync', ply, players)
+	end)
 else
-	snet.RegisterCallback(n_slib_first_player_spawn, function()
-		LocalPlayer().snet_ready = true
-		hook.Run('SlibPlayerFirstSpawn', LocalPlayer())
+	snet.Callback('slib_first_player_spawn', function(_, ply)
+		slib.Log('Player ', ply, ' first spawn on the server')
+		if ply == LocalPlayer() then
+			slib.Log('You spawned on the server for the first time')
+		end
+
+		ply.snet_ready = true
+		table.insert(slib.LOADED_PLAYERS, ply)
+
+		hook.Run('SlibPlayerFirstSpawn', ply)
+	end).Validator(SNET_ENTITY_VALIDATOR)
+
+	snet.Callback('slib_first_player_spawn_sync', function(_, players)
+		for i = 1, #players do
+			local ply = players[i]
+
+			ply.snet_ready = true
+			table.insert(slib.LOADED_PLAYERS, ply)
+
+			slib.Log('Player sync -', ply)
+		end
+	end).Validator(SNET_ENTITY_VALIDATOR)
+
+	snet.Callback('slib_player_disconnected_sync', function(_, disconnected_player)
+		for i = #slib.LOADED_PLAYERS, 1, -1 do
+			local ply = slib.LOADED_PLAYERS[i]
+			if not IsValid(ply) or ply == disconnected_player then
+				slib.Log('The player ', ply, ' has disconnected from the server')
+				table.remove(slib.LOADED_PLAYERS, i)
+			end
+		end
 	end)
 end

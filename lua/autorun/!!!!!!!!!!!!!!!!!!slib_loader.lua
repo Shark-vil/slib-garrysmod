@@ -1,5 +1,6 @@
 slib = slib or {}
-slib.VERSION = '1.2.5'
+slib.VERSION = '1.3'
+slib.LOADED_PLAYERS = slib.LOADED_PLAYERS or {}
 
 sgui = sgui or {}
 snet = snet or net
@@ -13,6 +14,9 @@ end
 include(root_directory .. '/extension/sh_script_include.lua')
 
 local script = slib.CreateIncluder(root_directory, '[SLibrary] Script load - {file}')
+
+script:using('debug/sh_profiler.lua')
+script:using('debug/sh_message.lua')
 
 script:using('network/sh_addnetwork.lua')
 script:using('network/sh_serializator.lua')
@@ -66,14 +70,13 @@ script:using('extension/sh_table.lua')
 script:using('extension/sh_async.lua')
 script:using('extension/sh_entity.lua')
 script:using('extension/sh_hash.lua')
+script:using('extension/sh_cvars.lua')
 script:using('extension/gui/cl_helpers.lua')
 script:using('extension/gui/cl_listener.lua')
 script:using('extension/gui/cl_extension.lua')
 script:using('extension/gui/cl_default_listeners.lua')
 script:using('extension/gui/sh_routes.lua')
 -- script:using('extension/sh_script_optimization.lua')
-
-script:using('debug/sh_profiler.lua')
 
 -- To connect scripts that depend on the library
 slib.usingDirectory('slib_autoloader')
