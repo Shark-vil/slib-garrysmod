@@ -1,16 +1,30 @@
 if SERVER then
 	local entities_queue = {}
 
-	snet.Callback('snet_sv_entity_network_start', function(ply, id)
+	local function entities_pack(tbl, data)
+		for i = 1, #data do
+			local value = data[i]
+			if isentity(value) and IsValid(value) then
+				table.insert(tbl, value)
+			elseif type(value) == 'table' then
+				entities_pack(tbl, value)
+			end
+		end
+	end
+
+	snet.Callback('snet_sv_entity_network_start', function(ply, id, backward)
 		local request = snet.FindRequestById(id, true)
 		if not request then return end
 
-		local ent = request.data[1]
-		if not ent or not IsValid(ent) then return end
+		local entities = {}
+		entities_pack(entities, request.data)
+
+		if #entities == 0 then return end
 
 		table.insert(entities_queue, {
 			id = id,
-			requestData = {
+			backward = backward or false,
+			request_data = {
 				id = request.id,
 				name = request.name,
 				vars = request.data,
@@ -18,12 +32,12 @@ if SERVER then
 				func_success = request.func_success
 			},
 			ply = ply,
-			ent = ent,
+			entities = entities,
 			equalDelay = 0,
-			timeout = RealTime() + 30,
+			timeout = RealTime() + 5,
 			isSuccess = false,
 		})
-	end).Register()
+	end)
 
 	snet.Callback('snet_sv_entity_network_success', function(ply, id)
 		for _, data in ipairs(entities_queue) do
@@ -33,12 +47,15 @@ if SERVER then
 				return
 			end
 		end
-	end).Register()
+	end)
 
-	hook.Add('SetupPlayerVisibility', 'Slib_TemporaryEntityNetworkVisibility', function(ply, ent)
+	hook.Add('SetupPlayerVisibility', 'Slib_TemporaryEntityNetworkVisibility', function(ply)
 		for _, data in ipairs(entities_queue) do
-			if IsValid(data.ent) and data.ply == ply then
-				AddOriginToPVS(data.ent:GetPos())
+			for i = 1, #data.entities do
+				local ent = data.entities[i]
+				if IsValid(ent) and data.ply == ply then
+					AddOriginToPVS(ent:GetPos())
+				end
 			end
 		end
 	end)
@@ -48,21 +65,30 @@ if SERVER then
 
 		for i = #entities_queue, 1, -1 do
 			local data = entities_queue[i]
-			local requestData = data.requestData
+			local request_data = data.request_data
 			local ply = data.ply
-			local ent = data.ent
+			local backward = data.backward
+			local entities = {}
 			local real_time = RealTime()
 
-			if data.timeout < real_time or not IsValid(ent) or not IsValid(ply) then
-				hook.Run('SNetEntitySuccessInvoked', false, requestData.name, ply, ent)
+			for k = 1, #data.entities do
+				local ent = data.entities[k]
+				if IsValid(ent) then
+					table.insert(entities, ent)
+				end
+			end
+
+			if data.timeout < real_time or #entities == 0 or not IsValid(ply) then
+				hook.Run('SNetEntitySuccessInvoked', false, request_data.name, ply, entities)
 				table.remove(entities_queue, i)
 			elseif data.isSuccess then
-				hook.Run('SNetEntitySuccessInvoked', true, requestData.name, ply, ent)
+				hook.Run('SNetEntitySuccessInvoked', true, request_data.name, ply, entities)
 				table.remove(entities_queue, i)
 			elseif data.equalDelay < real_time then
-				snet.Create('snet_cl_entity_network_callback', requestData.id, requestData.name, requestData.vars)
-					.Success(requestData.func_success)
-					.Error(requestData.func_error)
+				snet.Create('snet_cl_entity_network_callback',
+					request_data.id, request_data.name, request_data.vars, backward)
+					.Success(request_data.func_success)
+					.Error(request_data.func_error)
 					.Invoke(ply)
 
 				data.equalDelay = real_time + 0.5 + delay_infelicity
@@ -72,28 +98,35 @@ if SERVER then
 	end)
 else
 	local uids_block = {}
-	
-	snet.Callback('snet_cl_entity_network_callback', function(ply, id, name, vars)
-		local ent = vars[1]
 
-		if not ent or not isentity(ent) or not IsValid(ent) then return end
-		if table.HasValueBySeq(uids_block, id) then return end
+	snet.Callback('snet_cl_entity_network_callback', function(ply, id, name, vars, backward)
+		for i = 1, #vars do
+			local ent = vars[i]
+			if isentity(ent) and ( not IsValid(ent) or table.HasValueBySeq(uids_block, id) ) then
+				return
+			end
+		end
 
 		snet.Create('snet_sv_entity_network_success', id).InvokeServer()
 		table.insert(uids_block, id)
 
-		snet.execute(id, name, ply, unpack(vars))
-	end).Register()
+		snet.execute(backward, id, name, ply, unpack(vars))
+	end)
 
 	snet.Callback('snet_cl_entity_network_success', function(_, uid)
 		table.RemoveByValue(uids_block, uid)
-	end).Register()
+	end)
 
-	SNET_ENTITY_VALIDATOR = function(id, name, ply, ent)
-		if not ent or not isentity(ent) then return end
-		if not IsValid(ent) then
-			snet.Create('snet_sv_entity_network_start', id).InvokeServer()
-			return false
+	SNET_ENTITY_VALIDATOR = function(backward, id, name, ply, ...)
+		local args = { ... }
+		if #args == 0 then return end
+
+		for i = 1, #args do
+			local ent = args[i]
+			if isentity(ent) and not IsValid(ent) then
+				snet.Create('snet_sv_entity_network_start', id, backward).InvokeServer()
+				return false
+			end
 		end
 	end
 end

@@ -4,7 +4,18 @@ snet.requests = snet.requests or {}
 local REQUEST_LIFE_TIME = 2
 local REQUEST_LIMITS_LIST = {}
 
-function snet.execute(id, name, ply, ...)
+function snet.PlayerParse(player_list)
+	local players = {}
+	for i = 1, #player_list do
+		local ply = player_list[i]
+		if not ply:IsBot() then
+			table.insert(players, ply)
+		end
+	end
+	return players
+end
+
+local function _snet_execute(backward, id, name, ply, ...)
 	if CLIENT then ply = LocalPlayer() end
 
 	local data = snet.storage.default[name]
@@ -37,7 +48,7 @@ function snet.execute(id, name, ply, ...)
 		end
 
 		if not isExist then
-			table.push(REQUEST_LIMITS_LIST, {
+			table.insert(REQUEST_LIMITS_LIST, {
 				ply = ply,
 				name = name,
 				nextTime = RealTime() + data.limits.delay,
@@ -53,15 +64,40 @@ function snet.execute(id, name, ply, ...)
 	end
 
 	if data.validator then
-		local validator_result = data.validator(id, name, ply, ...)
+		local validator_result = data.validator(backward, id, name, ply, ...)
 		if isbool(validator_result) and not validator_result then return false end
 	end
 
 	data.execute(ply, ...)
 
-	if data.autoRemove then net.RemoveCallback(name) end
+	if data.auto_destroy then net.RemoveCallback(name) end
 
 	return true
+end
+
+function snet.execute(backward, id, name, ply, ...)
+	local success = _snet_execute(backward, id, name, ply, ...)
+
+	if backward then
+		if CLIENT then
+			if success then
+				net.Start('sv_network_rpc_success')
+			else
+				net.Start('sv_network_rpc_error')
+			end
+			net.WriteString(id)
+			net.SendToServer()
+		else
+			if success then
+				net.Start('cl_network_rpc_success')
+			else
+				net.Start('cl_network_rpc_error')
+			end
+			net.WriteString(id)
+			net.Send(ply)
+		end
+	end
+	hook.Run('SNetRequestResult', id, name, reuslt, vars)
 end
 
 local function network_callback(len, ply)
@@ -71,29 +107,7 @@ local function network_callback(len, ply)
 	local compressed_data = net.ReadData(compressed_length)
 	local backward = net.ReadBool()
 	local vars = snet.Deserialize(util.Decompress(compressed_data))
-	local reuslt = snet.execute(id, name, ply, unpack(vars))
-
-	if backward then
-		if CLIENT then
-			if reuslt then
-				net.Start('sv_network_rpc_success')
-			else
-				net.Start('sv_network_rpc_error')
-			end
-			net.WriteString(id)
-			net.SendToServer()
-		else
-			if reuslt then
-				net.Start('cl_network_rpc_success')
-			else
-				net.Start('cl_network_rpc_error')
-			end
-			net.WriteString(id)
-			net.Send(ply)
-		end
-	end
-
-	hook.Run('SNetRequestResult', id, name, reuslt, vars)
+	snet.execute(backward, id, name, ply, unpack(vars))
 end
 
 if SERVER then
@@ -110,17 +124,40 @@ if SERVER then
 	snet.Receive('sv_network_rpc_success', function(len, ply)
 		local id = net.ReadString()
 		local request = snet.FindRequestById(id)
-		if not request or not request.func_success then return end
-		request.func_success(ply, request)
-		snet.RemoveRequestById(id)
+		if not request then return end
+		request.receiver_complete_count = request.receiver_complete_count + 1
+
+		if request.func_success then
+			request.func_success(ply, request)
+		end
+
+		if request.receiver_complete_count >= request.receiver_count then
+			if request.func_complete then
+				request.func_complete(request.receiver, request)
+			end
+			snet.RemoveRequestById(id)
+		end
 	end)
 
 	-- Error result
 	snet.Receive('sv_network_rpc_error', function(len, ply)
 		local id = net.ReadString()
 		local request = snet.FindRequestById(id)
-		if not request or not request.func_error then return end
-		request.func_error(ply, request)
+		if not request then return end
+
+		if request.func_error then
+			request.func_error(ply, request)
+		end
+
+		if not request.backward then
+			request.receiver_count = request.receiver_count - 1
+			if request.receiver_complete_count >= request.receiver_count then
+				if request.func_complete then
+					request.func_complete(request.receiver, request)
+				end
+				snet.RemoveRequestById(id)
+			end
+		end
 	end)
 else
 	snet.Receive('cl_network_rpc_callback', network_callback)
@@ -129,28 +166,41 @@ else
 	snet.Receive('cl_network_rpc_success', function(len, ply)
 		local id = net.ReadString()
 		local request = snet.FindRequestById(id)
-		if not request or not request.func_success then return end
-		request.func_success(LocalPlayer(), request)
-		snet.RemoveRequestById(id)
+		if not request then return end
+		request.receiver_complete_count = request.receiver_complete_count + 1
+
+		if request.func_success then
+			request.func_success(LocalPlayer(), request)
+		end
+
+		if request.receiver_complete_count >= request.receiver_count then
+			if request.func_complete then
+				request.func_complete()
+			end
+			snet.RemoveRequestById(id)
+		end
 	end)
 
 	-- Error result
 	snet.Receive('cl_network_rpc_error', function(len, ply)
 		local id = net.ReadString()
 		local request = snet.FindRequestById(id)
-		if not request or not request.func_error then return end
-		request.func_error(LocalPlayer(), request)
+		if not request then return end
+
+		if request.func_error then
+			request.func_error(LocalPlayer(), request)
+		end
 	end)
 end
 
-local function AddRequestToList(request)
-	table.push(snet.requests, {
+function snet.AddRequestToList(request)
+	table.insert(snet.requests, {
 		request = request,
-		resetTime = RealTime() + (request.lifetime or REQUEST_LIFE_TIME)
+		timeout = RealTime() + (request.lifetime or REQUEST_LIFE_TIME)
 	})
 end
 
-snet.Create = function(name, ...)
+function snet.Create(name, ...)
 	local obj = {}
 	obj.id = slib.GenerateUid(name)
 	obj.name = name
@@ -165,7 +215,11 @@ snet.Create = function(name, ...)
 	obj.backward = false
 	obj.func_success = nil
 	obj.func_error = nil
+	obj.func_complete = nil
 	obj.lifetime = REQUEST_LIFE_TIME
+	obj.receiver = {}
+	obj.receiver_count = 1
+	obj.receiver_complete_count = 0
 
 	function obj.BigData(data, max_size, progress_text)
 		if not istable(data) and not isstring(data) then return end
@@ -200,21 +254,39 @@ snet.Create = function(name, ...)
 		return obj
 	end
 
+	function obj.Complete(func)
+		if func and isfunction(func) then
+			obj.func_complete = func
+			obj.backward = true
+		end
+		return obj
+	end
+
+	function obj.Eternal()
+		obj.eternal = true
+	end
+
 	function obj.Invoke(receiver, unreliable)
 		if CLIENT then return end
 
-		if istable(receiver) then
-			for i = 1, #receiver do obj.Clone().Invoke(receiver[i]) end
-			return obj
+		if not istable(receiver) then
+			receiver = { receiver }
 		end
+
+		receiver = snet.PlayerParse(receiver)
+
+		obj.receiver_count = #receiver
+		obj.receiver = receiver
 
 		local bigdata = obj.bigdata
 		if bigdata then
-			snet.InvokeBigData(obj.name, receiver, bigdata.data, bigdata.max_size, bigdata.progress_text)
+			for i = 1, #receiver do
+				snet.InvokeBigData(obj, receiver[i], bigdata.data, bigdata.max_size, bigdata.progress_text)
+			end
 			return obj
 		end
 
-		AddRequestToList(obj)
+		snet.AddRequestToList(obj)
 		unreliable = unreliable or false
 
 		net.Start('cl_network_rpc_callback', unreliable)
@@ -229,7 +301,7 @@ snet.Create = function(name, ...)
 
 	function obj.InvokeAll(unreliable)
 		if CLIENT then return end
-		obj.Invoke(player.GetAll(), unreliable)
+		obj.Invoke(player.GetHumans(), unreliable)
 		return obj
 	end
 
@@ -238,17 +310,21 @@ snet.Create = function(name, ...)
 		local receivers = {}
 
 		if isentity(receiver) then
-			table.push(receivers, receiver)
+			table.insert(receivers, receiver)
 		end
 
 		if #receivers == 0 then
-			obj.Invoke(player.GetAll(), unreliable)
+			obj.Invoke(player.GetHumans(), unreliable)
 		else
-			for _, ply in ipairs(player.GetAll()) do
+			local players = player.GetHumans()
+			local player_list = {}
+			for i = 1, #players do
+				local ply = players[i]
 				if not table.HasValueBySeq(receivers, ply) then
-					obj.Clone().Invoke(ply, unreliable)
+					table.insert(player_list, ply)
 				end
 			end
+			obj.Invoke(player_list, unreliable)
 		end
 
 		return obj
@@ -258,11 +334,11 @@ snet.Create = function(name, ...)
 		if SERVER then return end
 		local bigdata = obj.bigdata
 		if bigdata then
-			snet.InvokeBigData(obj.name, nil, bigdata.data, bigdata.max_size, bigdata.progress_text)
+			snet.InvokeBigData(obj, nil, bigdata.data, bigdata.max_size, bigdata.progress_text)
 			return
 		end
 
-		AddRequestToList(obj)
+		snet.AddRequestToList(obj)
 		unreliable = unreliable or false
 
 		net.Start('sv_network_rpc_callback', unreliable)
@@ -291,39 +367,39 @@ snet.Create = function(name, ...)
 	return obj
 end
 
-snet.Invoke = function(name, receiver, ...)
+function snet.Invoke(name, receiver, ...)
 	if CLIENT then
 		return snet.Create(name, ...).InvokeServer()
 	end
 	return snet.Create(name, ...).Invoke(receiver)
 end
 
-snet.InvokeAll = function(name, ...)
+function snet.InvokeAll(name, ...)
 	return snet.Create(name, ...).InvokeAll()
 end
 
-snet.InvokeIgnore = function(name, receiver, ...)
+function snet.InvokeIgnore(name, receiver, ...)
 	return snet.Create(name, ...).InvokeIgnore(receiver)
 end
 
-snet.InvokeServer = function(name, ...)
+function snet.InvokeServer(name, ...)
 	return snet.Create(name, ...).InvokeServer()
 end
 
-snet.FindRequestById = function(id, to_extend)
+function snet.FindRequestById(id, to_extend)
 	to_extend = to_extend or false
 
 	for i = #snet.requests, 1, -1 do
 		local data = snet.requests[i]
 		if data and data.request and data.request.id == id then
-			if to_extend then data.resetTime = RealTime() + data.request.lifetime end
+			if to_extend then data.timeout = RealTime() + data.request.lifetime end
 			return data.request
 		end
 	end
 	return nil
 end
 
-snet.RemoveRequestById = function(id)
+function snet.RemoveRequestById(id)
 	for i = #snet.requests, 1, -1 do
 		local data = snet.requests[i]
 		if data and data.request and data.request.id == id then
@@ -334,7 +410,7 @@ snet.RemoveRequestById = function(id)
 	return false
 end
 
-snet.Callback = function(name, func)
+function snet.Callback(name, func)
 	local private = {}
 	private.name = name
 
@@ -357,8 +433,8 @@ snet.Callback = function(name, func)
 		return obj
 	end
 
-	function obj.AutoRemove()
-		private.SetParam('autoRemove', true)
+	function obj.AutoDestroy()
+		private.SetParam('auto_destroy', true)
 		return obj
 	end
 
@@ -388,22 +464,27 @@ snet.Callback = function(name, func)
 end
 
 -- Outdated method for backward compatibility
-snet.RegisterCallback = function(name, func, autoremove, isadmin)
+function snet.RegisterCallback(name, func, auto_destroy, isadmin)
 	local callback = snet.Callback(name, func)
-	if autoremove then callback.AutoRemove() end
+	if auto_destroy then callback.AutoDestroy() end
 	if isadmin then callback.Protect() end
 	return callback
 end
 
-snet.RemoveCallback = function(name)
+function snet.RemoveCallback(name)
 	snet.storage.default[name] = nil
 end
 
 timer.Create('SNet_AutoResetRequestAfterTimeDealy', 1, 0, function()
+	local RealTime = RealTime
+
 	xpcall(function()
 		for i = #snet.requests, 1, -1 do
 			local data = snet.requests[i]
-			if not data or not data.request or data.resetTime < RealTime() then
+			if not data or (not data.eternal and (not data.request or data.timeout < RealTime()) ) then
+				if data and data.func_complete then
+					data.func_complete(data.receiver, data)
+				end
 				table.remove(snet.requests, i)
 			end
 		end
