@@ -10,6 +10,8 @@ local MsgN = MsgN
 local istable = istable
 local isstring =  isstring
 local isfunction = isfunction
+local RealTime = RealTime
+local xpcall = xpcall
 --
 local REQUEST_LIFE_TIME = snet.REQUEST_LIFE_TIME
 local request_storage = {}
@@ -218,9 +220,6 @@ function snet.RemoveRequestById(id)
 end
 
 timer.Create('SNet_AutoResetRequestAfterTimeDealy', 1, 0, function()
-	local RealTime = RealTime
-	local xpcall = xpcall
-
 	xpcall(function()
 		for i = #request_storage, 1, -1 do
 			local data = request_storage[i]
