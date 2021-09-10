@@ -1,3 +1,8 @@
+local net = net
+local snet = snet
+local hook = hook
+--
+
 -- Called when the client requests a new batch of data
 -- CLIENT (slib_cl_bigdata_receive / slib_cl_bigdata_processing) --> SERVER
 net.Receive('slib_sv_bigdata_receive_ok', function(len, ply)

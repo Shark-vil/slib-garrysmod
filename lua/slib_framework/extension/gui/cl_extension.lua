@@ -1,3 +1,6 @@
+local sgui = sgui
+--
+
 function sgui.SystemParentExtension(PANEL)
 	PANEL.sgui_is_pressed = false
 

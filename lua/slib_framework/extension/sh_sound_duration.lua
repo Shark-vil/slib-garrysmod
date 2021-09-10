@@ -26,6 +26,11 @@ SOFTWARE.
 
 local debug = false
 local sprint = debug and print or function() end
+local bit = bit
+local math = math
+local file = file
+local SoundDuration = SoundDuration
+--
 
 local MP3Data = {
 	versions = {"2.5", "x", "2", "1"},

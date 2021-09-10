@@ -1,3 +1,7 @@
+local snet = snet
+local IsValid = IsValid
+--
+
 snet.Callback('slib_entity_variable_set', function (_, ent, key, value)
 	slib.Log('Set ', ent, ' variable [ ', key, ' : ', value, ' ]')
 	ent:slibSetVar(key, value)

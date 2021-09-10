@@ -1,3 +1,16 @@
+local slib = slib
+local snet = snet
+local net = net
+local util = util
+local table = table
+local player = player
+local CLIENT = CLIENT
+local SERVER = SERVER
+local MsgN = MsgN
+local istable = istable
+local isstring =  isstring
+local isfunction = isfunction
+--
 local REQUEST_LIFE_TIME = snet.REQUEST_LIFE_TIME
 local request_storage = {}
 

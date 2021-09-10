@@ -1,3 +1,7 @@
+local net = net
+local snet = snet
+local LocalPlayer = LocalPlayer
+--
 
 net.Receive('cl_network_rpc_success', function(len, ply)
 	local id = net.ReadString()

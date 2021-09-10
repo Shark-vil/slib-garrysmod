@@ -1,3 +1,15 @@
+local snet = snet
+local table = table
+local IsValid = IsValid
+local SERVER = SERVER
+local ipairs = ipairs
+local hook = hook
+local AddOriginToPVS = AddOriginToPVS
+local RealTime = RealTime
+local isentity = isentity
+local unpack = unpack
+--
+
 if SERVER then
 	local entities_queue = {}
 

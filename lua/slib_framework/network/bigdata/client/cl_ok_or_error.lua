@@ -1,3 +1,10 @@
+local net = net
+local snet = snet
+local notification = notification
+local hook = hook
+local LocalPlayer = LocalPlayer
+--
+
 -- Called when the server requests a new batch of data
 -- SERVER (slib_sv_bigdata_receive / slib_sv_bigdata_processing) --> CLIENT
 net.Receive('slib_cl_bigdata_receive_ok', function()

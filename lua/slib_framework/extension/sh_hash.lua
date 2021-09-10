@@ -1,3 +1,9 @@
+local slib = slib
+local type = type
+local tostring = tostring
+local util = util
+--
+
 local function get_string_data(data)
 	local datatype = type(data)
 

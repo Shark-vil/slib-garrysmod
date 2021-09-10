@@ -1,6 +1,11 @@
+local coroutine = coroutine
+local coroutine_yield = coroutine.yield
+local coroutine_wait = coroutine.wait
+local coroutine_create = coroutine.create
+local coroutine_resume = coroutine.resume
+local hook = hook
+--
 async = async or {}
-local yield = coroutine.yield
-local wait = coroutine.wait
 
 function async.Add(id, func)
 	async.Remove(id)
@@ -8,10 +13,10 @@ function async.Add(id, func)
 
 	hook.Add('Think', 'slib_async_' .. id, function()
 		if not co or not worked then
-			co = coroutine.create(func)
+			co = coroutine_create(func)
 		end
 
-		worked, value = coroutine.resume(co, yield, wait)
+		worked, value = coroutine_resume(co, coroutine_yield, coroutine_wait)
 
 		if value == 'stop' then
 			async.Remove(id)

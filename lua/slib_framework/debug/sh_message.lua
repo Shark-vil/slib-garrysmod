@@ -1,3 +1,9 @@
+local slib = slib
+local string = string
+local MsgN = MsgN
+local tostring = tostring
+--
+
 function slib.ConsoleMessage(prefix, ...)
 	local tags = string.Explode('.', prefix)
 	local stylized_prefix = ''

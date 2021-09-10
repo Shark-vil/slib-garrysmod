@@ -1,3 +1,10 @@
+local net = net
+local snet = snet
+local LocalPlayer = LocalPlayer
+local hook = hook
+local notification = notification
+local util = util
+--
 local processing_data = {}
 
 -- Executed for the first time before data processing
@@ -6,10 +13,11 @@ net.Receive('slib_cl_bigdata_receive', function()
 	local ply = LocalPlayer()
 	local name = net.ReadString()
 	local is_error = false
+	local callback = snet.GetCallback(name)
 
-	if snet.storage.default[name] == nil then
+	if not callback then
 		is_error = true
-	elseif snet.storage.default[name].isAdmin then
+	elseif callback.isAdmin then
 		if not ply:IsAdmin() and not ply:IsSuperAdmin() then
 			is_error = true
 		end
@@ -50,8 +58,9 @@ net.Receive('slib_cl_bigdata_processing', function(len)
 	local ply = LocalPlayer()
 	local name = net.ReadString()
 	local index = net.ReadInt(10)
+	local callback = snet.GetCallback(name)
 
-	if snet.storage.default[name] == nil then return end
+	if not callback then return end
 	if processing_data[index] == nil then return end
 
 	local current_part = net.ReadInt(10)
@@ -84,9 +93,9 @@ net.Receive('slib_cl_bigdata_processing', function(len)
 		processing_data[index] = nil
 		local result_data = util.JSONToTable(data_string)
 
-		if result_data.type == 'table' then
+		if result_data.data_type == 'table' then
 			snet.execute(result_data.backward, result_data.id, name, ply, util.JSONToTable(result_data.data))
-		elseif result_data.type == 'string' then
+		elseif result_data.data_type == 'string' then
 			snet.execute(result_data.backward, result_data.id, name, ply, result_data.data)
 		end
 	else

@@ -1,3 +1,10 @@
+local net = net
+local snet = snet
+local hook = hook
+local IsValid = IsValid
+local table = table
+local util = util
+--
 local processing_data = {}
 
 hook.Add('PlayerDisconnected', 'SlibBigDataPlayerDisconnected', function(ply)
@@ -29,10 +36,11 @@ end)
 net.Receive('slib_sv_bigdata_receive', function(len, ply)
 	local name = net.ReadString()
 	local is_error = false
+	local callback = snet.GetCallback(name)
 
-	if snet.storage.default[name] == nil then
+	if not callback then
 		is_error = true
-	elseif snet.storage.default[name].isAdmin then
+	elseif callback.isAdmin then
 		if not ply:IsAdmin() and not ply:IsSuperAdmin() then
 			is_error = true
 		end
@@ -70,8 +78,9 @@ net.Receive('slib_sv_bigdata_processing', function(len, ply)
 	if processing_data[ply] == nil then return end
 	local name = net.ReadString()
 	local index = net.ReadInt(10)
+	local callback = snet.GetCallback(name)
 
-	if snet.storage.default[name] == nil then return end
+	if not callback then return end
 	if processing_data[ply] == nil then return end
 	if processing_data[ply][index] == nil then return end
 
@@ -96,9 +105,9 @@ net.Receive('slib_sv_bigdata_processing', function(len, ply)
 		processing_data[ply][index] = nil
 		local result_data = util.JSONToTable(data_string)
 
-		if result_data.type == 'table' then
+		if result_data.data_type == 'table' then
 			snet.execute(result_data.backward, result_data.id, name, ply, util.JSONToTable(result_data.data))
-		elseif result_data.type == 'string' then
+		elseif result_data.data_type == 'string' then
 			snet.execute(result_data.backward, result_data.id, name, ply, result_data.data)
 		end
 	else

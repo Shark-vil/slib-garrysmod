@@ -1,3 +1,6 @@
+local snet = snet
+local CLIENT = CLIENT
+--
 
 function snet.Invoke(name, receiver, ...)
 	if CLIENT then

@@ -1,6 +1,12 @@
+local slib = slib
+local error = error
+local type = type
+local tostring = tostring
+--
+
 local function create_type_function(arguments, method)
 	arguments = arguments or {}
-	
+
 	slib.TypeValidate(arguments, 'table')
 	slib.TypeValidate(method, 'function')
 

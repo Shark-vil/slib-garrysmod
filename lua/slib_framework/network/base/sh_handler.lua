@@ -1,3 +1,13 @@
+local CLIENT = CLIENT
+local SERVER = SERVER
+local snet = snet
+local table = table
+local isbool = isbool
+local RealTime = RealTime
+local net = net
+local hook = hook
+local util = util
+--
 local REQUEST_LIMITS_LIST = snet.REQUEST_LIMITS_LIST
 
 local function request_handler(backward, id, name, ply, ...)

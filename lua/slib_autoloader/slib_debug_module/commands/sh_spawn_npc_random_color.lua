@@ -1,3 +1,9 @@
+local snet = snet
+local slib = slib
+local timer = timer
+local CLIENT = CLIENT
+--
+
 if CLIENT then
 	snet.Callback('cl_snet_debug_create_npc', function(ply, ent)
 		ent:slibOnInstanceVarCallback('color', function(new_color)

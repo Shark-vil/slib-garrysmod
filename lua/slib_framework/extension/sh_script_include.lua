@@ -1,3 +1,15 @@
+local slib = slib
+local isstring = isstring
+local file = file
+local MsgN = MsgN
+local include = include
+local AddCSLuaFile = AddCSLuaFile
+local string = string
+local table = table
+local SERVER = SERVER
+local CLIENT = CLIENT
+--
+
 local function exInclude(file_path, loading_text)
 	if not isstring(file_path) or not file.Exists(file_path, 'LUA') then
 		MsgN('[SLibrary] Script failed load - ' .. file_path)
@@ -20,7 +32,9 @@ function slib.CreateIncluder(root_directory, loading_text)
 	obj.root_directory = root_directory
 	obj.loading_text = loading_text
 
-	function obj:using(file_path)
+	function obj:using(file_path, disable_auto_include)
+		disable_auto_include = disable_auto_include or false
+
 		if self.root_directory then
 			file_path = self.root_directory .. '/' .. file_path
 		else
@@ -31,12 +45,15 @@ function slib.CreateIncluder(root_directory, loading_text)
 
 		if network_type == 'cl' or network_type == 'sh' then
 			if SERVER then AddCSLuaFile(file_path) end
-			if CLIENT and network_type == 'cl' then
-				exInclude(file_path, self.loading_text)
-			elseif network_type == 'sh' then
-				exInclude(file_path, self.loading_text)
+
+			if not disable_auto_include then
+				if CLIENT and network_type == 'cl' then
+					exInclude(file_path, self.loading_text)
+				elseif network_type == 'sh' then
+					exInclude(file_path, self.loading_text)
+				end
 			end
-		elseif network_type == 'sv' and SERVER then
+		elseif network_type == 'sv' and SERVER and not disable_auto_include then
 			exInclude(file_path, self.loading_text)
 		end
 	end
@@ -44,7 +61,7 @@ function slib.CreateIncluder(root_directory, loading_text)
 	return obj
 end
 
-function slib.usingDirectory(root_scripts_directory_path, loading_text)
+function slib.usingDirectory(root_scripts_directory_path, loading_text, disable_auto_include)
 	local files, directories = file.Find(root_scripts_directory_path .. '/*', 'LUA')
 	local files_list = {}
 
@@ -52,8 +69,8 @@ function slib.usingDirectory(root_scripts_directory_path, loading_text)
 
 	for _, file_path in ipairs(files) do
 		table.insert(files_list, {
-			path = file_path,
-			type = getFileNetworkType(file_path)
+			file_path = file_path,
+			file_type = getFileNetworkType(file_path)
 		})
 	end
 
@@ -61,24 +78,24 @@ function slib.usingDirectory(root_scripts_directory_path, loading_text)
 
 	for i = #files_list, 1, -1 do
 		local fileData = files_list[i]
-		if fileData.type == 'sh' then
-			inc:using(root_scripts_directory_path .. '/' .. fileData.path)
+		if fileData.file_type == 'sh' then
+			inc:using(root_scripts_directory_path .. '/' .. fileData.file_path, disable_auto_include)
 			table.remove(files_list, i)
 		end
 	end
 
 	for i = #files_list, 1, -1 do
 		local fileData = files_list[i]
-		if fileData.type == 'sv' then
-			inc:using(root_scripts_directory_path .. '/' .. fileData.path)
+		if fileData.file_type == 'sv' then
+			inc:using(root_scripts_directory_path .. '/' .. fileData.file_path, disable_auto_include)
 			table.remove(files_list, i)
 		end
 	end
 
 	for i = #files_list, 1, -1 do
 		local fileData = files_list[i]
-		if fileData.type == 'cl' then
-			inc:using(root_scripts_directory_path .. '/' .. fileData.path)
+		if fileData.file_type == 'cl' then
+			inc:using(root_scripts_directory_path .. '/' .. fileData.file_path, disable_auto_include)
 		end
 	end
 

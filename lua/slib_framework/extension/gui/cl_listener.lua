@@ -1,3 +1,8 @@
+local sgui = sgui
+local type = type
+local table = table
+--
+
 local function ExecuteListener(panel, action_name, ...)
 	local listeners = panel.sgui_listeners[action_name]
 	for i = 1, #listeners do listeners[i](...) end

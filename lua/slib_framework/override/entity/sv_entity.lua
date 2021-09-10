@@ -1,3 +1,7 @@
+local snet = snet
+local IsValid = IsValid
+--
+
 snet.RegisterCallback('snet_entity_tool_call_server_rpc', function(ply, ent, tool_mode, func_name, ...)
 	if not ent or not IsValid(ent) or ent:GetClass() ~= 'gmod_tool' then return end
 

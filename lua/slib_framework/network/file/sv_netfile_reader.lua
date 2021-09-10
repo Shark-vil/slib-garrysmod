@@ -1,3 +1,7 @@
+local slib = slib
+local snet = snet
+local table = table
+--
 local wait_read_data = {}
 local wait_exist_check = {}
 
@@ -11,12 +15,12 @@ snet.Callback('snet_file_read_in_client_get', function(ply, customId, data)
 			break
 		end
 	end
-end).Protect().Register()
+end).Protect()
 
 snet.Callback('snet_file_read_in_server', function(ply, path, customId)
 	local data = slib.FileRead(path)
 	snet.Invoke('snet_file_read_in_server_get', ply, customId, data)
-end).Protect().Register()
+end).Protect()
 
 function snet.FileReadInClient(ply, path, response_action)
 	local name = 'snet_file_read_in_client'
@@ -43,11 +47,11 @@ snet.Callback('snet_file_exists_in_client_get', function(ply, customId, is_exist
 			break
 		end
 	end
-end).Protect().Register()
+end).Protect()
 
 snet.Callback('snet_file_exists_in_server', function(ply, path, customId)
 	snet.Invoke('snet_file_exists_in_server_get', ply, customId, slib.FileExists(path))
-end).Protect().Register()
+end).Protect()
 
 function snet.FileExistsInClient(ply, path, response_action)
 	local name = 'snet_file_exists_in_client'

@@ -1,3 +1,10 @@
+local slib = slib
+local file = file
+local util = util
+local isstring = isstring
+local istable = istable
+--
+
 function slib.FileExists(path)
 	return file.Exists(path .. '.dat', 'DATA')
 end

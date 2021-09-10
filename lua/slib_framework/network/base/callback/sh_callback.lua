@@ -1,3 +1,8 @@
+local snet = snet
+local assert = assert
+local isfunction = isfunction
+local isnumber = isnumber
+--
 local callback_storage = {}
 
 function snet.GetCallbackList()

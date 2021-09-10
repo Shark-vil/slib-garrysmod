@@ -1,3 +1,15 @@
+local istable = istable
+local ipairs = ipairs
+local snet = snet
+local SERVER = SERVER
+local isfunction = isfunction
+local table = table
+local timer = timer
+local isentity = isentity
+local IsValid = IsValid
+local isbool = isbool
+local player = player
+--
 local meta = FindMetaTable('Entity')
 local list_door_classes = {'func_door', 'func_door_rotating', 'prop_door_rotating'}
 

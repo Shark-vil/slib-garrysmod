@@ -1,3 +1,9 @@
+local sgui = sgui
+local isfunction = isfunction
+local isstring = isstring
+local surface = surface
+--
+
 function sgui.SystemParentDefaultListeners(PANEL)
 	PANEL:AddListener('Think', function(self)
 		if not self.OnChangeHovered or not isfunction(self.OnChangeHovered) then return end

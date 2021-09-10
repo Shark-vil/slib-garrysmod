@@ -1,3 +1,18 @@
+local net = net
+local snet = snet
+local table = table
+local coroutine = coroutine
+local util = util
+local istable = istable
+local isstring = isstring
+local string = string
+local ipairs = ipairs
+local tostring = tostring
+local RealTime = RealTime
+local hook = hook
+local notification = notification
+
+--
 snet.storage.bigdata = snet.storage.bigdata or {}
 
 local function getNetParts(text, max_size)
@@ -36,14 +51,14 @@ snet.InvokeBigData = function(request, ply, data, max_size, progress_text, progr
 		request_data = util.TableToJSON({
 			backward = backward,
 			id = id,
-			type = 'table',
+			data_type = 'table',
 			data = util.TableToJSON(snet.GetNormalizeDataTable(data))
 		})
 	elseif isstring(data) then
 		request_data = util.TableToJSON({
 			backward = backward,
 			id = id,
-			type = 'string',
+			data_type = 'string',
 			data = data
 		})
 	else
