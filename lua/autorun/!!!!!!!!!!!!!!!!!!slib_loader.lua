@@ -3,7 +3,7 @@ slib.VERSION = '1.3'
 slib.LOADED_PLAYERS = slib.LOADED_PLAYERS or {}
 
 sgui = sgui or {}
-snet = snet or net
+snet = snet or {}
 snet.storage = snet.storage or {}
 
 local root_directory = 'slib_framework'
