@@ -1,4 +1,4 @@
-local snet = snet
+local snet = slib.Components.Network
 local assert = assert
 local isfunction = isfunction
 local isnumber = isnumber
@@ -13,13 +13,20 @@ function snet.GetCallback(name)
 	return callback_storage[name]
 end
 
-function snet.Callback(name, func)
+function snet.Callback(name, func, is_safe)
 	local private = {}
 	private.name = name
+	private.is_safe = is_safe or false
+	private.callback_options = nil
 
 	function private.SetParam(key, value)
-		callback_storage[private.name] = callback_storage[private.name] or {}
-		callback_storage[private.name][key] = value
+		if private.is_safe then
+			private.callback_options = private.callback_options or {}
+			private.callback_options[key] = value
+		else
+			callback_storage[private.name] = callback_storage[private.name] or {}
+			callback_storage[private.name][key] = value
+		end
 	end
 
 	local obj = {}
@@ -60,6 +67,9 @@ function snet.Callback(name, func)
 
 	-- Deprecated. The function does nothing.
 	function obj.Register()
+		if private.callback_options then
+			callback_storage[private.name] = private.callback_options
+		end
 		return obj
 	end
 
@@ -68,9 +78,10 @@ end
 
 -- Outdated method for backward compatibility
 function snet.RegisterCallback(name, func, auto_destroy, is_admin)
-	local callback = snet.Callback(name, func)
+	local callback = snet.Callback(name, func, true)
 	if auto_destroy then callback.AutoDestroy() end
 	if is_admin then callback.Protect() end
+	callback.Register()
 	return callback
 end
 

@@ -1,5 +1,5 @@
 local net = net
-local snet = snet
+local snet = slib.Components.Network
 local hook = hook
 local IsValid = IsValid
 local table = table
@@ -10,13 +10,13 @@ local processing_data = {}
 hook.Add('PlayerDisconnected', 'SlibBigDataPlayerDisconnected', function(ply)
 	processing_data[ply] = nil
 
-	for i = #snet.storage.bigdata, 1, -1 do
-		local data = snet.storage.bigdata[i]
+	for i = #slib.Storage.Network.bigdata, 1, -1 do
+		local data = slib.Storage.Network.bigdata[i]
 		if data.ply == ply then
 			local request_id = data.id
 
-			for k = #snet.storage.bigdata, 1, -1 do
-				local sub_data = snet.storage.bigdata[k]
+			for k = #slib.Storage.Network.bigdata, 1, -1 do
+				local sub_data = slib.Storage.Network.bigdata[k]
 				if sub_data.id == request_id and IsValid(data.ply) then
 					goto skip
 				end
@@ -26,7 +26,7 @@ hook.Add('PlayerDisconnected', 'SlibBigDataPlayerDisconnected', function(ply)
 
 			::skip::
 
-			table.remove(snet.storage.bigdata, i)
+			table.remove(slib.Storage.Network.bigdata, i)
 		end
 	end
 end)

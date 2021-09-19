@@ -12,6 +12,7 @@
         "*.code-workspace*",
         "README.md",
         ".git*",
-        ".vscode*"
+        ".vscode*",
+        "version.txt"
     ] 
 } 

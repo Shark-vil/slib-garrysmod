@@ -1,5 +1,5 @@
-local snet = snet
-local sgui = sgui
+local snet = slib.Components.Network
+local sgui = slib.Components.GUI
 local isentity = isentity
 local unpack = unpack
 local table = table

@@ -1,4 +1,4 @@
-local snet = snet
+local snet = slib.Components.Network
 local IsValid = IsValid
 --
 local validators = {}

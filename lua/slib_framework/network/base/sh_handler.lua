@@ -1,6 +1,6 @@
 local CLIENT = CLIENT
 local SERVER = SERVER
-local snet = snet
+local snet = slib.Components.Network
 local table = table
 local isbool = isbool
 local RealTime = RealTime

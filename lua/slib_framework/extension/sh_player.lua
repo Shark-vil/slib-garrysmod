@@ -4,7 +4,7 @@ local table = table
 --
 
 function slib.GetAllLoadedPlayers()
-	return slib.LOADED_PLAYERS
+	return slib.Storage.LoadedPlayers
 end
 
 function slib.PlayerIsNetReady(ply)

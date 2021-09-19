@@ -1,5 +1,7 @@
 local slib = slib
-local snet = snet
+local snet = slib.Components.Network
+local access = slib.Components.Access
+local gcvars = slib.Components.GlobalCvar
 local pairs = pairs
 local tobool = tobool
 local GetConVar = GetConVar
@@ -13,12 +15,12 @@ local cvar_locker = {}
 local cvar_locker_another = {}
 
 snet.RegisterCallback('slib_gcvars_register', function(_, cvars_table)
-	slib.GlobalCvars = cvars_table
+	slib.Storage.GlobalCvar = cvars_table
 
-	for cvar_name, cvar_data in pairs(slib.GlobalCvars) do
+	for cvar_name, cvar_data in pairs(slib.Storage.GlobalCvar) do
 		if not tobool(GetConVar(cvar_name)) then
 			ErrorNoHalt('The global variable must be created on both the server and client!')
-			goto skip
+			continue
 		else
 			RunConsoleCommand(cvar_name, cvar_data.value)
 			MsgN('Successful cvar sync for client! CVAR [' .. cvar_name .. '] - ' .. cvar_data.value)
@@ -31,7 +33,7 @@ snet.RegisterCallback('slib_gcvars_register', function(_, cvars_table)
 
 			local ply = LocalPlayer()
 
-			if not cvar_locker_another[convar_name] and not ply:IsAdmin() and not ply:IsSuperAdmin() then
+			if not cvar_locker_another[convar_name] or not access.IsValid(ply, cvar_data.access) then
 					if not cvar_locker[convar_name] then
 						cvar_locker[convar_name] = true
 						timer.Remove('slib_gcvars_back_cvar_' .. convar_name)
@@ -51,12 +53,10 @@ snet.RegisterCallback('slib_gcvars_register', function(_, cvars_table)
 					return
 			end
 
-			slib.GlobalCvarsUpdate(convar_name)
+			gcvars.Update(convar_name)
 			if cvar_locker[convar_name] or cvar_locker_another[convar_name] then return end
 			snet.InvokeServer('slib_gcvars_change_from_server', convar_name, value_new)
 		end)
-
-		::skip::
 	end
 end)
 

@@ -1,4 +1,4 @@
-local sgui = sgui
+local sgui = slib.Components.GUI
 local COLOR_FAILED = Color(255, 210, 60)
 --
 

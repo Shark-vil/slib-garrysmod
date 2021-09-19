@@ -1,4 +1,4 @@
-local sgui = sgui
+local sgui = slib.Components.GUI
 local isfunction = isfunction
 local isstring = isstring
 local surface = surface

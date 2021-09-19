@@ -1,5 +1,5 @@
 local net = net
-local snet = snet
+local snet = slib.Components.Network
 local table = table
 local coroutine = coroutine
 local util = util
@@ -13,7 +13,7 @@ local hook = hook
 local notification = notification
 
 --
-snet.storage.bigdata = snet.storage.bigdata or {}
+slib.Storage.Network.bigdata = slib.Storage.Network.bigdata or {}
 
 local function getNetParts(text, max_size)
 	local parts = {}
@@ -66,11 +66,11 @@ snet.InvokeBigData = function(request, ply, data, max_size, progress_text, progr
 	end
 
 	if CLIENT then
-		for _, v in ipairs(snet.storage.bigdata) do
+		for _, v in ipairs(slib.Storage.Network.bigdata) do
 			if v.name == name then return end
 		end
 	else
-		for _, v in ipairs(snet.storage.bigdata) do
+		for _, v in ipairs(slib.Storage.Network.bigdata) do
 			if v.name == name and v.ply == ply then return end
 		end
 	end
@@ -82,7 +82,7 @@ snet.InvokeBigData = function(request, ply, data, max_size, progress_text, progr
 	local hook_name = 'Slib_NetBigDataSender_' .. name .. uid
 	local thread = coroutine.create(getNetParts)
 
-	local index = table.insert(snet.storage.bigdata, {
+	local index = table.insert(slib.Storage.Network.bigdata, {
 		id = id,
 		name = name,
 		ply = ply,
@@ -105,7 +105,7 @@ snet.InvokeBigData = function(request, ply, data, max_size, progress_text, progr
 
 	hook.Add('Think', hook_name, function()
 		if coroutine.status(thread) == 'dead' then
-			table.remove(snet.storage.bigdata, index)
+			table.remove(slib.Storage.Network.bigdata, index)
 			hook.Remove('Think', hook_name)
 
 			if SERVER then
@@ -128,8 +128,8 @@ snet.InvokeBigData = function(request, ply, data, max_size, progress_text, progr
 		local net_parts = result
 		local max_parts = #net_parts
 		if net_parts == nil or #net_parts == 0 then return end
-		snet.storage.bigdata[index].net_parts = net_parts
-		snet.storage.bigdata[index].max_parts = max_parts
+		slib.Storage.Network.bigdata[index].net_parts = net_parts
+		slib.Storage.Network.bigdata[index].max_parts = max_parts
 
 		request.Eternal()
 		snet.AddRequestToList(request)

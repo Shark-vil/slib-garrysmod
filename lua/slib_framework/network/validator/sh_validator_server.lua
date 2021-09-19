@@ -1,5 +1,5 @@
 local slib = slib
-local snet = snet
+local snet = slib.Components.Network
 local timer = timer
 local isfunction = isfunction
 local SERVER = SERVER
@@ -13,7 +13,7 @@ if SERVER then
 		local validator_method = snet.GetValidator(validator_name)
 		if validator_method == nil then return end
 		success = validator_method(ply, uid, ...)
-		snet.Create(netowrk_name_to_client, uid, success).Invoke(ply)
+		snet.Request(netowrk_name_to_client, uid, success).Invoke(ply)
 	end).Period(0.1, 5)
 else
 	local callback_data = {}
@@ -41,7 +41,7 @@ else
 			end
 		end)
 
-		snet.Create(netowrk_name_to_server, uid, validator_name, ...).InvokeServer()
+		snet.Request(netowrk_name_to_server, uid, validator_name, ...).InvokeServer()
 	end
 
 	snet.Callback(netowrk_name_to_client, function(ply, uid, success)

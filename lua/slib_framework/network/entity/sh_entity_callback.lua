@@ -1,4 +1,4 @@
-local snet = snet
+local snet = slib.Components.Network
 local table = table
 local IsValid = IsValid
 local SERVER = SERVER
@@ -54,7 +54,7 @@ if SERVER then
 	snet.Callback('snet_sv_entity_network_success', function(ply, id)
 		for _, data in ipairs(entities_queue) do
 			if not data.isSuccess and data.id == id then
-				snet.Create('snet_cl_entity_network_success', id).Invoke(ply)
+				snet.Request('snet_cl_entity_network_success', id).Invoke(ply)
 				data.isSuccess = true
 				return
 			end
@@ -97,7 +97,7 @@ if SERVER then
 				hook.Run('SNetEntitySuccessInvoked', true, request_data.name, ply, entities)
 				table.remove(entities_queue, i)
 			elseif data.equalDelay < real_time then
-				snet.Create('snet_cl_entity_network_callback',
+				snet.Request('snet_cl_entity_network_callback',
 					request_data.id, request_data.name, request_data.vars, backward)
 					.Success(request_data.func_success)
 					.Error(request_data.func_error)
@@ -119,7 +119,7 @@ else
 			end
 		end
 
-		snet.Create('snet_sv_entity_network_success', id).InvokeServer()
+		snet.Request('snet_sv_entity_network_success', id).InvokeServer()
 		table.insert(uids_block, id)
 
 		snet.execute(backward, id, name, ply, unpack(vars))
@@ -136,7 +136,7 @@ else
 		for i = 1, #args do
 			local ent = args[i]
 			if isentity(ent) and not IsValid(ent) then
-				snet.Create('snet_sv_entity_network_start', id, backward).InvokeServer()
+				snet.Request('snet_sv_entity_network_start', id, backward).InvokeServer()
 				return false
 			end
 		end

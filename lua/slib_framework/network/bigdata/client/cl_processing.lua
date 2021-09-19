@@ -1,5 +1,5 @@
 local net = net
-local snet = snet
+local snet = slib.Components.Network
 local LocalPlayer = LocalPlayer
 local hook = hook
 local notification = notification

@@ -1,6 +1,6 @@
 local istable = istable
 local ipairs = ipairs
-local snet = snet
+local snet = slib.Components.Network
 local SERVER = SERVER
 local isfunction = isfunction
 local table = table
@@ -62,9 +62,9 @@ function meta:slibSetVar(key, value, unreliable)
 		unreliable = unreliable or false
 
 		if new_value == nil then
-			snet.Create('slib_entity_variable_del', self, key).SetLifeTime(1.5).InvokeAll()
+			snet.Request('slib_entity_variable_del', self, key).SetLifeTime(1.5).InvokeAll()
 		else
-			snet.Create('slib_entity_variable_set', self, key, value)
+			snet.Request('slib_entity_variable_set', self, key, value)
 				.SetLifeTime(1.5)
 				.InvokeAll(unreliable)
 		end

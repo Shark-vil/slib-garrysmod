@@ -1,5 +1,5 @@
 local slib = slib
-local snet = snet
+local snet = slib.Components.Network
 local net = net
 local util = util
 local table = table
@@ -16,7 +16,7 @@ local xpcall = xpcall
 local REQUEST_LIFE_TIME = snet.REQUEST_LIFE_TIME
 local request_storage = {}
 
-function snet.Create(name, ...)
+function snet.Request(name, ...)
 	local obj = {}
 	obj.id = slib.GenerateUid(name)
 	obj.name = name
@@ -168,7 +168,7 @@ function snet.Create(name, ...)
 	end
 
 	function obj:Clone()
-		local clone = snet.Create(obj.name)
+		local clone = snet.Request(obj.name)
 		clone.data = obj.data
 		clone.compressed_data = obj.compressed_data
 		clone.compressed_length = obj.compressed_length

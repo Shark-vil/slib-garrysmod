@@ -1,5 +1,5 @@
 local net = net
-local snet = snet
+local snet = slib.Components.Network
 local hook = hook
 --
 
@@ -8,7 +8,7 @@ local hook = hook
 net.Receive('slib_sv_bigdata_receive_ok', function(len, ply)
 	local name = net.ReadString()
 	local index = net.ReadInt(10)
-	local data = snet.storage.bigdata[index]
+	local data = slib.Storage.Network.bigdata[index]
 	if data == nil or data.ply ~= ply then return end
 
 	data.current_part = data.current_part + 1
@@ -38,7 +38,7 @@ net.Receive('slib_sv_bigdata_receive_ok', function(len, ply)
 		end
 
 		hook.Run('SnetBigDataFinished', ply, name, data)
-		snet.storage.bigdata[index] = nil
+		slib.Storage.Network.bigdata[index] = nil
 	end
 end)
 
@@ -47,7 +47,7 @@ end)
 net.Receive('slib_sv_bigdata_receive_error', function(len, ply)
 	local name = net.ReadString()
 	local index = net.ReadInt(10)
-	local data = snet.storage.bigdata[index]
+	local data = slib.Storage.Network.bigdata[index]
 
 	if data == nil or data.ply ~= ply then return end
 
@@ -67,5 +67,5 @@ net.Receive('slib_sv_bigdata_receive_error', function(len, ply)
 	end
 
 	hook.Run('SnetBigDataFailed', ply, name, data)
-	snet.storage.bigdata[index] = nil
+	slib.Storage.Network.bigdata[index] = nil
 end)

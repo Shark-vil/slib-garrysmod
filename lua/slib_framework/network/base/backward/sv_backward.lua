@@ -1,5 +1,5 @@
 local net = net
-local snet = snet
+local snet = slib.Components.Network
 --
 
 net.Receive('sv_network_rpc_success', function(len, ply)

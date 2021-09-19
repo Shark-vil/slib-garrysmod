@@ -1,5 +1,5 @@
 local slib = slib
-local snet = snet
+local snet = slib.Components.Network
 local table = table
 --
 local wait_read_data = {}
@@ -26,7 +26,7 @@ function snet.FileReadInServer(path, response_action)
 	local name = 'snet_file_read_in_server'
 	local customId = slib.GenerateUid(name)
 
-	local request = snet.Create(name, path, customId)
+	local request = snet.Request(name, path, customId)
 	request.id = customId
 
 	table.insert(wait_read_data, {
@@ -57,7 +57,7 @@ function snet.FileExistsInServer(path, response_action)
 	local name = 'snet_file_exists_in_server'
 	local customId = slib.GenerateUid(name)
 
-	local request = snet.Create(name, path, customId)
+	local request = snet.Request(name, path, customId)
 	request.id = customId
 
 	table.insert(wait_exist_check, {

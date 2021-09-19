@@ -1,5 +1,5 @@
 local slib = slib
-local snet = snet
+local snet = slib.Components.Network
 --
 snet.Callback('snet_file_delete_in_server', function(ply, path)
    slib.FileDelete(path)

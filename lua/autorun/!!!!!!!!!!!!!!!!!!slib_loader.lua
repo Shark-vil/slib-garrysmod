@@ -1,19 +1,19 @@
 slib = slib or {}
-slib.VERSION = '1.3'
-slib.LOADED_PLAYERS = slib.LOADED_PLAYERS or {}
-
-sgui = sgui or {}
-snet = snet or {}
-snet.storage = snet.storage or {}
+slib.Version = '1.4'
 
 local root_directory = 'slib_framework'
 
 if SERVER then
-	AddCSLuaFile(root_directory .. '/extension/sh_script_include.lua')
+	AddCSLuaFile(root_directory .. '/core/base/sh_base.lua')
 end
-include(root_directory .. '/extension/sh_script_include.lua')
+include(root_directory .. '/core/base/sh_base.lua')
 
 local script = slib.CreateIncluder(root_directory, '[SLibrary] Script load - {file}')
+
+script:using('core/base/sh_global.lua')
+script:using('core/sh_components.lua')
+script:using('core/sh_storage.lua')
+script:using('core/sh_access.lua')
 
 script:using('debug/sh_profiler.lua')
 script:using('debug/sh_message.lua')
