@@ -16,6 +16,7 @@ end
 function snet.Callback(name, func, is_safe)
 	local private = {}
 	private.name = name
+	-- The hook will appear in the list only after calling registration if set - true
 	private.is_safe = is_safe or false
 	private.callback_options = nil
 
@@ -65,7 +66,6 @@ function snet.Callback(name, func, is_safe)
 		return obj
 	end
 
-	-- Deprecated. The function does nothing.
 	function obj.Register()
 		if private.callback_options then
 			callback_storage[private.name] = private.callback_options
