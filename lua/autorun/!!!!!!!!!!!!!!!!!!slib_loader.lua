@@ -66,6 +66,7 @@ script:using('commands/gcommands/sh_gcommands.lua')
 script:using('hooks/sh_player_first_spawn.lua')
 
 script:using('extension/sh_debug.lua')
+script:using('extension/sh_fakeplayer.lua')
 script:using('extension/sh_function_type.lua')
 script:using('extension/sh_generators.lua')
 script:using('extension/sh_player.lua')

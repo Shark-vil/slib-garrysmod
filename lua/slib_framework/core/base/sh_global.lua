@@ -3,6 +3,7 @@ slib.Components.GUI = slib.Components.GUI or {}
 slib.Components.Network = slib.Components.Network or {}
 slib.Components.GlobalCvar = slib.Components.GlobalCvar or {}
 slib.Components.GlobalCommand = slib.Components.GlobalCommand or {}
+slib.Components.FakePlayer = slib.Components.FakePlayer or {}
 
 slib.Storage = slib.Storage or {}
 slib.Storage.Network = slib.Storage.Network or {}
