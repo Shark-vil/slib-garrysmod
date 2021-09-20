@@ -44,4 +44,4 @@ scommand.Register('snet_debug_create_npc').OnServer(function(ply, cmd, args)
 
 		end).InvokeAll()
 	end)
-end).Access(access:Make( { isAdmin = true } ))
+end).Access( { isAdmin = true } )
