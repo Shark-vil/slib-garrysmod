@@ -1,7 +1,6 @@
 local slib = slib
 local snet = slib.Components.Network
 local net = net
-local util = util
 local table = table
 local player = player
 local CLIENT = CLIENT
@@ -12,6 +11,8 @@ local isstring =  isstring
 local isfunction = isfunction
 local RealTime = RealTime
 local xpcall = xpcall
+local snet_Serialize = snet.Serialize
+local util_Compress = util.Compress
 --
 local REQUEST_LIFE_TIME = snet.REQUEST_LIFE_TIME
 local request_storage = {}
@@ -21,9 +22,9 @@ function snet.Request(name, ...)
 	obj.id = slib.GenerateUid(name)
 	obj.name = name
 	obj.data = { ... }
-	obj.compressed_data = util.Compress(snet.Serialize(obj.data, false, true))
+	obj.compressed_data = util_Compress(snet_Serialize(obj.data, false, true))
 	if not obj.compressed_data then
-		obj.compressed_data = util.Compress(snet.Serialize())
+		obj.compressed_data = util_Compress(snet_Serialize())
 		MsgN('[SNET ERROR] An error occurred while compressing data - ' .. name)
 	end
 	obj.compressed_length = #obj.compressed_data

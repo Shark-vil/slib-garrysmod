@@ -1,9 +1,4 @@
 local sgui = slib.Components.GUI
-local type = type
-local isstring = isstring
-local isfunction = isfunction
-local table = table
---
 
 local function ExecuteListener(panel, action_name, ...)
 	local listeners = panel.sgui_listeners[action_name]

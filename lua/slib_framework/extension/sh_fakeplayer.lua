@@ -6,7 +6,7 @@
 local Class = {}
 local uid = 0
 
-function Class:Spawn(name, pos, ang)
+function Class:Make(name, pos, ang)
 	name = name or 'FakePlayer' .. uid
 	pos = pos or Vector(0, 0, 0)
 	ang = ang or Angle(0, 0, 0)
@@ -16,8 +16,13 @@ function Class:Spawn(name, pos, ang)
 	ent.PrintName = name
 	ent:SetPos(pos)
 	ent:SetAngles(ang)
-	ent:Spawn()
 
+	return ent
+end
+
+function Class:Spawn(name, pos, ang)
+	local ent = self:Make(name, pos, ang)
+	ent:Spawn()
 	return ent
 end
 

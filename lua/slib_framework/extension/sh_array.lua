@@ -1,7 +1,8 @@
 local type = type
-local math = math
-local table = table
 local pairs = pairs
+local math_random = math.random
+local table_remove = table.remove
+local table_Random = table.Random
 --
 
 function table.isArray(t)
@@ -63,7 +64,7 @@ function table.shuffle(t)
 	end
 
 	for i = #tbl, 2, -1 do
-		local j = math.random(i)
+		local j = math_random(i)
 		tbl[i], tbl[j] = tbl[j], tbl[i]
 	end
 
@@ -75,11 +76,11 @@ function table.RandomBySeq(t)
 	if count == 0 then return nil end
 	if count == 1 then return t[1] end
 
-	return t[math.random(count)]
+	return t[math_random(count)]
 end
 
 function table.RandomOmitBySeq(t, v)
-	if v == nil then return table.Random(t) end
+	if v == nil then return table_Random(t) end
 	local count = #t
 	if count == 0 then return nil end
 
@@ -92,7 +93,7 @@ function table.RandomOmitBySeq(t, v)
 
 	local random_value = v
 	repeat
-		random_value = table.Random(t)
+		random_value = table_Random(t)
 	until random_value ~= v
 
 	return random_value
@@ -115,7 +116,7 @@ end
 function table.RemoveValueBySeq(t, v)
 	for i = #t, 1, -1 do
 		if t[i] == v then
-			table.remove(t, i)
+			table_remove(t, i)
 			break
 		end
 	end
@@ -126,7 +127,7 @@ end
 function table.RemoveAllValueBySeq(t, v)
 	for i = #t, 1, -1 do
 		if t[i] == v then
-			table.remove(t, i)
+			table_remove(t, i)
 		end
 	end
 

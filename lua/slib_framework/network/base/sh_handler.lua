@@ -1,12 +1,14 @@
+local snet = slib.Components.Network
 local CLIENT = CLIENT
 local SERVER = SERVER
-local snet = slib.Components.Network
 local table = table
-local isbool = isbool
-local RealTime = RealTime
 local net = net
 local hook = hook
 local util = util
+local isbool = isbool
+local RealTime = RealTime
+local snet_Deserialize = snet.Deserialize
+local util_Decompress = util.Decompress
 --
 local REQUEST_LIMITS_LIST = snet.REQUEST_LIMITS_LIST
 
@@ -102,7 +104,7 @@ local function net_receive_base(len, ply)
 	local compressed_length = net.ReadUInt(32)
 	local compressed_data = net.ReadData(compressed_length)
 	local backward = net.ReadBool()
-	local vars = snet.Deserialize(util.Decompress(compressed_data))
+	local vars = snet_Deserialize(util_Decompress(compressed_data))
 	snet.execute(backward, id, name, ply, unpack(vars))
 end
 

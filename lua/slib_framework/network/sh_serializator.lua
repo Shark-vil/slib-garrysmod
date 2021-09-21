@@ -1,17 +1,4 @@
 local snet = slib.Components.Network
-local IsValid = IsValid
-local IsColor = IsColor
-local type = type
-local istable = istable
-local isfunction = isfunction
-local table = table
-local util = util
-local pairs = pairs
-local Entity = Entity
-local Matrix = Matrix
-local Color = Color
-local Vector = Vector
-local Angle = Angle
 local TYPE_TABLE = TYPE_TABLE
 local TYPE_NUMBER = TYPE_NUMBER
 local TYPE_STRING = TYPE_STRING
@@ -21,6 +8,20 @@ local TYPE_VECTOR = TYPE_VECTOR
 local TYPE_ANGLE = TYPE_ANGLE
 local TYPE_MATRIX = TYPE_MATRIX
 local TYPE_COLOR = TYPE_COLOR
+local IsValid = IsValid
+local IsColor = IsColor
+local type = type
+local istable = istable
+local isfunction = isfunction
+local pairs = pairs
+local Entity = Entity
+local Matrix = Matrix
+local Color = Color
+local Vector = Vector
+local Angle = Angle
+local table_insert = table.insert
+local util_TableToJSON = util.TableToJSON
+local util_JSONToTable = util.JSONToTable
 --
 local ValueSerialize = {
 	[TYPE_TABLE] = function(t, v)
@@ -91,7 +92,7 @@ function snet.Serialize(data, notcompress, fastparser)
 					local result = GetValueToCompress(k, data[k])
 
 					if result then
-						table.insert(datatable, result)
+						table_insert(datatable, result)
 					end
 				end
 			else
@@ -99,7 +100,7 @@ function snet.Serialize(data, notcompress, fastparser)
 					local result = GetValueToCompress(k, v)
 
 					if result then
-						table.insert(datatable, result)
+						table_insert(datatable, result)
 					end
 				end
 			end
@@ -107,7 +108,7 @@ function snet.Serialize(data, notcompress, fastparser)
 	end
 
 	if not notcompress then
-		return util.TableToJSON(datatable)
+		return util_TableToJSON(datatable)
 	else
 		return datatable
 	end
@@ -134,7 +135,7 @@ function snet.Deserialize(json_datatable)
 	local getdatatable
 
 	if t_type == 'string' then
-		getdatatable = util.JSONToTable(json_datatable)
+		getdatatable = util_JSONToTable(json_datatable)
 	elseif t_type == 'table' then
 		getdatatable = json_datatable
 	else

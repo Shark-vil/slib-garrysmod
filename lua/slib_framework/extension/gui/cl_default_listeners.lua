@@ -1,7 +1,5 @@
 local sgui = slib.Components.GUI
 local isfunction = isfunction
-local isstring = isstring
-local surface = surface
 --
 
 function sgui.SystemParentDefaultListeners(PANEL)

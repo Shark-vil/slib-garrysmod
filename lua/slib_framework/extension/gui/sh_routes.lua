@@ -1,12 +1,4 @@
-local snet = slib.Components.Network
 local sgui = slib.Components.GUI
-local isentity = isentity
-local unpack = unpack
-local table = table
-local SERVER = SERVER
-local CLIENT = CLIENT
---
-
 sgui.routes_storage = sgui.routes_storage or {}
 
 if CLIENT then

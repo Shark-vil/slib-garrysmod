@@ -1,9 +1,5 @@
-local slib = slib
-local snet = slib.Components.Network
 local access = slib.Components.Access
 local gcvars = slib.Components.GlobalCvar
-local RunConsoleCommand = RunConsoleCommand
---
 
 snet.Callback('slib_gcvars_change_from_server', function(ply, cvar_name, value)
 	local cvar_data = slib.Storage.GlobalCvar[cvar_name]

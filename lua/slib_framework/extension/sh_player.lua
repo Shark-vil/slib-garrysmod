@@ -1,6 +1,5 @@
-local slib = slib
 local isentity = isentity
-local table = table
+local table_insert = table.insert
 --
 
 function slib.GetAllLoadedPlayers()
@@ -19,7 +18,7 @@ function slib.ListPlayerParse(player_list)
 		local ply = player_list[i]
 
 		if ply and isentity(ply) and ply:IsPlayer() and not ply:IsBot() then
-			table.insert(players, ply)
+			table_insert(players, ply)
 		end
 	end
 
@@ -34,7 +33,7 @@ function slib.ListFastPlayerParse(player_list)
 		local ply = player_list[i]
 
 		if ply and not ply:IsBot() then
-			table.insert(players, ply)
+			table_insert(players, ply)
 		end
 	end
 

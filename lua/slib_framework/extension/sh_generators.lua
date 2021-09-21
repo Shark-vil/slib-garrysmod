@@ -1,6 +1,6 @@
-local slib = slib
 local tostring = tostring
-local util = util
+local util_CRC = util.CRC
+local util_Base64Encode = util.Base64Encode
 --
 
 local uid = 0
@@ -14,11 +14,11 @@ end
 function slib.GenerateUid( salt )
 	salt = salt or ''
 	uid_hash = uid_hash + 1
-	return tostring( util.CRC( tostring( salt ) .. tostring( uid_hash ) ) )
+	return tostring( util_CRC( tostring( salt ) .. tostring( uid_hash ) ) )
 end
 
 function slib.GenerateUidHash( salt )
 	salt = salt or ''
 	uid_hash = uid_hash + 1
-	return tostring( util.Base64Encode( tostring( salt ) .. tostring( uid_hash ) ) )
+	return tostring( util_Base64Encode( tostring( salt ) .. tostring( uid_hash ) ) )
 end

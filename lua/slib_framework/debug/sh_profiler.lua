@@ -1,6 +1,5 @@
-local slib = slib
 local SysTime = SysTime
-local table = table
+local table_insert = table.insert
 --
 
 function slib.ProfilerCreate()
@@ -13,7 +12,7 @@ function slib.ProfilerCreate()
 	end
 
 	function obj:End()
-		table.insert(self.ticks, SysTime() - self.lastTick)
+		table_insert(self.ticks, SysTime() - self.lastTick)
 	end
 
 	function obj:Complete()

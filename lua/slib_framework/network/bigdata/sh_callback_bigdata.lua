@@ -11,7 +11,6 @@ local tostring = tostring
 local RealTime = RealTime
 local hook = hook
 local notification = notification
-
 --
 slib.Storage.Network.bigdata = slib.Storage.Network.bigdata or {}
 
@@ -97,7 +96,7 @@ snet.InvokeBigData = function(request, ply, data, max_size, progress_text, progr
 		hook.Run('SlibPreparingBigdataSending', ply, name)
 	else
 		if progress_id ~= '' and progress_text ~= '' then
-			notification.AddProgress('SlibBigDataPreparing_' .. name, "Data is being prepared for upload...")
+			notification.AddProgress('SlibBigDataPreparing_' .. name, 'Data is being prepared for upload...')
 		end
 
 		hook.Run('SlibPreparingBigdataSending', LocalPlayer(), name)

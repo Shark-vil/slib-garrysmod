@@ -1,16 +1,5 @@
-local slib = slib
-local snet = slib.Components.Network
 local access = slib.Components.Access
 local gcvars = slib.Components.GlobalCvar
-local pairs = pairs
-local tobool = tobool
-local GetConVar = GetConVar
-local ErrorNoHalt = ErrorNoHalt
-local RunConsoleCommand = RunConsoleCommand
-local MsgN = MsgN
-local cvars = cvars
-local timer = timer
---
 local cvar_locker = {}
 local cvar_locker_another = {}
 

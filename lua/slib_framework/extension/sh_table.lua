@@ -1,6 +1,8 @@
-local table = table
 local type = type
 local pairs = pairs
+local table_Random = table.Random
+local table_Count = table.Count
+local table_remove = table.remove
 --
 
 function table.WhereHasValue(t, condition)
@@ -28,8 +30,8 @@ function table.WhereFind(t, condition)
 end
 
 function table.RandomOmit(t, v)
-	if v == nil then return table.Random(t) end
-	local count = table.Count(t)
+	if v == nil then return table_Random(t) end
+	local count = table_Count(t)
 	if count == 0 then return nil end
 
 	if count == 1 then
@@ -41,7 +43,7 @@ function table.RandomOmit(t, v)
 
 	local random_value = v
 	repeat
-		random_value = table.Random(t)
+		random_value = table_Random(t)
 	until random_value ~= v
 
 	return random_value
@@ -104,10 +106,10 @@ end
 
 function table.RemoveLastValue(t)
 	if #t == 0 then return end
-	table.remove(t, #t)
+	table_remove(t, #t)
 end
 
 function table.RemoveFirstValue(t)
 	if #t == 0 then return end
-	table.remove(t, 1)
+	table_remove(t, 1)
 end

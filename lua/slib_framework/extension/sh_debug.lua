@@ -1,8 +1,6 @@
-local slib = slib
 local type = type
 local tostring = tostring
 local error = error
---
 
 function slib.TypeValidate(value, typename)
 	if type(value) ~= typename then

@@ -1,13 +1,3 @@
-local slib = slib
-local snet = slib.Components.Network
-local IsValid = IsValid
-local pairs = pairs
-local ents = ents
-local player = player
-local table = table
-local hook = hook
---
-
 if SERVER then
 	hook.Add('PlayerDisconnected', 'Slib_PlayerDisconnectedRemoveLoadedPlayer', function(disconnected_player)
 		for i = #slib.Storage.LoadedPlayers, 1, -1 do

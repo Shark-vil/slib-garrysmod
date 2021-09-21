@@ -1,17 +1,6 @@
-local slib = slib
-local snet = slib.Components.Network
 local gcvars = slib.Components.GlobalCvar
 local AccessComponent = slib.Components.Access
-local CreateConVar = CreateConVar
-local GetConVar = GetConVar
-local pairs = pairs
-local isnumber = isnumber
-local isbool = isbool
-local isstring = isstring
-local cvars = cvars
-local timer = timer
-local SERVER = SERVER
---
+
 function gcvars.Update(cvar_name)
 	if cvar_name then
 		local data = slib.Storage.GlobalCvar[cvar_name]

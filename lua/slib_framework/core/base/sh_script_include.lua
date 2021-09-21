@@ -1,16 +1,4 @@
-local slib = slib
-local isstring = isstring
-local file = file
-local MsgN = MsgN
-local include = include
-local AddCSLuaFile = AddCSLuaFile
-local string = string
-local table = table
-local SERVER = SERVER
-local CLIENT = CLIENT
---
-
-local function exInclude(file_path, loading_text)
+local function script_include(file_path, loading_text)
 	if not isstring(file_path) or not file.Exists(file_path, 'LUA') then
 		MsgN('[SLibrary] Script failed load - ' .. file_path)
 		return
@@ -48,13 +36,13 @@ function slib.CreateIncluder(root_directory, loading_text)
 
 			if not disable_auto_include then
 				if CLIENT and network_type == 'cl' then
-					exInclude(file_path, self.loading_text)
+					script_include(file_path, self.loading_text)
 				elseif network_type == 'sh' then
-					exInclude(file_path, self.loading_text)
+					script_include(file_path, self.loading_text)
 				end
 			end
 		elseif network_type == 'sv' and SERVER and not disable_auto_include then
-			exInclude(file_path, self.loading_text)
+			script_include(file_path, self.loading_text)
 		end
 	end
 

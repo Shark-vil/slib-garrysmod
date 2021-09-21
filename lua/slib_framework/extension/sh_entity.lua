@@ -1,6 +1,4 @@
-local slib = slib
 local IsValid = IsValid
---
 
 function slib.IsAlive(ent)
    if not ent or not IsValid(ent) then return false end

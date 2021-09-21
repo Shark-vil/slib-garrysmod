@@ -1,9 +1,7 @@
-local coroutine = coroutine
 local coroutine_yield = coroutine.yield
 local coroutine_wait = coroutine.wait
 local coroutine_create = coroutine.create
 local coroutine_resume = coroutine.resume
-local hook = hook
 --
 async = async or {}
 

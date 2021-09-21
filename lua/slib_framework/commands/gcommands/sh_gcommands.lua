@@ -1,10 +1,5 @@
-local snet = slib.Components.Network
-local AccessComponent = slib.Components.Access
-local concommand = concommand
-local isfunction = isfunction
-local CLIENT = CLIENT
---
 local Component = slib.Components.GlobalCommand
+local AccessComponent = slib.Components.Access
 local client_commands = {}
 local server_commands = {}
 

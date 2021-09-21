@@ -1,3 +1,5 @@
+local math_pi = math.pi
+--
 local meta = FindMetaTable('Player')
 
 function meta:slibNotify(text, notify_type, length, sound)
@@ -37,7 +39,7 @@ end
 
 function meta:slibIsViewVector(pos, radius)
 	radius = radius or 90
-	local DirectionAngle = math.pi / radius
+	local DirectionAngle = math_pi / radius
 	local EntityDifference = pos - self:EyePos()
 	local EntityDifferenceDot = self:GetAimVector():Dot(EntityDifference) / EntityDifference:Length()
 

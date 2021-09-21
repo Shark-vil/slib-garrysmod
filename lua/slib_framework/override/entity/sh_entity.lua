@@ -1,14 +1,15 @@
-local istable = istable
-local ipairs = ipairs
 local snet = slib.Components.Network
 local SERVER = SERVER
-local isfunction = isfunction
 local table = table
 local timer = timer
+local istable = istable
+local ipairs = ipairs
+local isfunction = isfunction
 local isentity = isentity
 local IsValid = IsValid
 local isbool = isbool
-local player = player
+local LocalPlayer = LocalPlayer
+local player_GetAll = player.GetAll
 --
 local meta = FindMetaTable('Entity')
 local list_door_classes = {'func_door', 'func_door_rotating', 'prop_door_rotating'}
@@ -132,7 +133,7 @@ function meta:slibDoorIsLocked()
 end
 
 function meta:slibIsPlayersSee()
-	local players = player.GetAll()
+	local players = player_GetAll()
 	local position = self:GetPos()
 
 	for i = 1, #players do
