@@ -111,7 +111,12 @@ function meta:slibCreateTimer(timer_name, delay, repetitions, func)
 	end)
 end
 
-function meta:slibRemoveTimer(timer_name, func)
+function meta:slibExistsTimer(timer_name)
+	timer_name = 'SLIB_ENTITY_TIMER_' .. util.CRC(self:EntIndex() .. timer_name)
+	return timer.Exists(timer_name)
+end
+
+function meta:slibRemoveTimer(timer_name)
 	timer_name = 'SLIB_ENTITY_TIMER_' .. util.CRC(self:EntIndex() .. timer_name)
 
 	if timer.Exists(timer_name) then
