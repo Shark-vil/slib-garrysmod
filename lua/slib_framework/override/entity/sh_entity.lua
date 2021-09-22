@@ -154,6 +154,47 @@ function meta:slibAutoDestroy(time)
 	end)
 end
 
+function meta:slibFadeRemove(minus)
+	if self.slibIsFadeRemove then return end
+	self.slibIsFadeRemove = true
+
+	delay = CurTime() + (delay or 0)
+	minus = minus or 1
+
+	self:SetRenderMode(RENDERMODE_TRANSCOLOR)
+	self:slibCreateTimer('_system_entity_fade_remove_', 0.01, 0, function()
+		local color = self:GetColor()
+		if color.a - minus >= 0 then
+			local newColor = ColorAlpha(color, color.a - minus)
+			self:SetColor(newColor)
+			if self.GetActiveWeapon then
+				local weapon = self:GetActiveWeapon()
+				if IsValid(weapon) then
+					weapon:SetColor(newColor)
+				end
+			end
+		else
+			self:Remove()
+		end
+	end)
+end
+
+function meta:slibAddHook(hook_type, hook_name, func)
+	hook_name = 'slib_system_entity_' .. hook_type .. '_' .. hook_name .. '_' .. tostring(self:EntIndex())
+	hook.Add(hook_type, hook_name, function(...)
+		if not IsValid(self) then
+			hook.Remove(hook_type, hook_name)
+			return
+		end
+		func(...)
+	end)
+end
+
+function meta:slibRemoveHook(hook_type, hook_name)
+	hook_name = 'slib_system_entity_' .. hook_type .. '_' .. hook_name .. '_' .. tostring(self:EntIndex())
+	hook.Remove(hook_type, hook_name)
+end
+
 if SERVER then
 	function snet.ClientRPC(_ent, function_name, ...)
 		local ent = _ent
