@@ -1,3 +1,7 @@
+local sgui = slib.Components.GUI
+local isfunction = isfunction
+--
+
 function sgui.SystemParentDefaultListeners(PANEL)
 	PANEL:AddListener('Think', function(self)
 		if not self.OnChangeHovered or not isfunction(self.OnChangeHovered) then return end

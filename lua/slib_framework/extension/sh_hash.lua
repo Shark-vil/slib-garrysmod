@@ -1,3 +1,10 @@
+local type = type
+local tostring = tostring
+local util_TableToJSON = util.TableToJSON
+local util_Base64Encode = util.Base64Encode
+local util_CRC = util.CRC
+--
+
 local function get_string_data(data)
 	local datatype = type(data)
 
@@ -10,7 +17,7 @@ local function get_string_data(data)
 	end
 
 	if datatype == 'table' then
-		return util.TableToJSON(data)
+		return util_TableToJSON(data)
 	end
 
 	if datatype == 'Vector' or datatype == 'Angle' then
@@ -26,10 +33,10 @@ end
 
 function slib.GetHash(data)
 	local normalize_data = get_string_data(data)
-	return util.Base64Encode(normalize_data)
+	return util_Base64Encode(normalize_data)
 end
 
 function slib.GetHashSumm(data)
 	local normalize_data = get_string_data(data)
-	return util.CRC(normalize_data)
+	return util_CRC(normalize_data)
 end

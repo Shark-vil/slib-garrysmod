@@ -1,15 +1,22 @@
+local net = net
+local snet = slib.Components.Network
+local hook = hook
+local IsValid = IsValid
+local table = table
+local util = util
+--
 local processing_data = {}
 
 hook.Add('PlayerDisconnected', 'SlibBigDataPlayerDisconnected', function(ply)
 	processing_data[ply] = nil
 
-	for i = #snet.storage.bigdata, 1, -1 do
-		local data = snet.storage.bigdata[i]
+	for i = #slib.Storage.Network.bigdata, 1, -1 do
+		local data = slib.Storage.Network.bigdata[i]
 		if data.ply == ply then
 			local request_id = data.id
 
-			for k = #snet.storage.bigdata, 1, -1 do
-				local sub_data = snet.storage.bigdata[k]
+			for k = #slib.Storage.Network.bigdata, 1, -1 do
+				local sub_data = slib.Storage.Network.bigdata[k]
 				if sub_data.id == request_id and IsValid(data.ply) then
 					goto skip
 				end
@@ -19,7 +26,7 @@ hook.Add('PlayerDisconnected', 'SlibBigDataPlayerDisconnected', function(ply)
 
 			::skip::
 
-			table.remove(snet.storage.bigdata, i)
+			table.remove(slib.Storage.Network.bigdata, i)
 		end
 	end
 end)
@@ -29,10 +36,11 @@ end)
 net.Receive('slib_sv_bigdata_receive', function(len, ply)
 	local name = net.ReadString()
 	local is_error = false
+	local callback = snet.GetCallback(name)
 
-	if snet.storage.default[name] == nil then
+	if not callback then
 		is_error = true
-	elseif snet.storage.default[name].isAdmin then
+	elseif callback.isAdmin then
 		if not ply:IsAdmin() and not ply:IsSuperAdmin() then
 			is_error = true
 		end
@@ -70,8 +78,9 @@ net.Receive('slib_sv_bigdata_processing', function(len, ply)
 	if processing_data[ply] == nil then return end
 	local name = net.ReadString()
 	local index = net.ReadInt(10)
+	local callback = snet.GetCallback(name)
 
-	if snet.storage.default[name] == nil then return end
+	if not callback then return end
 	if processing_data[ply] == nil then return end
 	if processing_data[ply][index] == nil then return end
 
@@ -96,9 +105,9 @@ net.Receive('slib_sv_bigdata_processing', function(len, ply)
 		processing_data[ply][index] = nil
 		local result_data = util.JSONToTable(data_string)
 
-		if result_data.type == 'table' then
+		if result_data.data_type == 'table' then
 			snet.execute(result_data.backward, result_data.id, name, ply, util.JSONToTable(result_data.data))
-		elseif result_data.type == 'string' then
+		elseif result_data.data_type == 'string' then
 			snet.execute(result_data.backward, result_data.id, name, ply, result_data.data)
 		end
 	else

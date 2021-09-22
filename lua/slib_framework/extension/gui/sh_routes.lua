@@ -1,3 +1,4 @@
+local sgui = slib.Components.GUI
 sgui.routes_storage = sgui.routes_storage or {}
 
 if CLIENT then

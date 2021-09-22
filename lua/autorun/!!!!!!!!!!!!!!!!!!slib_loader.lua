@@ -1,26 +1,33 @@
 slib = slib or {}
-slib.VERSION = '1.3'
-slib.LOADED_PLAYERS = slib.LOADED_PLAYERS or {}
-
-sgui = sgui or {}
-snet = snet or net
-snet.storage = snet.storage or {}
+slib.Version = '1.4'
 
 local root_directory = 'slib_framework'
 
 if SERVER then
-	AddCSLuaFile(root_directory .. '/extension/sh_script_include.lua')
+	AddCSLuaFile(root_directory .. '/core/base/sh_base.lua')
 end
-include(root_directory .. '/extension/sh_script_include.lua')
+include(root_directory .. '/core/base/sh_base.lua')
 
 local script = slib.CreateIncluder(root_directory, '[SLibrary] Script load - {file}')
+
+script:using('core/base/sh_global.lua')
+script:using('core/sh_components.lua')
+script:using('core/sh_storage.lua')
+script:using('core/sh_access.lua')
 
 script:using('debug/sh_profiler.lua')
 script:using('debug/sh_message.lua')
 
+script:using('network/sh_base_params.lua')
 script:using('network/sh_addnetwork.lua')
 script:using('network/sh_serializator.lua')
-script:using('network/sh_callback.lua')
+script:using('network/base/sv_nethooks.lua')
+script:using('network/base/callback/sh_callback.lua')
+script:using('network/base/request/sh_request.lua')
+script:using('network/base/request/sh_request_simple.lua')
+script:using('network/base/sh_handler.lua')
+script:using('network/base/backward/sv_backward.lua')
+script:using('network/base/backward/cl_backward.lua')
 script:using('network/validator/sh_validator.lua')
 script:using('network/validator/sh_validator_server.lua')
 script:using('network/validator/sh_validator_client.lua')
@@ -59,6 +66,7 @@ script:using('commands/gcommands/sh_gcommands.lua')
 script:using('hooks/sh_player_first_spawn.lua')
 
 script:using('extension/sh_debug.lua')
+script:using('extension/sh_fakeplayer.lua')
 script:using('extension/sh_function_type.lua')
 script:using('extension/sh_generators.lua')
 script:using('extension/sh_player.lua')

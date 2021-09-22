@@ -1,3 +1,10 @@
+local snet = slib.Components.Network
+local access = slib.Components.Access
+local slib = slib
+local timer = timer
+local CLIENT = CLIENT
+--
+
 if CLIENT then
 	snet.Callback('cl_snet_debug_create_npc', function(ply, ent)
 		ent:slibOnInstanceVarCallback('color', function(new_color)
@@ -12,7 +19,8 @@ if CLIENT then
 	end).Validator(SNET_ENTITY_VALIDATOR)
 end
 
-slib.RegisterGlobalCommand('snet_debug_create_npc', nil, function(ply)
+
+scommand.Register('snet_debug_create_npc').OnServer(function(ply, cmd, args)
 	local player_pos = ply:GetPos()
 
 	timer.Simple(2, function()
@@ -20,7 +28,7 @@ slib.RegisterGlobalCommand('snet_debug_create_npc', nil, function(ply)
 		new_ent:SetPos(player_pos)
 		new_ent:Spawn()
 
-		snet.Create('cl_snet_debug_create_npc', new_ent).Complete(function(players)
+		snet.Request('cl_snet_debug_create_npc', new_ent).Complete(function(players)
 
 			snet.Callback('cl_snet_debug_create_npc_start_randomizer', function(ply, ent)
 				slib.Log('The player ', ply, ' has start the npc color randomizer')
@@ -36,4 +44,4 @@ slib.RegisterGlobalCommand('snet_debug_create_npc', nil, function(ply)
 
 		end).InvokeAll()
 	end)
-end)
+end).Access( { isAdmin = true } )

@@ -1,10 +1,10 @@
 if SERVER then
 	hook.Add('PlayerDisconnected', 'Slib_PlayerDisconnectedRemoveLoadedPlayer', function(disconnected_player)
-		for i = #slib.LOADED_PLAYERS, 1, -1 do
-			local ply = slib.LOADED_PLAYERS[i]
+		for i = #slib.Storage.LoadedPlayers, 1, -1 do
+			local ply = slib.Storage.LoadedPlayers[i]
 			if not IsValid(ply) or ply == disconnected_player then
 				slib.Log('The player ', ply, ' has disconnected from the server')
-				table.remove(slib.LOADED_PLAYERS, i)
+				table.remove(slib.Storage.LoadedPlayers, i)
 			end
 		end
 
@@ -21,10 +21,10 @@ if SERVER then
 				if not IsValid(ply) then return end
 
 				ply.snet_ready = true
-				table.insert(slib.LOADED_PLAYERS, ply)
+				table.insert(slib.Storage.LoadedPlayers, ply)
 
 				hook.Run('SlibPlayerFirstSpawn', ply)
-				snet.Create('slib_first_player_spawn', ply).InvokeAll()
+				snet.Request('slib_first_player_spawn', ply).InvokeAll()
 
 				hook.Remove('SetupMove', hook_name)
 			end
@@ -60,7 +60,7 @@ else
 		end
 
 		ply.snet_ready = true
-		table.insert(slib.LOADED_PLAYERS, ply)
+		table.insert(slib.Storage.LoadedPlayers, ply)
 
 		hook.Run('SlibPlayerFirstSpawn', ply)
 	end).Validator(SNET_ENTITY_VALIDATOR)
@@ -70,18 +70,18 @@ else
 			local ply = players[i]
 
 			ply.snet_ready = true
-			table.insert(slib.LOADED_PLAYERS, ply)
+			table.insert(slib.Storage.LoadedPlayers, ply)
 
 			slib.Log('Player sync -', ply)
 		end
 	end).Validator(SNET_ENTITY_VALIDATOR)
 
 	snet.Callback('slib_player_disconnected_sync', function(_, disconnected_player)
-		for i = #slib.LOADED_PLAYERS, 1, -1 do
-			local ply = slib.LOADED_PLAYERS[i]
+		for i = #slib.Storage.LoadedPlayers, 1, -1 do
+			local ply = slib.Storage.LoadedPlayers[i]
 			if not IsValid(ply) or ply == disconnected_player then
 				slib.Log('The player ', ply, ' has disconnected from the server')
-				table.remove(slib.LOADED_PLAYERS, i)
+				table.remove(slib.Storage.LoadedPlayers, i)
 			end
 		end
 	end)

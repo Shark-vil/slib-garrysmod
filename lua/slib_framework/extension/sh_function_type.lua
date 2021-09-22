@@ -1,8 +1,14 @@
+local error = error
+local type = type
+local tostring = tostring
+local slib_TypeValidate = slib.TypeValidate
+--
+
 local function create_type_function(arguments, method)
 	arguments = arguments or {}
-	
-	slib.TypeValidate(arguments, 'table')
-	slib.TypeValidate(method, 'function')
+
+	slib_TypeValidate(arguments, 'table')
+	slib_TypeValidate(method, 'function')
 
 	local arguments_count = #arguments
 
@@ -15,7 +21,7 @@ local function create_type_function(arguments, method)
 		end
 
 		for i = 1, arguments_count do
-			slib.TypeValidate(values[i], arguments[i])
+			slib_TypeValidate(values[i], arguments[i])
 		end
 
 		return method(...)
@@ -26,7 +32,7 @@ end
 
 local function type_function_caller(typename, arguments, method)
 	local result = create_type_function(arguments, method)
-	slib.TypeValidate(result, typename)
+	slib_TypeValidate(result, typename)
 	return result
 end
 

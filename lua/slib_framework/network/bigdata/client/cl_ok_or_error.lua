@@ -1,9 +1,16 @@
+local net = net
+local snet = slib.Components.Network
+local notification = notification
+local hook = hook
+local LocalPlayer = LocalPlayer
+--
+
 -- Called when the server requests a new batch of data
 -- SERVER (slib_sv_bigdata_receive / slib_sv_bigdata_processing) --> CLIENT
 net.Receive('slib_cl_bigdata_receive_ok', function()
 	local name = net.ReadString()
 	local index = net.ReadInt(10)
-	local data = snet.storage.bigdata[index]
+	local data = slib.Storage.Network.bigdata[index]
 	if data == nil then return end
 	data.current_part = data.current_part + 1
 	local part = data.net_parts[data.current_part]
@@ -41,7 +48,7 @@ net.Receive('slib_cl_bigdata_receive_ok', function()
 		end
 
 		hook.Run('SnetBigDataFinished', LocalPlayer(), name, data)
-		snet.storage.bigdata[index] = nil
+		slib.Storage.Network.bigdata[index] = nil
 	end
 end)
 
@@ -50,7 +57,7 @@ end)
 net.Receive('slib_cl_bigdata_receive_error', function(len)
 	local name = net.ReadString()
 	local index = net.ReadInt(10)
-	local data = snet.storage.bigdata[index]
+	local data = slib.Storage.Network.bigdata[index]
 
 	if data == nil then return end
 
@@ -74,5 +81,5 @@ net.Receive('slib_cl_bigdata_receive_error', function(len)
 	end
 
 	hook.Run('SnetBigDataFailed', LocalPlayer(), name, data)
-	snet.storage.bigdata[index] = nil
+	slib.Storage.Network.bigdata[index] = nil
 end)

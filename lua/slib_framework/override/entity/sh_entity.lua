@@ -1,3 +1,16 @@
+local snet = slib.Components.Network
+local SERVER = SERVER
+local table = table
+local timer = timer
+local istable = istable
+local ipairs = ipairs
+local isfunction = isfunction
+local isentity = isentity
+local IsValid = IsValid
+local isbool = isbool
+local LocalPlayer = LocalPlayer
+local player_GetAll = player.GetAll
+--
 local meta = FindMetaTable('Entity')
 local list_door_classes = {'func_door', 'func_door_rotating', 'prop_door_rotating'}
 
@@ -50,9 +63,9 @@ function meta:slibSetVar(key, value, unreliable)
 		unreliable = unreliable or false
 
 		if new_value == nil then
-			snet.Create('slib_entity_variable_del', self, key).SetLifeTime(1.5).InvokeAll()
+			snet.Request('slib_entity_variable_del', self, key).SetLifeTime(1.5).InvokeAll()
 		else
-			snet.Create('slib_entity_variable_set', self, key, value)
+			snet.Request('slib_entity_variable_set', self, key, value)
 				.SetLifeTime(1.5)
 				.InvokeAll(unreliable)
 		end
@@ -98,7 +111,12 @@ function meta:slibCreateTimer(timer_name, delay, repetitions, func)
 	end)
 end
 
-function meta:slibRemoveTimer(timer_name, func)
+function meta:slibExistsTimer(timer_name)
+	timer_name = 'SLIB_ENTITY_TIMER_' .. util.CRC(self:EntIndex() .. timer_name)
+	return timer.Exists(timer_name)
+end
+
+function meta:slibRemoveTimer(timer_name)
 	timer_name = 'SLIB_ENTITY_TIMER_' .. util.CRC(self:EntIndex() .. timer_name)
 
 	if timer.Exists(timer_name) then
@@ -120,7 +138,7 @@ function meta:slibDoorIsLocked()
 end
 
 function meta:slibIsPlayersSee()
-	local players = player.GetAll()
+	local players = player_GetAll()
 	local position = self:GetPos()
 
 	for i = 1, #players do
@@ -134,6 +152,47 @@ function meta:slibAutoDestroy(time)
 	self:slibCreateTimer('_system_timer_slib_auto_destroy_entity_', time, 1, function()
 		self:Remove()
 	end)
+end
+
+function meta:slibFadeRemove(minus)
+	if self.slibIsFadeRemove then return end
+	self.slibIsFadeRemove = true
+
+	delay = CurTime() + (delay or 0)
+	minus = minus or 1
+
+	self:SetRenderMode(RENDERMODE_TRANSCOLOR)
+	self:slibCreateTimer('_system_entity_fade_remove_', 0.01, 0, function()
+		local color = self:GetColor()
+		if color.a - minus >= 0 then
+			local newColor = ColorAlpha(color, color.a - minus)
+			self:SetColor(newColor)
+			if self.GetActiveWeapon then
+				local weapon = self:GetActiveWeapon()
+				if IsValid(weapon) then
+					weapon:SetColor(newColor)
+				end
+			end
+		else
+			self:Remove()
+		end
+	end)
+end
+
+function meta:slibAddHook(hook_type, hook_name, func)
+	hook_name = 'slib_system_entity_' .. hook_type .. '_' .. hook_name .. '_' .. tostring(self:EntIndex())
+	hook.Add(hook_type, hook_name, function(...)
+		if not IsValid(self) then
+			hook.Remove(hook_type, hook_name)
+			return
+		end
+		func(...)
+	end)
+end
+
+function meta:slibRemoveHook(hook_type, hook_name)
+	hook_name = 'slib_system_entity_' .. hook_type .. '_' .. hook_name .. '_' .. tostring(self:EntIndex())
+	hook.Remove(hook_type, hook_name)
 end
 
 if SERVER then

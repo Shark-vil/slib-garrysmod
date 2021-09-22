@@ -1,3 +1,6 @@
+local sgui = slib.Components.GUI
+--
+
 function sgui.Construct(PANEL)
 	if PANEL.sgui_init then return end
 
