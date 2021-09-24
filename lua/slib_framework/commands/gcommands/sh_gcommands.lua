@@ -18,7 +18,7 @@ else
 	end).Protect()
 end
 
-function Component.Register(_name, _autoComplete, _helpText, _flags, _access)
+function Component.Create(_name, _autoComplete, _helpText, _flags, _access)
 	local private = {}
 	private.name = _name
 	private.client_callback = nil
@@ -71,9 +71,12 @@ function Component.Register(_name, _autoComplete, _helpText, _flags, _access)
 		local access = private.access
 		local server_callback = private.server_callback
 		local client_callback = private.client_callback
+		local autoComplete = private.autoComplete
+		local helpText = private.helpText
+		local flags = private.flags
 
 		concommand.Add(name, function(ply, cmd, args)
-			if AccessComponent.IsValid(ply, access) then return end
+			if not AccessComponent.IsValid(ply, access) then return end
 
 			local isReplicate
 
@@ -95,6 +98,7 @@ function Component.Register(_name, _autoComplete, _helpText, _flags, _access)
 				end
 			end
 		end, autoComplete, helpText, flags)
+
 		return public
 	end
 

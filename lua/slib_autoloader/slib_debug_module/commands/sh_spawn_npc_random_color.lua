@@ -20,7 +20,7 @@ if CLIENT then
 end
 
 
-scommand.Register('snet_debug_create_npc').OnServer(function(ply, cmd, args)
+scommand.Create('snet_debug_create_npc').OnServer(function(ply, cmd, args)
 	local player_pos = ply:GetPos()
 
 	timer.Simple(2, function()
@@ -44,4 +44,4 @@ scommand.Register('snet_debug_create_npc').OnServer(function(ply, cmd, args)
 
 		end).InvokeAll()
 	end)
-end).Access( { isAdmin = true } )
+end).Access( { isAdmin = true } ).Register()
