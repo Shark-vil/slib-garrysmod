@@ -22,6 +22,10 @@ function async.Add(id, func)
 	end)
 end
 
+function async.Exists(id)
+	return hook.Get('Think', 'slib_async_' .. id) ~= nil
+end
+
 function async.Remove(id)
 	hook.Remove('Think', 'slib_async_' .. id)
 end
