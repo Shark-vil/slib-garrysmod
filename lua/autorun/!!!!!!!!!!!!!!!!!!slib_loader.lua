@@ -1,5 +1,5 @@
 slib = slib or {}
-slib.Version = '1.4.2'
+slib.Version = '1.4.3'
 
 local root_directory = 'slib_framework'
 
@@ -79,6 +79,7 @@ script:using('extension/sh_async.lua')
 script:using('extension/sh_entity.lua')
 script:using('extension/sh_hash.lua')
 script:using('extension/sh_cvars.lua')
+script:using('extension/sh_helpers.lua')
 script:using('extension/gui/cl_helpers.lua')
 script:using('extension/gui/cl_listener.lua')
 script:using('extension/gui/cl_extension.lua')
