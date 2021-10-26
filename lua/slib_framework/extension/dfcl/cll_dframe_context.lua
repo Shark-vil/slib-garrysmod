@@ -1,3 +1,5 @@
+-- https://steamcommunity.com/sharedfiles/filedetails/?id=2165338357
+
 local PANEL = {
 	PanelManager = nil
 }

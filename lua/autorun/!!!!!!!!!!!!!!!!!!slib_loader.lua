@@ -85,8 +85,8 @@ script:using('extension/gui/cl_listener.lua')
 script:using('extension/gui/cl_extension.lua')
 script:using('extension/gui/cl_default_listeners.lua')
 script:using('extension/gui/sh_routes.lua')
-script:using('extension/dfcl/dfcl_library.lua')
-script:using('extension/dfcl/dfcl_dframe_context.lua')
+script:using('extension/dfcl/cl_library.lua')
+script:using('extension/dfcl/cl_dframe_context.lua')
 -- script:using('extension/sh_script_optimization.lua')
 
 -- To connect scripts that depend on the library
