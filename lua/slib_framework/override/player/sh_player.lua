@@ -45,3 +45,11 @@ function meta:slibIsViewVector(pos, radius)
 
 	return EntityDifferenceDot > DirectionAngle
 end
+
+function meta:slibLanguage(data)
+	return slib.language(data, self:slibGetLanguage())
+end
+
+function meta:slibGetLanguage()
+	return self:slibGetVar('slib_client_language', 'english')
+end
