@@ -8,7 +8,7 @@ if SERVER then
 			end
 		end
 
-		snet.InvokeAll('slib_player_disconnected_sync', ply)
+		snet.InvokeAll('slib_player_disconnected_sync', disconnected_player)
 	end)
 
 	hook.Add('PlayerSpawn', 'Slib_PlayerFirstSpawnFixer', function(ply)
