@@ -158,7 +158,6 @@ function meta:slibFadeRemove(minus)
 	if self.slibIsFadeRemove then return end
 	self.slibIsFadeRemove = true
 
-	delay = CurTime() + (delay or 0)
 	minus = minus or 1
 
 	self:SetRenderMode(RENDERMODE_TRANSCOLOR)
@@ -195,59 +194,77 @@ function meta:slibRemoveHook(hook_type, hook_name)
 	hook.Remove(hook_type, hook_name)
 end
 
-if SERVER then
-	function snet.ClientRPC(_ent, function_name, ...)
-		local ent = _ent
+function meta:slibIsSingleCall()
+	local delay = self:slibGetLocalVar('slib_is_single_call_delay', 0)
+	self:slibSetLocalVar('slib_is_single_call_delay', RealTime() + 0.1)
+	return delay < RealTime()
+end
 
-		if not isentity(ent) and ent.Weapon then
-			ent = ent.Weapon
-		end
+function snet.ClientRPC(_ent, function_name, ...)
+	if not SERVER then return end
 
-		if not ent or not IsValid(ent) then return end
-		local ply
-		local owner = ent:GetOwner()
+	local ent = _ent
 
-		if IsValid(owner) and owner:IsPlayer() then
-			ply = owner
-		end
+	if not isentity(ent) and ent.Weapon then
+		ent = ent.Weapon
+	end
 
-		if ply and ent:GetClass() == 'gmod_tool' then
-			local tool = ply:GetTool()
-			snet.Invoke('snet_entity_tool_call_client_rpc', ply, ent, tool:GetMode(), function_name, ...)
+	if not ent or not IsValid(ent) then return end
+	local ply
+	local owner = ent:GetOwner()
+
+	if IsValid(owner) and owner:IsPlayer() then
+		ply = owner
+	end
+
+	if ply and ent:GetClass() == 'gmod_tool' then
+		local tool = ply:GetTool()
+		snet.Invoke('snet_entity_tool_call_client_rpc', ply, ent, tool:GetMode(), function_name, ...)
+	else
+		if ply then
+			snet.Invoke('snet_entity_call_client_rpc', ply, ent, function_name, ...)
 		else
-			if ply then
-				snet.Invoke('snet_entity_call_client_rpc', ply, ent, function_name, ...)
-			else
-				snet.InvokeAll('snet_entity_call_client_rpc', ent, function_name, ...)
-			end
+			snet.InvokeAll('snet_entity_call_client_rpc', ent, function_name, ...)
 		end
 	end
+end
 
-	function meta:slibClientRPC(function_name, ...)
-		snet.ClientRPC(self, function_name, ...)
-	end
-else
-	function snet.ServerRPC(_ent, function_name, ...)
-		local ent = _ent
+function meta:slibClientRPC(function_name, ...)
+	snet.ClientRPC(self, function_name, ...)
+end
 
-		if not isentity(ent) and ent.Weapon then
-			ent = ent.Weapon
-		end
+function meta:slibPredictedClientRPC(function_name, ...)
+	if not IsFirstTimePredicted() then return end
+	snet.ClientRPC(self, function_name, ...)
+end
 
-		if not ent or not IsValid(ent) then return end
+function snet.ServerRPC(_ent, function_name, ...)
+	if not CLIENT then return end
 
-		local owner = ent:GetOwner()
-		if IsValid(owner) and owner:IsPlayer() and owner ~= LocalPlayer() then return end
+	local ent = _ent
 
-		if ent:GetClass() == 'gmod_tool' then
-			local tool = LocalPlayer():GetTool()
-			snet.InvokeServer('snet_entity_tool_call_server_rpc', ent, tool:GetMode(), function_name, ...)
-		else
-			snet.InvokeServer('snet_entity_call_server_rpc', ent, function_name, ...)
-		end
+	if not isentity(ent) and ent.Weapon then
+		ent = ent.Weapon
 	end
 
-	function meta:slibServerRPC(function_name, ...)
-		snet.ServerRPC(self, function_name, ...)
+	if not ent or not IsValid(ent) then return end
+
+	local owner = ent:GetOwner()
+	if IsValid(owner) and owner:IsPlayer() and owner ~= LocalPlayer() then return end
+
+	if ent:GetClass() == 'gmod_tool' then
+		local tool = LocalPlayer():GetTool()
+		snet.InvokeServer('snet_entity_tool_call_server_rpc', ent, tool:GetMode(), function_name, ...)
+	else
+		snet.InvokeServer('snet_entity_call_server_rpc', ent, function_name, ...)
 	end
+end
+
+function meta:slibServerRPC(function_name, ...)
+	snet.ServerRPC(self, function_name, ...)
+end
+
+function meta:slibPredictedServerRPC(function_name, ...)
+	if not IsFirstTimePredicted() then return end
+	snet.ServerRPC(self, function_name, ...)
 end

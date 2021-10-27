@@ -35,7 +35,7 @@ scommand.Create('snet_debug_create_npc').OnServer(function(ply, cmd, args)
 
 				ent:slibCreateTimer('color_randomize', 1, 0, function()
 					ent:slibSetVar('color', ColorRand(), true)
-				 end)
+				end)
 
 			end).AutoDestroy()
 
