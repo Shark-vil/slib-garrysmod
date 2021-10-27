@@ -158,7 +158,6 @@ function meta:slibFadeRemove(minus)
 	if self.slibIsFadeRemove then return end
 	self.slibIsFadeRemove = true
 
-	delay = CurTime() + (delay or 0)
 	minus = minus or 1
 
 	self:SetRenderMode(RENDERMODE_TRANSCOLOR)
