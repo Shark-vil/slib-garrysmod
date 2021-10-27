@@ -41,7 +41,9 @@ local ValueSerialize = {
 	[TYPE_VECTOR] = function(t, v) return t, v:ToTable() end,
 	[TYPE_ANGLE] = function(t, v) return t, v:ToTable() end,
 	[TYPE_MATRIX] = function(t, v) return t, v:ToTable() end,
-	[TYPE_COLOR] = function(t, v) return t, v:ToTable() end,
+	[TYPE_COLOR] = function(t, v)
+		return t, { v.r, v.g, v.b, v.a }
+	end,
 }
 
 local function GetValueType(value)
