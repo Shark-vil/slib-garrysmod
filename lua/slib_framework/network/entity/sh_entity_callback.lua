@@ -10,6 +10,7 @@ local isentity = isentity
 local unpack = unpack
 local table_insert = table.insert
 local table_remove = table.remove
+local hook_Run = hook.Run
 --
 
 if SERVER then
@@ -93,10 +94,10 @@ if SERVER then
 			end
 
 			if data.timeout < real_time or #entities == 0 or not IsValid(ply) then
-				hook.Run('SNetEntitySuccessInvoked', false, request_data.name, ply, entities)
+				hook_Run('SNetEntitySuccessInvoked', false, request_data.name, ply, entities)
 				table_remove(entities_queue, i)
 			elseif data.isSuccess then
-				hook.Run('SNetEntitySuccessInvoked', true, request_data.name, ply, entities)
+				hook_Run('SNetEntitySuccessInvoked', true, request_data.name, ply, entities)
 				table_remove(entities_queue, i)
 			elseif data.equalDelay < real_time then
 				snet.Request('snet_cl_entity_network_callback',
