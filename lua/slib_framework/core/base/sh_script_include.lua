@@ -1,3 +1,5 @@
+local valid_prefix_list = { 'cl', 'sv', 'sh' }
+
 local function script_include(file_path, loading_text)
 	if not isstring(file_path) or not file.Exists(file_path, 'LUA') then
 		MsgN('[SLibrary] Script failed load - ' .. file_path)
@@ -30,6 +32,10 @@ function slib.CreateIncluder(root_directory, loading_text)
 		end
 
 		local network_type = getFileNetworkType(file_path)
+		if not network_type or not table.HasValue(valid_prefix_list, network_type) then
+			ErrorNoHalt('[SLIB.ERROR] The prefix was not found in the file name. The script '
+				.. file_path .. ' will not be included!')
+		end
 
 		if network_type == 'cl' or network_type == 'sh' then
 			if SERVER then AddCSLuaFile(file_path) end
