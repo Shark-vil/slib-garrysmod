@@ -133,3 +133,18 @@ function table.RemoveAllValueBySeq(t, v)
 
 	return t
 end
+
+function table.EqualsBySeq(t1, t2)
+	if type(t1) ~= 'table' or type(t2) ~= 'table' then return false end
+
+	for i = 1, #t1 do
+		local v = t1[i]
+		if type(v) == 'table' then
+			if not table.EqualsBySeq(v, t2[i]) then return false end
+		elseif v ~= t2[i] then
+			return false
+		end
+	end
+
+	return true
+end
