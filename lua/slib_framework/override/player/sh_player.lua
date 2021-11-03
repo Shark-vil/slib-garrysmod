@@ -1,4 +1,5 @@
 local math_pi = math.pi
+local util_TraceLine = util.TraceLine
 --
 local meta = FindMetaTable('Player')
 
@@ -39,11 +40,31 @@ end
 
 function meta:slibIsViewVector(pos, radius)
 	radius = radius or 90
+
 	local DirectionAngle = math_pi / radius
 	local EntityDifference = pos - self:EyePos()
 	local EntityDifferenceDot = self:GetAimVector():Dot(EntityDifference) / EntityDifference:Length()
 
 	return EntityDifferenceDot > DirectionAngle
+end
+
+function meta:slibIsTranceEntity(target, distance, check_view_vector)
+	distance = distance or 1000
+
+	local target_pos = target:LocalToWorld(target:OBBCenter())
+	local player_eye_pos = self:EyePos()
+
+	if check_view_vector and not self:slibIsViewVector(target_pos) then return false end
+
+	local tr = util_TraceLine({
+		start = player_eye_pos,
+		endpos = target_pos,
+		filter = function(ent)
+			if ent ~= self and ent == target then return true end
+		end
+	})
+
+	return tr.Hit
 end
 
 function meta:slibLanguage(data)
