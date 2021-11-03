@@ -73,7 +73,7 @@ function meta:slibSetVar(key, value, unreliable)
 end
 
 function meta:slibGetVar(key, fallback)
-	if not self.slibVariables or self.slibVariables[key] == nil then return fallback or false end
+	if not self.slibVariables or self.slibVariables[key] == nil then return fallback end
 	return self.slibVariables[key]
 end
 
