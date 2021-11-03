@@ -1,5 +1,5 @@
 local type = type
-local pairs = pairs
+local next = next
 local math_random = math.random
 local table_remove = table.remove
 local table_Random = table.Random
@@ -8,7 +8,7 @@ local table_Random = table.Random
 function table.isArray(t)
 	local past_value_type
 
-	for key, value in pairs(t) do
+	for key, value in next, t do
 		if type(key) ~= 'number' then return false end
 		local value_type = type(value)
 
