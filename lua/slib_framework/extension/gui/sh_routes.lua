@@ -1,20 +1,25 @@
 local sgui = slib.Components.GUI
+local AccessComponent = slib.Components.Access
+
 sgui.routes_storage = sgui.routes_storage or {}
 
 if CLIENT then
-	function sgui.RouteRegister(adr, func)
+	function sgui.RouteRegister(adr, func, access)
 		if not isstring(adr) or not isfunction(func) then return end
-		sgui.routes_storage[adr] = func
+		sgui.routes_storage[adr] = function(...)
+			if access and not AccessComponent.IsValid(LocalPlayer(), access) then return end
+			func(...)
+		end
 	end
 end
 
 function sgui.route(adr, ...)
 	if SERVER then
 		local args = { ... }
-		local first_arg = args[1]
-		if not first_arg or not isentity(first_arg) or not first_arg:IsPlayer() then return end
+		local ply = args[1]
+		if not ply or not isentity(ply) or not ply:IsPlayer() then return end
 		table.remove(args, 1)
-		snet.Invoke('sgui_route_open_by_server', first_arg, unpack(args))
+		snet.Invoke('sgui_route_open_by_server', ply, unpack(args))
 		return
 	end
 
