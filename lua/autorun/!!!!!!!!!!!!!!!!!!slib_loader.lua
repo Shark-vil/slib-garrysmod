@@ -1,5 +1,5 @@
 slib = slib or {}
-slib.Version = '1.4.9'
+slib.Version = '1.4.10'
 
 local root_directory = 'slib_framework'
 
@@ -88,7 +88,8 @@ script:using('extension/gui/cl_default_listeners.lua')
 script:using('extension/gui/sh_routes.lua')
 script:using('extension/dfcl/cl_library.lua')
 script:using('extension/dfcl/cl_dframe_context.lua')
--- script:using('extension/sh_script_optimization.lua')
+
+scvar.Register('slib_debug', 0, FCVAR_ARCHIVE, 'Enables debugging mode of the "SLIB" library', 0, 1)
 
 -- To connect scripts that depend on the library
 slib.usingDirectory('slib_autoloader')
