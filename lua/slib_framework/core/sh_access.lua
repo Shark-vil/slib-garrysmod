@@ -1,6 +1,8 @@
 local Component = {}
 
 function Component:Make(data)
+	data = data or {}
+
 	local private = {}
 	private.custom = data.custom
 	private.usergroups = data.usergroups
@@ -107,21 +109,23 @@ function Component:Make(data)
 			if result then return true end
 		end
 
-		if isbool(private.isAdmin) and private.IsValidAdmin(ply) then
-			return true
-		end
+		if private.isAdmin and private.IsValidAdmin(ply) then return true end
 
-		if isbool(private.isSuperAdmin) and private.IsValidSuperAdmin(ply) then
-			return true
-		end
+		if private.isSuperAdmin and private.IsValidSuperAdmin(ply) then return true end
 
 		return false
 	end
+
+	return public
 end
 
 function Component.IsValid(ply, access)
-	if not access or not access.IsAccessComponent or not access.IsValid then return true end
-	return access.IsValid(ply)
+	if not access or not istable(access) then return true end
+	if not access.IsAccessComponent or not access.IsValid then
+		return Component:Make(access).IsValid(ply)
+	else
+		return access.IsValid(ply)
+	end
 end
 
 slib.Components.Access = Component
