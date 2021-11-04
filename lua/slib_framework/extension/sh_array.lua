@@ -1,5 +1,5 @@
 local type = type
-local pairs = pairs
+local next = next
 local math_random = math.random
 local table_remove = table.remove
 local table_Random = table.Random
@@ -8,7 +8,7 @@ local table_Random = table.Random
 function table.isArray(t)
 	local past_value_type
 
-	for key, value in pairs(t) do
+	for key, value in next, t do
 		if type(key) ~= 'number' then return false end
 		local value_type = type(value)
 
@@ -132,4 +132,19 @@ function table.RemoveAllValueBySeq(t, v)
 	end
 
 	return t
+end
+
+function table.EqualsBySeq(t1, t2)
+	if type(t1) ~= 'table' or type(t2) ~= 'table' then return false end
+
+	for i = 1, #t1 do
+		local v = t1[i]
+		if type(v) == 'table' then
+			if not table.EqualsBySeq(v, t2[i]) then return false end
+		elseif v ~= t2[i] then
+			return false
+		end
+	end
+
+	return true
 end

@@ -1,32 +1,56 @@
 local Component = slib.Components.GlobalCommand
 local AccessComponent = slib.Components.Access
-local client_commands = {}
-local server_commands = {}
+slib.Storage.ConsoleCommands = slib.Storage.ConsoleCommands or {}
 
 if CLIENT then
-	snet.RegisterCallback('slib_global_commands_client_rpc', function(_, ply, cmd, args)
-		local func = client_commands[cmd]
-		if not func or not isfunction(func) then return end
-		func(ply, cmd, args)
+	snet.RegisterCallback('slib_global_commands_client_rpc', function(ply, cmd, args)
+		local command = slib.Storage.ConsoleCommands[cmd]
+		if not command or not command.IsAccess(ply) then return end
+
+		command.RunClientCommand(ply, cmd, args)
 	end)
 else
-	snet.Callback('slib_global_commands_server_rpc', function(net_player, ply, cmd, args)
-		local func = server_commands[cmd]
-		if not func or not isfunction(func) then return end
-		func(ply, cmd, args)
-		snet.InvokeIgnore('slib_global_commands_client_rpc', net_player, ply, cmd, args)
+	snet.Callback('slib_global_commands_server_rpc', function(ply, cmd, args)
+		local command = slib.Storage.ConsoleCommands[cmd]
+		if not command or not command.IsAccess(ply) then return end
+
+		command.RunServerCommand(ply, cmd, args)
+
+		if command.broadcast then
+			snet.InvokeAll('slib_global_commands_client_rpc', cmd, args)
+		else
+			snet.Invoke('slib_global_commands_client_rpc', ply, cmd, args)
+		end
 	end).Protect()
 end
 
 function Component.Create(_name, _autoComplete, _helpText, _flags, _access)
 	local private = {}
 	private.name = _name
+	private.broadcast = false
 	private.client_callback = nil
 	private.server_callback = nil
 	private.autoComplete = _autoComplete or nil
 	private.helpText = _helpText or nil
 	private.flags = _flags or 0
 	private.access = _access and AccessComponent:Make( _access ) or _access
+
+	function private.RunServerCommand(ply, cmd, args)
+		if not private.server_callback or not isfunction(private.server_callback) then return end
+		private.server_callback(ply, cmd, args)
+	end
+
+	function private.RunClientCommand(ply, cmd, args)
+		if not private.client_callback or not isfunction(private.client_callback) then return end
+		private.client_callback(ply, cmd, args)
+	end
+
+	function private.IsAccess(ply)
+		if IsValid(ply) and private.access then
+			return AccessComponent.IsValid(ply, private.access)
+		end
+		return true
+	end
 
 	local public = {}
 
@@ -37,6 +61,11 @@ function Component.Create(_name, _autoComplete, _helpText, _flags, _access)
 
 	function public.OnClient(func)
 		private.client_callback = func
+		return public
+	end
+
+	function public.Broadcast()
+		private.broadcast = true
 		return public
 	end
 
@@ -68,34 +97,25 @@ function Component.Create(_name, _autoComplete, _helpText, _flags, _access)
 
 	function public.Register()
 		local name = private.name
-		local access = private.access
-		local server_callback = private.server_callback
-		local client_callback = private.client_callback
 		local autoComplete = private.autoComplete
 		local helpText = private.helpText
 		local flags = private.flags
 
-		concommand.Add(name, function(ply, cmd, args)
-			if not AccessComponent.IsValid(ply, access) then return end
+		slib.Storage.ConsoleCommands[name] = private
 
-			local isReplicate
+		concommand.Add(name, function(ply, cmd, args)
+			if not private.IsAccess(ply) then return end
 
 			if SERVER then
-				if server_callback and isfunction(server_callback) then
-					isReplicate = server_callback(ply, cmd, args)
-				end
+				private.RunServerCommand(ply, cmd, args)
 
-				if isReplicate == true then
-					snet.InvokeAll('slib_global_commands_client_rpc', ply, cmd, args)
+				if private.broadcast then
+					snet.InvokeAll('slib_global_commands_client_rpc', cmd, args)
+				elseif IsValid(ply) then
+					snet.Invoke('slib_global_commands_client_rpc', ply, cmd, args)
 				end
 			else
-				if client_callback and isfunction(client_callback) then
-					isReplicate = client_callback(ply, cmd, args)
-				end
-
-				if isReplicate == true then
-					snet.InvokeServer('slib_global_commands_server_rpc', ply, cmd, args)
-				end
+				snet.InvokeServer('slib_global_commands_server_rpc', cmd, args)
 			end
 		end, autoComplete, helpText, flags)
 

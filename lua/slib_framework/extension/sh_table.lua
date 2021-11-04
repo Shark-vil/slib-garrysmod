@@ -1,12 +1,13 @@
 local type = type
-local pairs = pairs
+local next = next
 local table_Random = table.Random
 local table_Count = table.Count
 local table_remove = table.remove
+local math_random = math.random
 --
 
 function table.WhereHasValue(t, condition)
-	for k, v in pairs(t) do
+	for k, v in next, t do
 		if condition(k, v) then return true end
 	end
 
@@ -14,7 +15,7 @@ function table.WhereHasValue(t, condition)
 end
 
 function table.Find(t, find_value)
-	for k, v in pairs(t) do
+	for k, v in next, t do
 		if find_value == v then return k, v end
 	end
 
@@ -22,7 +23,7 @@ function table.Find(t, find_value)
 end
 
 function table.WhereFind(t, condition)
-	for k, v in pairs(t) do
+	for k, v in next, t do
 		if condition(k, v) then return k, v end
 	end
 
@@ -52,7 +53,7 @@ end
 function table.equals(t1, t2)
 	if type(t1) ~= 'table' or type(t2) ~= 'table' then return false end
 
-	for k, v in pairs(t1) do
+	for k, v in next, t1 do
 		if type(v) == 'table' then
 			if not table.equals(v, t2[k]) then return false end
 		elseif v ~= t2[k] then
@@ -64,7 +65,7 @@ function table.equals(t1, t2)
 end
 
 function table.GetFirstValueByPairs(t)
-	for k, v in pairs(t) do
+	for k, v in next, t do
 		return v
 	end
 
@@ -72,7 +73,7 @@ function table.GetFirstValueByPairs(t)
 end
 
 function table.GetFirstKeyByPairs(t)
-	for k, v in pairs(t) do
+	for k, v in next, t do
 		return k
 	end
 
@@ -82,7 +83,7 @@ end
 -- function table.RemoveByValue(t, val)
 --    local tbl = {}
 --    local deleted = false
---    for k, v in pairs(t) do
+--    for k, v in next, t do
 --       if deleted or v ~= val then
 --          tbl[ k ] = v
 --       else
@@ -95,7 +96,7 @@ end
 function table.RemoveAllByValue(t, val)
 	local tbl = {}
 
-	for k, v in pairs(t) do
+	for k, v in next, t do
 		if v ~= val then
 			tbl[k] = v
 		end
@@ -112,4 +113,16 @@ end
 function table.RemoveFirstValue(t)
 	if #t == 0 then return end
 	table_remove(t, 1)
+end
+
+function table.RandomOpt(t)
+	local keys = {}
+	local index_count = 0
+	for k, _ in next, t do
+		index_count = index_count + 1
+		keys[index_count] = k
+	end
+
+	local key = keys[math_random(index_count)]
+	return t[key], key
 end

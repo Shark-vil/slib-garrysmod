@@ -5,6 +5,7 @@ local math_random = math.random
 local uuid_template = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
 local string_gsub = string.gsub
 local string_format = string.format
+local string_char = string.char
 --
 
 local uid = 0
@@ -34,4 +35,16 @@ function slib.UUID()
 		local v = (c == 'x') and math_random(0, 0xf) or math_random(8, 0xb)
 		return string_format('%x', v)
 	end)
+end
+
+-- Source:
+-- https://newbedev.com/lua-how-to-generate-a-random-string-in-lua-code-example
+function slib.RandomString(length)
+	length = length or 10
+
+	local res = ''
+	for i = 1, length do
+		res = res .. string_char(math_random(97, 122))
+	end
+	return res
 end

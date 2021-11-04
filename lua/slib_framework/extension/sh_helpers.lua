@@ -1,3 +1,5 @@
+local engine_TickInterval = engine.TickInterval
+
 function slib.language(data, select_language)
 	if not istable(data) then return '' end
 	if select_language and data[select_language] then return data[select_language] end
@@ -7,4 +9,14 @@ function slib.language(data, select_language)
 	end
 	if data['default'] then return data['default'] end
 	return ''
+end
+
+function slib.chance(percent)
+	if percent < 0 then percent = 0 end
+	if percent > 100  then percent = 100 end
+	return percent >= math.random(1, 100)
+end
+
+function slib.GetServerTickrate()
+	return 1 / engine_TickInterval()
 end
