@@ -19,7 +19,7 @@ function sgui.route(adr, ...)
 		local ply = args[1]
 		if not ply or not isentity(ply) or not ply:IsPlayer() then return end
 		table.remove(args, 1)
-		snet.Invoke('sgui_route_open_by_server', ply, unpack(args))
+		snet.Invoke('sgui_route_open_by_server', ply, adr, unpack(args))
 		return
 	end
 
