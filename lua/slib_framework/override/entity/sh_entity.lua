@@ -63,11 +63,9 @@ function meta:slibSetVar(key, value, unreliable)
 		unreliable = unreliable or false
 
 		if new_value == nil then
-			snet.Request('slib_entity_variable_del', self, key).SetLifeTime(1.5).InvokeAll()
+			snet.Request('slib_entity_variable_del', self, key).InvokeAll(unreliable)
 		else
-			snet.Request('slib_entity_variable_set', self, key, value)
-				.SetLifeTime(1.5)
-				.InvokeAll(unreliable)
+			snet.Request('slib_entity_variable_set', self, key, value).InvokeAll(unreliable)
 		end
 	end
 end
