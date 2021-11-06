@@ -81,9 +81,6 @@ net.Receive('slib_cl_bigdata_processing', function(len)
 	if data.current_part >= data.max_parts then
 		local data_string = ''
 
-		print('get parts - ', #data.parts_data)
-		print('get max_parts - ', data.max_parts)
-
 		for _, data_value in ipairs(data.parts_data) do
 			data_string = data_string .. util.Decompress(data_value)
 		end

@@ -18,7 +18,7 @@ net.Receive('slib_cl_bigdata_receive_ok', function()
 	net.WriteString(name)
 	net.WriteInt(index, 32)
 	net.WriteInt(data.current_part, 32)
-	net.WriteUInt(part.length, 24)
+	net.WriteUInt(part.length, 32)
 	net.WriteData(part.data, part.length)
 	net.SendToServer()
 
