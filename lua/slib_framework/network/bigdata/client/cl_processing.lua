@@ -23,18 +23,18 @@ net.Receive('slib_cl_bigdata_receive', function()
 		end
 	end
 
-	local index = net.ReadInt(10)
+	local index = net.ReadInt(32)
 
 	if is_error then
 		net.Start('slib_sv_bigdata_receive_error')
 		net.WriteString(name)
-		net.WriteInt(index, 10)
+		net.WriteInt(index, 32)
 		net.SendToServer()
 
 		return
 	end
 
-	local max_parts = net.ReadInt(10)
+	local max_parts = net.ReadInt(32)
 	local progress_id = net.ReadString()
 	local progress_text = net.ReadString()
 
@@ -48,7 +48,7 @@ net.Receive('slib_cl_bigdata_receive', function()
 
 	net.Start('slib_sv_bigdata_receive_ok')
 	net.WriteString(name)
-	net.WriteInt(index, 10)
+	net.WriteInt(index, 32)
 	net.SendToServer()
 end)
 
@@ -57,14 +57,14 @@ end)
 net.Receive('slib_cl_bigdata_processing', function(len)
 	local ply = LocalPlayer()
 	local name = net.ReadString()
-	local index = net.ReadInt(10)
+	local index = net.ReadInt(32)
 	local callback = snet.GetCallback(name)
 
 	if not callback then return end
 	if processing_data[index] == nil then return end
 
-	local current_part = net.ReadInt(10)
-	local compressed_length = net.ReadUInt(24)
+	local current_part = net.ReadInt(32)
+	local compressed_length = net.ReadUInt(32)
 	local compressed_data = net.ReadData(compressed_length)
 	local data = processing_data[index]
 	data.current_part = current_part
@@ -91,7 +91,13 @@ net.Receive('slib_cl_bigdata_processing', function(len)
 		end
 
 		processing_data[index] = nil
+
 		local result_data = util.JSONToTable(data_string)
+
+		if not result_data then
+			ErrorNoHalt('[SLIB.ERROR] Failed to convert ' .. name .. ' big data to JSON.')
+			return
+		end
 
 		if result_data.data_type == 'table' then
 			snet.execute(result_data.backward, result_data.id, name, ply, util.JSONToTable(result_data.data))
@@ -101,7 +107,7 @@ net.Receive('slib_cl_bigdata_processing', function(len)
 	else
 		net.Start('slib_sv_bigdata_receive_ok')
 		net.WriteString(name)
-		net.WriteInt(index, 10)
+		net.WriteInt(index, 32)
 		net.SendToServer()
 	end
 end)

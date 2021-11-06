@@ -46,18 +46,18 @@ net.Receive('slib_sv_bigdata_receive', function(len, ply)
 		end
 	end
 
-	local index = net.ReadInt(10)
+	local index = net.ReadInt(32)
 
 	if is_error then
 		net.Start('slib_cl_bigdata_receive_error')
 		net.WriteString(name)
-		net.WriteInt(index, 10)
+		net.WriteInt(index, 32)
 		net.Send(ply)
 
 		return
 	end
 
-	local max_parts = net.ReadInt(10)
+	local max_parts = net.ReadInt(32)
 	processing_data[ply] = processing_data[ply] or {}
 
 	processing_data[ply][index] = {
@@ -68,7 +68,7 @@ net.Receive('slib_sv_bigdata_receive', function(len, ply)
 
 	net.Start('slib_cl_bigdata_receive_ok')
 	net.WriteString(name)
-	net.WriteInt(index, 10)
+	net.WriteInt(index, 32)
 	net.Send(ply)
 end)
 
@@ -77,15 +77,15 @@ end)
 net.Receive('slib_sv_bigdata_processing', function(len, ply)
 	if processing_data[ply] == nil then return end
 	local name = net.ReadString()
-	local index = net.ReadInt(10)
+	local index = net.ReadInt(32)
 	local callback = snet.GetCallback(name)
 
 	if not callback then return end
 	if processing_data[ply] == nil then return end
 	if processing_data[ply][index] == nil then return end
 
-	local current_part = net.ReadInt(10)
-	local compressed_length = net.ReadUInt(24)
+	local current_part = net.ReadInt(32)
+	local compressed_length = net.ReadUInt(32)
 	local compressed_data = net.ReadData(compressed_length)
 	local data = processing_data[ply][index]
 	data.current_part = current_part
@@ -105,6 +105,11 @@ net.Receive('slib_sv_bigdata_processing', function(len, ply)
 		processing_data[ply][index] = nil
 		local result_data = util.JSONToTable(data_string)
 
+		if not result_data then
+			ErrorNoHalt('[SLIB.ERROR] Failed to convert ' .. name .. ' big data to JSON.')
+			return
+		end
+
 		if result_data.data_type == 'table' then
 			snet.execute(result_data.backward, result_data.id, name, ply, util.JSONToTable(result_data.data))
 		elseif result_data.data_type == 'string' then
@@ -113,7 +118,7 @@ net.Receive('slib_sv_bigdata_processing', function(len, ply)
 	else
 		net.Start('slib_cl_bigdata_receive_ok')
 		net.WriteString(name)
-		net.WriteInt(index, 10)
+		net.WriteInt(index, 32)
 		net.Send(ply)
 	end
 end)

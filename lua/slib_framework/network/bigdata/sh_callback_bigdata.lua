@@ -23,14 +23,17 @@ local function getNetParts(text, max_size)
 
 	local net_parts = {}
 
-	for _, string_part in ipairs(parts) do
+	for i = 1, #parts do
+		local string_part = parts[i]
 		local compressed_data = util.Compress(string_part)
 		local compressed_length = string.len(compressed_data)
 
-		table.insert(net_parts, {
+		coroutine.yield()
+
+		net_parts[i] = {
 			data = compressed_data,
 			length = compressed_length
-		})
+		}
 
 		coroutine.yield()
 	end
@@ -122,11 +125,19 @@ snet.InvokeBigData = function(request, ply, data, max_size, progress_text, progr
 		end
 
 		local worked, result = coroutine.resume(thread, request_data, max_size)
-		if result == nil then return end
+		if not worked then
+			ErrorNoHalt('[SLIB.ERROR] Big data packing error.')
+			hook.Remove('Think', hook_name)
+			return
+		end
+
+		if not result then return end
 		hook.Remove('Think', hook_name)
+
 		local net_parts = result
 		local max_parts = #net_parts
-		if net_parts == nil or #net_parts == 0 then return end
+		if not net_parts or #net_parts == 0 then return end
+
 		slib.Storage.Network.bigdata[index].net_parts = net_parts
 		slib.Storage.Network.bigdata[index].max_parts = max_parts
 
@@ -136,16 +147,16 @@ snet.InvokeBigData = function(request, ply, data, max_size, progress_text, progr
 		if SERVER then
 			net.Start('slib_cl_bigdata_receive')
 			net.WriteString(name)
-			net.WriteInt(index, 10)
-			net.WriteInt(max_parts, 10)
+			net.WriteInt(index, 32)
+			net.WriteInt(max_parts, 32)
 			net.WriteString(progress_id)
 			net.WriteString(progress_text)
 			net.Send(ply)
 		else
 			net.Start('slib_sv_bigdata_receive')
 			net.WriteString(name)
-			net.WriteInt(index, 10)
-			net.WriteInt(max_parts, 10)
+			net.WriteInt(index, 32)
+			net.WriteInt(max_parts, 32)
 			net.SendToServer()
 
 			if progress_id ~= '' and progress_text ~= '' then

@@ -9,16 +9,16 @@ local LocalPlayer = LocalPlayer
 -- SERVER (slib_sv_bigdata_receive / slib_sv_bigdata_processing) --> CLIENT
 net.Receive('slib_cl_bigdata_receive_ok', function()
 	local name = net.ReadString()
-	local index = net.ReadInt(10)
+	local index = net.ReadInt(32)
 	local data = slib.Storage.Network.bigdata[index]
 	if data == nil then return end
 	data.current_part = data.current_part + 1
 	local part = data.net_parts[data.current_part]
 	net.Start('slib_sv_bigdata_processing')
 	net.WriteString(name)
-	net.WriteInt(index, 10)
-	net.WriteInt(data.current_part, 10)
-	net.WriteUInt(part.length, 24)
+	net.WriteInt(index, 32)
+	net.WriteInt(data.current_part, 32)
+	net.WriteUInt(part.length, 32)
 	net.WriteData(part.data, part.length)
 	net.SendToServer()
 
@@ -56,7 +56,7 @@ end)
 -- SERVER (slib_sv_bigdata_receive) --> CLIENT
 net.Receive('slib_cl_bigdata_receive_error', function(len)
 	local name = net.ReadString()
-	local index = net.ReadInt(10)
+	local index = net.ReadInt(32)
 	local data = slib.Storage.Network.bigdata[index]
 
 	if data == nil then return end
