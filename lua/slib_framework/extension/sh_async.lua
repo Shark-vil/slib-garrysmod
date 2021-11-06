@@ -7,14 +7,23 @@ async = async or {}
 
 function async.Add(id, func)
 	async.Remove(id)
+
+	local hook_name =  'slib_async_' .. id
 	local co, worked, value
 
-	hook.Add('Think', 'slib_async_' .. id, function()
+	hook.Add('Think', hook_name, function()
 		if not co or not worked then
 			co = coroutine_create(func)
 		end
 
 		worked, value = coroutine_resume(co, coroutine_yield, coroutine_wait)
+
+		if not worked then
+			ErrorNoHalt('[SLIB.ERROR] An asynchronous operation "' 
+				.. id .. '" was stopped due to an unknown error.')
+			async.Remove(id)
+			return
+		end
 
 		if value == 'stop' then
 			async.Remove(id)
