@@ -7,7 +7,7 @@ local hook = hook
 -- CLIENT (slib_cl_bigdata_receive / slib_cl_bigdata_processing) --> SERVER
 net.Receive('slib_sv_bigdata_receive_ok', function(len, ply)
 	local name = net.ReadString()
-	local index = net.ReadInt(10)
+	local index = net.ReadInt(32)
 	local data = slib.Storage.Network.bigdata[index]
 	if data == nil or data.ply ~= ply then return end
 
@@ -15,9 +15,9 @@ net.Receive('slib_sv_bigdata_receive_ok', function(len, ply)
 	local part = data.net_parts[data.current_part]
 	net.Start('slib_cl_bigdata_processing')
 	net.WriteString(name)
-	net.WriteInt(index, 10)
-	net.WriteInt(data.current_part, 10)
-	net.WriteUInt(part.length, 24)
+	net.WriteInt(index, 32)
+	net.WriteInt(data.current_part, 32)
+	net.WriteUInt(part.length, 32)
 	net.WriteData(part.data, part.length)
 	net.Send(ply)
 
@@ -46,7 +46,7 @@ end)
 -- CLIENT (slib_cl_bigdata_receive) --> SERVER
 net.Receive('slib_sv_bigdata_receive_error', function(len, ply)
 	local name = net.ReadString()
-	local index = net.ReadInt(10)
+	local index = net.ReadInt(32)
 	local data = slib.Storage.Network.bigdata[index]
 
 	if data == nil or data.ply ~= ply then return end
