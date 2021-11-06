@@ -19,7 +19,7 @@ function async.Add(id, func)
 		worked, value = coroutine_resume(co, coroutine_yield, coroutine_wait)
 
 		if not worked then
-			ErrorNoHalt('[SLIB.ERROR] An asynchronous operation "' 
+			ErrorNoHalt('[SLIB.ERROR] An asynchronous operation "'
 				.. id .. '" was stopped due to an unknown error.')
 			async.Remove(id)
 			return
