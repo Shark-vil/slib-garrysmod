@@ -28,13 +28,24 @@ snet.Callback('slib_animator_create_clientside_model', function(ply, entity, ani
 	local r_hand = animator:LookupBone('ValveBiped.Bip01_R_Hand')
 	if IsValid(weapon) and r_hand then
 		local b_pos, b_ang = animator:GetBonePosition(r_hand)
-		weapon_model = ClientsideModel(weapon:GetModel(), RENDERGROUP_OPAQUE)
-		if IsValid(weapon_model) then
-			weapon_model:SetPos(b_pos)
-			weapon_model:SetAngles(b_ang)
-			weapon_model:SetOwner(animator)
-			weapon_model:SetParent(animator)
-			weapon_model:SetNoDraw(true)
+		local world_weapon_model = weapon:GetWeaponWorldModel()
+		if world_weapon_model then
+			weapon_model = ClientsideModel(world_weapon_model, RENDERGROUP_OPAQUE)
+			if IsValid(weapon_model) then
+				weapon_model:SetPos(b_pos)
+				weapon_model:SetAngles(b_ang)
+				weapon_model:SetOwner(animator)
+				weapon_model:SetParent(animator)
+				weapon_model:AddEffects(EF_BONEMERGE)
+				weapon_model:SetNoDraw(true)
+
+				for _, bodygroup in ipairs(weapon:GetBodyGroups()) do
+					local id = bodygroup.id
+					weapon_model:SetBodygroup(id, weapon:GetBodygroup(id))
+				end
+
+				weapon_model:SetSkin(weapon:GetSkin())
+			end
 		end
 	end
 
@@ -68,7 +79,12 @@ snet.Callback('slib_animator_play', function(ply, _animator)
 			local material = value.material
 			local weapon = value.weapon
 
+			if not IsValid(model) then continue end
+
 			model:SetNoDraw(false)
+			if IsValid(weapon_model) then
+				weapon_model:SetNoDraw(false)
+			end
 			entity:SetMaterial('invisible')
 			animator:ResetSequence(value.name)
 			animator:SetNoDraw(true)
@@ -79,6 +95,14 @@ snet.Callback('slib_animator_play', function(ply, _animator)
 			value.is_played = true
 
 			timer.Create('animator_' .. slib.UUID(), value.time, 1, function()
+				value = slib.Storage.ActiveAnimations[i]
+				value.is_played = false
+				entity = value.entity
+				model = value.model
+				weapon_model = value.weapon_model
+				material = value.material
+				weapon = value.weapon
+
 				if IsValid(weapon_model) then weapon_model:Remove() end
 				if IsValid(model) then model:Remove() end
 				if IsValid(entity) then entity:SetMaterial(material) end

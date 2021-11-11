@@ -1,12 +1,18 @@
-function slib.Animator.RegisterAnimation(name, sequence, model)
-	slib.Storage.Animations[name] = {
+function slib.Animator.RegisterAnimation(name, sequence, model, act_id)
+	local i, _ = table.WhereFindBySeq(slib.Storage.Animations, function(_, v) return v.name == name end)
+	if i ~= -1 then table.remove(slib.Storage.Animations, i) end
+
+	table.insert(slib.Storage.Animations, {
+		name = name,
 		model = Model(model),
-		sequence = sequence
-	}
+		sequence = sequence,
+		act_id = act_id,
+	})
 end
 
 function slib.Animator.GetAnimation(name)
-	return slib.Storage.Animations[name]
+	local _, v = table.WhereFindBySeq(slib.Storage.Animations, function(_, v) return v.name == name end)
+	return v
 end
 
 function slib.Animator.ClearInactive(ent)
@@ -20,6 +26,8 @@ function slib.Animator.ClearInactive(ent)
 		local weapon = value.weapon
 
 		if (ent and ent == entity) or not slib.IsAlive(entity) then
+			value.is_played = false
+
 			if CLIENT and IsValid(weapon_model) then weapon_model:Remove() end
 			if CLIENT and IsValid(model) then model:Remove() end
 			if CLIENT and IsValid(entity) then entity:SetMaterial(material) end
