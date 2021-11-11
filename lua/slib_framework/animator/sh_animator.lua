@@ -26,6 +26,10 @@ function slib.Animator.ClearInactive(ent)
 			if CLIENT and IsValid(weapon) then weapon:SetNoDraw(false) end
 			if SERVER and IsValid(animator) then animator:Remove() end
 
+			if SERVER and IsValid(entity) and entity:slibGetVar('slib_associated_with_animator') then
+				entity:slibSetVar('slib_associated_with_animator', false)
+			end
+
 			table.remove(slib.Storage.ActiveAnimations, i)
 		end
 	end

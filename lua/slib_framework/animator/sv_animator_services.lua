@@ -23,12 +23,16 @@ hook.Add('Move', 'SlibOverrideAnimatorPlayerMovement', function(ply, mv)
 end)
 
 hook.Add('EntityRemoved', 'SlibAnimatorRemoveIfEntityDestroyed', function(ent)
+	if not IsValid(ent) or not ent:slibGetVar('slib_associated_with_animator') then return end
+	ent:slibSetVar('slib_associated_with_animator', false)
 	snet.InvokeAll('slib_animator_destroyed', ent)
 	slib.Animator.ClearInactive()
 end)
 
 hook.Add('OnNPCKilled', 'SlibAnimatorRemoveIfEntityDestroyed', function(npc)
-	snet.InvokeAll('slib_animator_destroyed', ent)
+	if not IsValid(npc) or not npc:slibGetVar('slib_associated_with_animator') then return end
+	npc:slibSetVar('slib_associated_with_animator', false)
+	snet.InvokeAll('slib_animator_destroyed', npc)
 	slib.Animator.ClearInactive()
 end)
 

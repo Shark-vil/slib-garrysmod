@@ -1,7 +1,4 @@
 hook.Add('PostPlayerDraw', 'SlibAnimatorUpgradeBones', function()
-	local ply = LocalPlayer()
-	if ply.slib_animator_lock_post_player_draw then return end
-
 	for i = 1, #slib.Storage.ActiveAnimations do
 		local value = slib.Storage.ActiveAnimations[i]
 		if not value.is_played then continue end
@@ -21,6 +18,23 @@ hook.Add('PostPlayerDraw', 'SlibAnimatorUpgradeBones', function()
 			weapon_model:DrawModel()
 			weapon_model:SetRenderOrigin()
 			weapon_model:SetRenderAngles()
+		end
+	end
+end)
+
+hook.Add('Think', 'SlibAnimatorFlexController', function()
+	for i = 1, #slib.Storage.ActiveAnimations do
+		local value = slib.Storage.ActiveAnimations[i]
+		if not value.is_played then continue end
+
+		local model = value.model
+		local entity = value.entity
+		local animator = value.animator
+
+		if not IsValid(model) or not IsValid(animator) or not IsValid(entity) then continue end
+
+		for k = 0, model:GetFlexNum() - 1 do
+			model:SetFlexWeight(i, entity:GetFlexWeight(k))
 		end
 	end
 end)
