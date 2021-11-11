@@ -1,5 +1,5 @@
 slib = slib or {}
-slib.Version = '1.4.13'
+slib.Version = '1.5'
 
 local root_directory = 'slib_framework'
 
@@ -53,7 +53,6 @@ script:using('animator/cl_animator.lua')
 script:using('animator/sv_animator_services.lua')
 script:using('animator/sh_animator_services.lua')
 script:using('animator/cl_animator_services.lua')
-script:using('core/sh_animations.lua')
 
 script:using('override/entity/sh_entity.lua')
 script:using('override/entity/sv_entity.lua')
