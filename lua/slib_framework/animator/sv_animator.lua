@@ -19,7 +19,10 @@ function slib.Animator.Play(name, entity, compare_bones)
 	if compare_bones then
 		for i = 0, animator:GetBoneCount() - 1 do
 			local bonename = animator:GetBoneName(i)
-			if not entity:LookupBone(bonename) then return false end
+			if not entity:LookupBone(bonename) then
+				animator:Remove()
+				return false
+			end
 		end
 	end
 
