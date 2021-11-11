@@ -222,19 +222,30 @@ end
 
 timer.Create('SNet_AutoResetRequestAfterTimeDealy', 1, 0, function()
 	xpcall(function()
+		local counting_requests = {}
+
 		for i = #request_storage, 1, -1 do
 			local data = request_storage[i]
-			if not data or (not data.eternal and (not data.request or data.timeout < RealTime()) ) then
-				if data and data.func_complete then
-					data.func_complete(data.receiver, data)
+			if not data or (data.request and not data.request.eternal and data.timeout < RealTime()) then
+				if data and data.request and data.request.func_complete then
+					data.request.func_complete(data.receiver, data)
 				end
 				table.remove(request_storage, i)
+			end
+
+			if data and data.request then
+				local request_name = data.request.name
+				counting_requests[request_name] = counting_requests[request_name] or 0
+				counting_requests[request_name] = counting_requests[request_name] + 1
 			end
 		end
 
 		local count = #request_storage
 		if count >= 500 then
 			print('SNET WARNING: Something is making too many requests (' .. count .. ')')
+			for k, v in pairs(counting_requests) do
+				print('COUNTING REQUEST: ' .. k .. ' - ' .. v)
+			end
 		end
 	end, function(error_message)
 		print('Attention! Something is creating errors in the request queue!')
