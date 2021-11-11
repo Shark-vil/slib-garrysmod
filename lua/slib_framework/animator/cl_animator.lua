@@ -14,6 +14,7 @@ snet.Callback('slib_animator_create_clientside_model', function(ply, entity, ani
 	animation_model:SetParent(animator)
 	animation_model:AddEffects(EF_BONEMERGE)
 	animation_model:SetNoDraw(true)
+	-- animation_model:DrawShadow(true)
 
 	for _, bodygroup in ipairs(entity:GetBodyGroups()) do
 		local id = bodygroup.id
