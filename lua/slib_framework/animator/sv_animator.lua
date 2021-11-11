@@ -42,11 +42,6 @@ function slib.Animator.Play(name, entity, compare_bones)
 
 	snet.Request('slib_animator_create_clientside_model', entity, animator, name, animation_time)
 		.Complete(function()
-			if entity:IsNPC() then
-				entity:SetNPCState(NPC_STATE_SCRIPT)
-				entity:SetSchedule(SCHED_SLEEP)
-			end
-
 			entity:slibCreateTimer('animator_' .. animator:EntIndex(), animation_time + .5, 1, function()
 				if entity:IsPlayer() then entity:Freeze(false) end
 				animator:Remove()
