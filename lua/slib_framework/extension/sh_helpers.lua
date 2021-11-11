@@ -1,4 +1,5 @@
 local engine_TickInterval = engine.TickInterval
+local math_sqrt = math.sqrt
 
 function slib.language(data, select_language)
 	if not istable(data) then return '' end
@@ -19,4 +20,11 @@ end
 
 function slib.GetServerTickrate()
 	return 1 / engine_TickInterval()
+end
+
+function slib.magnitude(vec)
+	local magnitude = vec
+	magnitude = magnitude.x ^ 2 + magnitude.y ^ 2 + magnitude.z ^ 2
+	magnitude = math_sqrt(magnitude)
+	return magnitude
 end
