@@ -1,6 +1,8 @@
 function slib.Animator.Play(name, entity, compare_bones)
 	compare_bones = compare_bones or false
 
+	if not name then return false end
+
 	local animation_data = slib.Animator.GetAnimation(name)
 	if not animation_data or not IsValid(entity) then return false end
 
@@ -15,6 +17,8 @@ function slib.Animator.Play(name, entity, compare_bones)
 	end
 	animator:slibSetVar('sequence', animation_data.sequence)
 	animator:Spawn()
+
+	entity:slibSetVar('slib_associated_with_animator', true)
 
 	if compare_bones then
 		for i = 0, animator:GetBoneCount() - 1 do
@@ -43,17 +47,28 @@ function slib.Animator.Play(name, entity, compare_bones)
 	snet.Request('slib_animator_create_clientside_model', entity, animator, name, animation_time)
 		.Complete(function()
 			entity:slibCreateTimer('animator_' .. animator:EntIndex(), animation_time + .5, 1, function()
-				if entity:IsPlayer() then entity:Freeze(false) end
-				animator:Remove()
-				table.remove(slib.Storage.ActiveAnimations, index)
+				if entity:slibGetVar('slib_associated_with_animator') then
+					entity:slibSetVar('slib_associated_with_animator', false)
+				end
+
+				if IsValid(animator) then animator:Remove() end
+
+				local index, _ = table.WhereFindBySeq(slib.Storage.ActiveAnimations, function(_, v)
+					return v.entity == entity
+				end)
+
+				if index ~= -1 then
+					table.remove(slib.Storage.ActiveAnimations, index)
+				end
 			end)
 
 			local _, active_animation = table.WhereFindBySeq(slib.Storage.ActiveAnimations, function(_, v)
 				return v.animator == animator
 			end)
 
-			active_animation.is_played = true
-
-			snet.InvokeAll('slib_animator_play', animator)
+			if active_animation and IsValid(animator) then
+				active_animation.is_played = true
+				snet.InvokeAll('slib_animator_play', animator)
+			end
 		end).InvokeAll()
 end
