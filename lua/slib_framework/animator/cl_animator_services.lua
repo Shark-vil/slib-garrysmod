@@ -35,6 +35,7 @@ hook.Add('Think', 'SlibAnimatorFlexController', function()
 
 		for k = 0, model:GetFlexNum() - 1 do
 			model:SetFlexWeight(i, entity:GetFlexWeight(k))
+			model:SetFlexScale(i, entity:GetFlexScale(k))
 		end
 	end
 end)
