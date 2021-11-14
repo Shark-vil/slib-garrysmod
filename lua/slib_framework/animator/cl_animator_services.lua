@@ -1,3 +1,33 @@
+local lock_PostPlayerDraw = false
+
+local function lock() lock_PostPlayerDraw = true end
+local function unlock() lock_PostPlayerDraw = false end
+
+hook.Add('PreDrawOpaqueRenderables', 'Slib.Animator.DrawController', function()
+	if lock_PostPlayerDraw then return end
+
+	for i = 1, #slib.Storage.ActiveAnimations do
+		local value = slib.Storage.ActiveAnimations[i]
+		if not value.is_played or value.nodraw then continue end
+
+		local entity = value.entity
+		if not IsValid(entity) or not entity:IsPlayer() then continue end
+
+		local model = value.model
+		local weapon_model = value.weapon_model
+
+		if IsValid(model) then
+			lock() model:DrawModel() unlock()
+		end
+
+		if IsValid(weapon_model) then
+			lock() weapon_model:DrawModel() unlock()
+		end
+	end
+end)
+
+hook.Remove('PostPlayerDraw', 'Slib.Animator.DrawController')
+
 hook.Add('Think', 'SlibAnimatorFlexController', function()
 	for i = 1, #slib.Storage.ActiveAnimations do
 		local value = slib.Storage.ActiveAnimations[i]

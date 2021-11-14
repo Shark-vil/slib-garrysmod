@@ -1,12 +1,11 @@
-function slib.Animator.RegisterAnimation(name, sequence, model, act_id)
+function slib.Animator.RegisterAnimation(name, sequence, model)
 	local i, _ = table.WhereFindBySeq(slib.Storage.Animations, function(_, v) return v.name == name end)
 	if i ~= -1 then table.remove(slib.Storage.Animations, i) end
 
 	table.insert(slib.Storage.Animations, {
 		name = name,
 		model = Model(model),
-		sequence = sequence,
-		act_id = act_id,
+		sequence = sequence
 	})
 end
 
@@ -25,17 +24,16 @@ function slib.Animator.ClearInactive(ent)
 		local material = value.material
 		local weapon = value.weapon
 
-		if (ent and ent == entity) or not slib.IsAlive(entity) then
+		if (ent and ent == entity) or not slib.IsAlive(entity) or not IsValid(animator) then
 			value.is_played = false
 
-			if CLIENT and IsValid(weapon_model) then weapon_model:Remove() end
-			if CLIENT and IsValid(model) then model:Remove() end
-			if CLIENT and IsValid(entity) then entity:SetMaterial(material) end
-			if CLIENT and IsValid(weapon) then weapon:SetNoDraw(false) end
-			if SERVER and IsValid(animator) then animator:Remove() end
-
-			if SERVER and IsValid(entity) and entity:slibGetVar('slib_associated_with_animator') then
-				entity:slibSetVar('slib_associated_with_animator', false)
+			if CLIENT then
+				if IsValid(weapon_model) then weapon_model:Remove() end
+				if IsValid(model) then model:Remove() end
+				if IsValid(entity) then entity:SetMaterial(material) end
+				if IsValid(weapon) then weapon:SetNoDraw(false) end
+			else
+				if IsValid(animator) then animator:Remove() end
 			end
 
 			table.remove(slib.Storage.ActiveAnimations, i)

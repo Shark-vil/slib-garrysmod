@@ -14,7 +14,7 @@ snet.Callback('slib_animator_create_clientside_model', function(ply, entity, ani
 	animation_model:SetParent(animator)
 	animation_model:AddEffects(EF_BONEMERGE)
 	animation_model:SetNoDraw(true)
-	-- animation_model:DrawShadow(true)
+	animation_model:DrawShadow(true)
 
 	for _, bodygroup in ipairs(entity:GetBodyGroups()) do
 		local id = bodygroup.id
@@ -26,6 +26,8 @@ snet.Callback('slib_animator_create_clientside_model', function(ply, entity, ani
 	local weapon_model
 	local weapon = entity:GetActiveWeapon()
 	local r_hand = animator:LookupBone('ValveBiped.Bip01_R_Hand')
+	local l_hand = animator:LookupBone('ValveBiped.Bip01_L_Hand')
+
 	if IsValid(weapon) and r_hand then
 		local b_pos, b_ang = animator:GetBonePosition(r_hand)
 		local world_weapon_model = weapon:GetWeaponWorldModel()
@@ -38,6 +40,7 @@ snet.Callback('slib_animator_create_clientside_model', function(ply, entity, ani
 				weapon_model:SetParent(animator)
 				weapon_model:AddEffects(EF_BONEMERGE)
 				weapon_model:SetNoDraw(true)
+				weapon_model:DrawShadow(true)
 
 				for _, bodygroup in ipairs(weapon:GetBodyGroups()) do
 					local id = bodygroup.id
@@ -49,11 +52,12 @@ snet.Callback('slib_animator_create_clientside_model', function(ply, entity, ani
 		end
 	end
 
-	table.insert(slib.Storage.ActiveAnimations, {
+	local anim_info = {
 		animator = animator,
 		model = animation_model,
 		weapon_model = weapon_model,
 		r_hand_bone_index = r_hand,
+		l_hand_bone_index = l_hand,
 		weapon = weapon,
 		entity = entity,
 		material = entity:GetMaterial(),
@@ -63,7 +67,10 @@ snet.Callback('slib_animator_create_clientside_model', function(ply, entity, ani
 		is_player = entity:IsPlayer(),
 		is_npc = entity:IsNPC(),
 		is_next_bot = entity:IsNextBot(),
-	})
+		nodraw = false,
+	}
+
+	table.insert(slib.Storage.ActiveAnimations, anim_info)
 end).Validator(SNET_ENTITY_VALIDATOR)
 
 snet.Callback('slib_animator_play', function(ply, _animator)
@@ -81,9 +88,11 @@ snet.Callback('slib_animator_play', function(ply, _animator)
 
 			if not IsValid(model) then continue end
 
-			model:SetNoDraw(false)
-			if IsValid(weapon_model) then
-				weapon_model:SetNoDraw(false)
+			if not entity:IsPlayer() then
+				model:SetNoDraw(false)
+				if IsValid(weapon_model) then
+					weapon_model:SetNoDraw(false)
+				end
 			end
 			entity:SetMaterial('invisible')
 			animator:ResetSequence(value.name)
@@ -93,15 +102,18 @@ snet.Callback('slib_animator_play', function(ply, _animator)
 			end
 
 			value.is_played = true
+			hook.Run('Slib_PlayAnimation', value)
 
 			timer.Create('animator_' .. slib.UUID(), value.time, 1, function()
-				value = slib.Storage.ActiveAnimations[i]
-				value.is_played = false
-				entity = value.entity
-				model = value.model
-				weapon_model = value.weapon_model
-				material = value.material
-				weapon = value.weapon
+				if slib.Storage.ActiveAnimations[i] then
+					value = slib.Storage.ActiveAnimations[i]
+					value.is_played = false
+					entity = value.entity
+					model = value.model
+					weapon_model = value.weapon_model
+					material = value.material
+					weapon = value.weapon
+				end
 
 				if IsValid(weapon_model) then weapon_model:Remove() end
 				if IsValid(model) then model:Remove() end
