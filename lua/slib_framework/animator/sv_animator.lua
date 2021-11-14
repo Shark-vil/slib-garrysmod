@@ -10,6 +10,14 @@ function slib.Animator.Stop(entity)
 	end
 end
 
+function slib.Animator.IsPlay(name, entity)
+	local _, active_animation = table.WhereFindBySeq(slib.Storage.ActiveAnimations, function(_, v)
+		return IsValid(v.animator) and v.entity == entity
+	end)
+
+	return active_animation.name == name
+end
+
 function slib.Animator.Play(name, entity, compare_bones, not_prent)
 	compare_bones = compare_bones or false
 
