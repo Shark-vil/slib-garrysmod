@@ -15,7 +15,7 @@ function slib.Animator.IsPlay(name, entity)
 		return IsValid(v.animator) and v.entity == entity
 	end)
 
-	return active_animation.name == name
+	return active_animation and active_animation.name == name
 end
 
 function slib.Animator.Play(name, entity, compare_bones, not_prent)
@@ -71,7 +71,7 @@ function slib.Animator.Play(name, entity, compare_bones, not_prent)
 	}
 
 	table.insert(slib.Storage.ActiveAnimations, anim_info)
-
+	hook.Run('Slib_PrePlayAnimation', anim_info)
 	timer.Start('SlibraryAnimatorGarbage')
 
 	snet.Request('slib_animator_create_clientside_model', entity, animator, name, animation_time)
@@ -96,7 +96,6 @@ function slib.Animator.Play(name, entity, compare_bones, not_prent)
 				active_animation.is_played = true
 				snet.InvokeAll('slib_animator_play', animator)
 				hook.Run('Slib_PlayAnimation', anim_info)
-				-- animator:ResetSequence(anim_info.name)
 			end
 		end).InvokeAll()
 

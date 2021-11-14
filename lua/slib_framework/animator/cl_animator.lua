@@ -71,6 +71,7 @@ snet.Callback('slib_animator_create_clientside_model', function(ply, entity, ani
 	}
 
 	table.insert(slib.Storage.ActiveAnimations, anim_info)
+	hook.Run('Slib_PrePlayAnimation', anim_info)
 end).Validator(SNET_ENTITY_VALIDATOR)
 
 snet.Callback('slib_animator_play', function(ply, _animator)
