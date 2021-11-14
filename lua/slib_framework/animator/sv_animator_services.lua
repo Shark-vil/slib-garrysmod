@@ -14,25 +14,37 @@ hook.Add('Move', 'SlibOverrideAnimatorPlayerMovement', function(ply, mv)
 		local value = slib.Storage.ActiveAnimations[i]
 		local entity = value.entity
 
-		if not value.is_player and entity ~= ply then continue end
+		if not value.is_player or not IsValid(entity) or entity ~= ply then continue end
 
 		for k = 1, #movement_keys do
-			if mv:KeyDown(movement_keys[k]) then return true end
+			if mv:KeyDown(movement_keys[k]) then
+				ply:Freeze(true)
+				timer.Simple(.5, function() ply:Freeze(false) end)
+				return true
+			end
 		end
 	end
 end)
 
-hook.Add('EntityRemoved', 'SlibAnimatorRemoveIfEntityDestroyed', function(ent)
-	if not IsValid(ent) or not ent:slibGetVar('slib_associated_with_animator') then return end
-	ent:slibSetVar('slib_associated_with_animator', false)
+local function GetAnimationInfo(ent)
+	for i = #slib.Storage.ActiveAnimations, 1, -1 do
+		local value = slib.Storage.ActiveAnimations[i]
+		if value.entity == ent then return value end
+	end
+end
+
+local function DestroyAnimatorAction(ent)
+	if not GetAnimationInfo(ent) then return end
 	snet.InvokeAll('slib_animator_destroyed', ent)
 	slib.Animator.ClearInactive()
-end)
-
-hook.Add('OnNPCKilled', 'SlibAnimatorRemoveIfEntityDestroyed', function(npc)
-	if not IsValid(npc) or not npc:slibGetVar('slib_associated_with_animator') then return end
-	npc:slibSetVar('slib_associated_with_animator', false)
-	snet.InvokeAll('slib_animator_destroyed', npc)
+end
+hook.Add('EntityRemoved', 'SlibAnimatorRemoveIfEntityDestroyed', DestroyAnimatorAction)
+hook.Add('OnNPCKilled', 'SlibAnimatorRemoveIfEntityDestroyed', DestroyAnimatorAction)
+hook.Add('EntityTakeDamage', 'SlibAnimatorRemoveIfEntityTakeDamage', function(ent)
+	local anim = GetAnimationInfo(ent)
+	if not anim or not IsValid(anim.animator) then return end
+	anim.animator:Remove()
+	snet.InvokeAll('slib_animator_destroyed', ent)
 	slib.Animator.ClearInactive()
 end)
 
@@ -45,10 +57,8 @@ hook.Add('Think', 'SlibAnimatorRotationFixed', function()
 		if not IsValid(entity) or not IsValid(animator) then continue end
 
 		if value.is_player then
-			if IsValid(animator) and IsValid(entity) then
-				local magnitude = slib.magnitude(entity:GetVelocity())
-				animator:SetAngles(Angle(0, entity:GetAngles().y, 0))
-				animator:SetPos(entity:GetPos() + entity:GetForward() * magnitude / 10)
+			if not value.not_prent then
+				animator:SetAngles(Angle(-entity:EyeAngles().x, entity:GetAngles().y, 0))
 			end
 		elseif value.is_npc then
 			entity:SetNPCState(NPC_STATE_SCRIPT)
