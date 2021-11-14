@@ -21,7 +21,7 @@ else
 		else
 			snet.Invoke('slib_global_commands_client_rpc', ply, cmd, args)
 		end
-	end).Protect()
+	end)
 end
 
 function Component.Create(_name, _autoComplete, _helpText, _flags, _access)
