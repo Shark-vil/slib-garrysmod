@@ -76,7 +76,7 @@ function slib.Animator.Play(name, entity, compare_bones, not_prent)
 
 	snet.Request('slib_animator_create_clientside_model', entity, animator, name, animation_time)
 		.Complete(function()
-			animator:slibCreateTimer('animator_' .. animator:EntIndex(), animation_time + .5, 1, function()
+			animator:slibCreateTimer('animator_' .. animator:EntIndex(), animation_time + .1, 1, function()
 				local index, _ = table.WhereFindBySeq(slib.Storage.ActiveAnimations, function(_, v)
 					return v.entity == entity
 				end)
