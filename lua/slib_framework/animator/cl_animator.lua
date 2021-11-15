@@ -2,7 +2,7 @@ snet.RegisterCallback('slib_animator_destroyed', function(_, ent)
 	slib.Animator.ClearInactive(ent)
 end).Validator(SNET_ENTITY_VALIDATOR)
 
-snet.Callback('slib_animator_create_clientside_model', function(ply, entity, animator, name, time)
+snet.Callback('slib_animator_create_clientside_model', function(ply, entity, animator, name, sequence, time)
 	if not IsValid(entity) or not IsValid(animator) then return end
 
 	local position = animator:GetPos()
@@ -62,6 +62,7 @@ snet.Callback('slib_animator_create_clientside_model', function(ply, entity, ani
 		entity = entity,
 		material = entity:GetMaterial(),
 		name = name,
+		sequence = sequence,
 		time = time,
 		is_played = false,
 		is_player = entity:IsPlayer(),
@@ -96,7 +97,7 @@ snet.Callback('slib_animator_play', function(ply, _animator)
 				end
 			end
 			entity:SetMaterial('invisible')
-			animator:ResetSequence(value.name)
+			animator:ResetSequence(value.sequence)
 			animator:SetNoDraw(true)
 			if IsValid(weapon) then
 				weapon:SetNoDraw(true)

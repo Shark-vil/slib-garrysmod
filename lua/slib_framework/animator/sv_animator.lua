@@ -18,13 +18,13 @@ function slib.Animator.IsPlay(name, entity)
 	return active_animation and active_animation.name == name
 end
 
-function slib.Animator.Play(name, entity, compare_bones, not_prent)
-	compare_bones = compare_bones or false
-
-	if not name then return end
+function slib.Animator.Play(name, sequence, entity, settings)
+	if not name or not IsValid(entity) then return end
 
 	local animation_data = slib.Animator.GetAnimation(name)
-	if not animation_data or not IsValid(entity) then return end
+	if not animation_data then return end
+
+	settings = settings or {}
 
 	slib.Animator.Stop(entity)
 
@@ -36,16 +36,24 @@ function slib.Animator.Play(name, entity, compare_bones, not_prent)
 	animator:SetMaterial('invisible')
 	animator:SetPos(entity:GetPos())
 	animator:SetAngles(entity:GetAngles())
-	if not not_prent then
+	if not settings.not_parent then
 		animator:SetParent(entity)
 	end
-	animator:SetCollisionGroup(COLLISION_GROUP_WORLD)
-	animator:slibSetVar('sequence', animation_data.sequence)
+	if not settings.collision then
+		animator:SetCollisionGroup(COLLISION_GROUP_WORLD)
+	end
+	animator:slibSetVar('sequence', sequence)
 	animator:Spawn()
+
+	local sequence_id, sequence_duration = animator:LookupSequence(sequence)
+	if sequence_id == -1 then
+		animator:Remove()
+		return
+	end
 
 	entity.slib_animator = animator
 
-	if compare_bones then
+	if settings.compare_bones then
 		for i = 0, animator:GetBoneCount() - 1 do
 			local bonename = animator:GetBoneName(i)
 			if not entity:LookupBone(bonename) then
@@ -55,28 +63,28 @@ function slib.Animator.Play(name, entity, compare_bones, not_prent)
 		end
 	end
 
-	local animation_time = animator:SequenceDuration(name)
-	animator:slibSetVar('animation_time', animation_time)
+	animator:slibSetVar('animation_time', sequence_duration)
 
 	local anim_info = {
 		animator = animator,
 		entity = entity,
 		name = name,
-		time = animation_time,
-		not_prent = not_prent,
+		sequence = sequence,
+		time = sequence_duration,
 		is_played = false,
 		is_player = entity:IsPlayer(),
 		is_npc = entity:IsNPC(),
 		is_next_bot = entity:IsNextBot(),
+		settings = settings,
 	}
 
 	table.insert(slib.Storage.ActiveAnimations, anim_info)
 	hook.Run('Slib_PrePlayAnimation', anim_info)
 	timer.Start('SlibraryAnimatorGarbage')
 
-	snet.Request('slib_animator_create_clientside_model', entity, animator, name, animation_time)
+	snet.Request('slib_animator_create_clientside_model', entity, animator, name, sequence_id, sequence_duration)
 		.Complete(function()
-			animator:slibCreateTimer('animator_' .. animator:EntIndex(), animation_time + .1, 1, function()
+			animator:slibCreateTimer('animator_' .. animator:EntIndex(), sequence_duration + .1, 1, function()
 				local index, _ = table.WhereFindBySeq(slib.Storage.ActiveAnimations, function(_, v)
 					return v.entity == entity
 				end)
