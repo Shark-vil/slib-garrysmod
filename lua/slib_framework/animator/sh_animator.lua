@@ -1,11 +1,10 @@
-function slib.Animator.RegisterAnimation(name, sequence, model)
+function slib.Animator.RegisterAnimation(name, model)
 	local i, _ = table.WhereFindBySeq(slib.Storage.Animations, function(_, v) return v.name == name end)
 	if i ~= -1 then table.remove(slib.Storage.Animations, i) end
 
 	table.insert(slib.Storage.Animations, {
 		name = name,
 		model = Model(model),
-		sequence = sequence
 	})
 end
 
