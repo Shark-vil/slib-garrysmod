@@ -228,7 +228,12 @@ timer.Create('SNet_AutoResetRequestAfterTimeDealy', 1, 0, function()
 			local data = request_storage[i]
 			if not data or (data.request and not data.request.eternal and data.timeout < RealTime()) then
 				if data and data.request and data.request.func_complete then
-					data.request.func_complete(data.receiver, data)
+					xpcall(function()
+						data.request.func_complete(data.receiver, data)
+					end, function(error_message)
+						slib.Error('Failed to complete the request due to an error')
+						slib.Error('NETWORK ERROR:\n' .. error_message)
+					end)
 				end
 				table.remove(request_storage, i)
 			end
