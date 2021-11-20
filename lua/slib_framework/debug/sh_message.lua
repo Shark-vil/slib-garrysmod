@@ -1,4 +1,4 @@
-function slib.ConsoleMessage(prefix, ...)
+function slib.ConsoleMessage(prefix, message_type, ...)
 	local tags = string.Explode('.', prefix)
 	local stylized_prefix = ''
 	local message_args = { ... }
@@ -16,20 +16,36 @@ function slib.ConsoleMessage(prefix, ...)
 		message = message .. tostring(message_args[i])
 	end
 
-	MsgN(stylized_prefix .. ' ' .. message)
+	if message_type == 'error' then
+		ErrorNoHalt(stylized_prefix .. ' ' .. message .. '\n')
+	else
+		MsgN(stylized_prefix .. ' ' .. message)
+	end
 end
 
 function slib.Log(...)
-	if not slib.CvarCheckValue('slib_debug', 1) then return end
-	slib.ConsoleMessage('SLIB.LOG', ...)
+	slib.ConsoleMessage('SLIB.LOG', nil, ...)
 end
 
 function slib.Warning(...)
-	if not slib.CvarCheckValue('slib_debug', 1) then return end
-	slib.ConsoleMessage('SLIB.WARNING', ...)
+	slib.ConsoleMessage('SLIB.WARNING', nil, ...)
 end
 
 function slib.Error(...)
+	slib.ConsoleMessage('SLIB.ERROR', 'error', ...)
+end
+
+function slib.DebugLog(...)
 	if not slib.CvarCheckValue('slib_debug', 1) then return end
-	slib.ConsoleMessage('SLIB.ERROR', ...)
+	slib.ConsoleMessage('SLIB.LOG', nil, ...)
+end
+
+function slib.DebugWarning(...)
+	if not slib.CvarCheckValue('slib_debug', 1) then return end
+	slib.ConsoleMessage('SLIB.WARNING', nil, ...)
+end
+
+function slib.DebugError(...)
+	if not slib.CvarCheckValue('slib_debug', 1) then return end
+	slib.ConsoleMessage('SLIB.ERROR', 'error', ...)
 end
