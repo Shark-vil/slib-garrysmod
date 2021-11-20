@@ -1,6 +1,6 @@
 local type = type
 local tostring = tostring
-local util_TableToJSON = util.TableToJSON
+local snet_Serialize = snet.Serialize
 local util_Base64Encode = util.Base64Encode
 local util_CRC = util.CRC
 --
@@ -17,15 +17,15 @@ local function get_string_data(data)
 	end
 
 	if datatype == 'table' then
-		return util_TableToJSON(data)
+		return snet_Serialize(data, false)
 	end
 
 	if datatype == 'Vector' or datatype == 'Angle' then
-		return tostring(data.x) .. tostring(data.y) .. tostring(data.z)
+		return data.x .. data.y .. data.z
 	end
 
 	if datatype == 'Color' then
-		return tostring(data.r) .. tostring(data.g) .. tostring(data.b) .. tostring(data.a)
+		return data.r .. data.g .. data.b .. data.a
 	end
 
 	return tostring(data)
