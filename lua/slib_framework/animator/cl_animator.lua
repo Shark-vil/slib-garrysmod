@@ -2,7 +2,10 @@ snet.RegisterCallback('slib_animator_destroyed', function(_, ent)
 	slib.Animator.ClearInactive(ent)
 end).Validator(SNET_ENTITY_VALIDATOR)
 
-snet.Callback('slib_animator_create_clientside_model', function(ply, entity, animator, name, sequence, time)
+snet.Callback('slib_animator_create_clientside_model', function(ply, anim)
+	local entity = anim.entity
+	local animator = anim.animator
+
 	if not IsValid(entity) or not IsValid(animator) then return end
 
 	local position = animator:GetPos()
@@ -52,28 +55,16 @@ snet.Callback('slib_animator_create_clientside_model', function(ply, entity, ani
 		end
 	end
 
-	local anim_info = {
-		animator = animator,
-		model = animation_model,
-		weapon_model = weapon_model,
-		r_hand_bone_index = r_hand,
-		l_hand_bone_index = l_hand,
-		weapon = weapon,
-		entity = entity,
-		material = entity:GetMaterial(),
-		name = name,
-		sequence = sequence,
-		time = time,
-		is_played = false,
-		is_player = entity:IsPlayer(),
-		is_npc = entity:IsNPC(),
-		is_next_bot = entity:IsNextBot(),
-		nodraw = false,
-	}
+	anim.model = animation_model
+	anim.weapon_model = weapon_model
+	anim.r_hand_bone_index = r_hand
+	anim.l_hand_bone_index = l_hand
+	anim.weapon = weapon
+	anim.material = entity:GetMaterial()
 
-	table.insert(slib.Storage.ActiveAnimations, anim_info)
-	hook.Run('Slib_PrePlayAnimation', anim_info)
-end).Validator(SNET_ENTITY_VALIDATOR)
+	table.insert(slib.Storage.ActiveAnimations, anim)
+	hook.Run('Slib_PrePlayAnimation', anim)
+end).Validator(SNET_DEEP_ENTITY_VALIDATOR)
 
 snet.Callback('slib_animator_play', function(ply, _animator)
 	if not IsValid(_animator) then return end
@@ -97,7 +88,7 @@ snet.Callback('slib_animator_play', function(ply, _animator)
 				end
 			end
 			entity:SetMaterial('invisible')
-			animator:ResetSequence(value.sequence)
+			animator:ResetSequence(value.sequence_id)
 			animator:SetNoDraw(true)
 			if IsValid(weapon) then
 				weapon:SetNoDraw(true)
@@ -106,7 +97,17 @@ snet.Callback('slib_animator_play', function(ply, _animator)
 			value.is_played = true
 			hook.Run('Slib_PlayAnimation', value)
 
-			timer.Create('animator_' .. slib.UUID(), value.time, 1, function()
+			local timer_name = 'animator_' .. slib.UUID()
+
+			timer.Create(timer_name, value.time, 0, function()
+				if value.settings.loop and IsValid(entity) and IsValid(animator) then
+					value.stop_time = CurTime() + value.time
+					animator:ResetSequence(value.sequence_id)
+					return
+				else
+					timer.Remove(timer_name)
+				end
+
 				if slib.Storage.ActiveAnimations[i] then
 					value = slib.Storage.ActiveAnimations[i]
 					value.is_played = false

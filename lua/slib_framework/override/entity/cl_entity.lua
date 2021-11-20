@@ -3,12 +3,12 @@ local IsValid = IsValid
 --
 
 snet.Callback('slib_entity_variable_set', function (_, ent, key, value)
-	slib.Log('Set ', ent, ' variable [ ', key, ' : ', value, ' ]')
+	slib.DebugLog('Set ', ent, ' variable [ ', key, ' : ', value, ' ]')
 	ent:slibSetVar(key, value)
 end).Validator(SNET_ENTITY_VALIDATOR)
 
 snet.Callback('slib_entity_variable_del', function (_, ent, key)
-	slib.Log('Delete ', ent, ' variable [ ', key, ' ]')
+	slib.DebugLog('Delete ', ent, ' variable [ ', key, ' ]')
 	ent:slibSetVar(key, nil)
 end).Validator(SNET_ENTITY_VALIDATOR)
 

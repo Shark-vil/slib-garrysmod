@@ -22,7 +22,7 @@ function snet.Request(name, ...)
 	obj.id = slib.GenerateUid(name)
 	obj.name = name
 	obj.data = { ... }
-	obj.compressed_data = util_Compress(snet_Serialize(obj.data, false, true))
+	obj.compressed_data = util_Compress(snet_Serialize(obj.data, true))
 	if not obj.compressed_data then
 		obj.compressed_data = util_Compress(snet_Serialize())
 		MsgN('[SNET ERROR] An error occurred while compressing data - ' .. name)
@@ -228,7 +228,12 @@ timer.Create('SNet_AutoResetRequestAfterTimeDealy', 1, 0, function()
 			local data = request_storage[i]
 			if not data or (data.request and not data.request.eternal and data.timeout < RealTime()) then
 				if data and data.request and data.request.func_complete then
-					data.request.func_complete(data.receiver, data)
+					xpcall(function()
+						data.request.func_complete(data.receiver, data)
+					end, function(error_message)
+						slib.Error('Failed to complete the request due to an error')
+						slib.Error('NETWORK ERROR:\n' .. error_message)
+					end)
 				end
 				table.remove(request_storage, i)
 			end
@@ -242,14 +247,14 @@ timer.Create('SNet_AutoResetRequestAfterTimeDealy', 1, 0, function()
 
 		local count = #request_storage
 		if count >= 500 then
-			print('SNET WARNING: Something is making too many requests (' .. count .. ')')
+			slib.Warning('Something is making too many requests (' .. count .. ')')
 			for k, v in pairs(counting_requests) do
-				print('COUNTING REQUEST: ' .. k .. ' - ' .. v)
+				slib.Warning('COUNTING REQUEST: ' .. k .. ' - ' .. v)
 			end
 		end
 	end, function(error_message)
-		print('Attention! Something is creating errors in the request queue!')
-		print('Contact the developer to identify issues.')
-		print('SLIB NETWORK ERROR: ' .. error_message)
+		slib.Error('Attention! Something is creating errors in the request queue!'
+			.. ' Contact the developer to identify issues.')
+		slib.Error('NETWORK ERROR: ' .. error_message)
 	end)
 end)

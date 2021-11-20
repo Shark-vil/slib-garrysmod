@@ -8,7 +8,7 @@ hook.Add('PreDrawOpaqueRenderables', 'Slib.Animator.DrawController', function()
 
 	for i = 1, #slib.Storage.ActiveAnimations do
 		local value = slib.Storage.ActiveAnimations[i]
-		if not value.is_played or value.nodraw then continue end
+		if not value.is_played or value.settings.no_draw then continue end
 
 		local entity = value.entity
 		if not IsValid(entity) or not entity:IsPlayer() then continue end

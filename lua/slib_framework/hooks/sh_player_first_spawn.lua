@@ -3,7 +3,7 @@ if SERVER then
 		for i = #slib.Storage.LoadedPlayers, 1, -1 do
 			local ply = slib.Storage.LoadedPlayers[i]
 			if not IsValid(ply) or ply == disconnected_player then
-				slib.Log('The player ', ply, ' has disconnected from the server')
+				slib.DebugLog('The player ', ply, ' has disconnected from the server')
 				table.remove(slib.Storage.LoadedPlayers, i)
 			end
 		end
@@ -54,9 +54,9 @@ if SERVER then
 	end)
 else
 	snet.Callback('slib_first_player_spawn', function(_, ply)
-		slib.Log('Player ', ply, ' first spawn on the server')
+		slib.DebugLog('Player ', ply, ' first spawn on the server')
 		if ply == LocalPlayer() then
-			slib.Log('You spawned on the server for the first time')
+			slib.DebugLog('You spawned on the server for the first time')
 		end
 
 		ply.snet_ready = true
@@ -72,7 +72,7 @@ else
 			ply.snet_ready = true
 			table.insert(slib.Storage.LoadedPlayers, ply)
 
-			slib.Log('Player sync -', ply)
+			slib.DebugLog('Player sync -', ply)
 		end
 	end).Validator(SNET_ENTITY_VALIDATOR)
 
@@ -80,7 +80,7 @@ else
 		for i = #slib.Storage.LoadedPlayers, 1, -1 do
 			local ply = slib.Storage.LoadedPlayers[i]
 			if not IsValid(ply) or ply == disconnected_player then
-				slib.Log('The player ', ply, ' has disconnected from the server')
+				slib.DebugLog('The player ', ply, ' has disconnected from the server')
 				table.remove(slib.Storage.LoadedPlayers, i)
 			end
 		end

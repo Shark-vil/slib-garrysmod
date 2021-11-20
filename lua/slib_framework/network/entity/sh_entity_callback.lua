@@ -7,6 +7,7 @@ local ipairs = ipairs
 local AddOriginToPVS = AddOriginToPVS
 local RealTime = RealTime
 local isentity = isentity
+local istable = istable
 local unpack = unpack
 local table_insert = table.insert
 local table_remove = table.remove
@@ -16,23 +17,33 @@ local hook_Run = hook.Run
 if SERVER then
 	local entities_queue = {}
 
-	local function entities_pack(tbl, data)
-		for i = 1, #data do
-			local value = data[i]
-			if isentity(value) and IsValid(value) then
-				table_insert(tbl, value)
-			elseif type(value) == 'table' then
-				entities_pack(tbl, value)
+	local function entities_pack(tbl, data, is_deep_search)
+		if not is_deep_search then
+			for i = 1, #data do
+				local value = data[i]
+				if isentity(value) and IsValid(value) then
+					table_insert(tbl, value)
+				elseif istable(value) then
+					entities_pack(tbl, value, is_deep_search)
+				end
+			end
+		else
+			for _, value in pairs(data) do
+				if isentity(value) and IsValid(value) then
+					table_insert(tbl, value)
+				elseif istable(value) then
+					entities_pack(tbl, value, is_deep_search)
+				end
 			end
 		end
 	end
 
-	snet.Callback('snet_sv_entity_network_start', function(ply, id, backward)
+	snet.Callback('snet_sv_entity_network_start', function(ply, id, backward, is_deep_search)
 		local request = snet.FindRequestById(id, true)
 		if not request then return end
 
 		local entities = {}
-		entities_pack(entities, request.data)
+		entities_pack(entities, request.data, is_deep_search)
 
 		if #entities == 0 then return end
 
@@ -115,12 +126,14 @@ else
 	local uids_block = {}
 
 	snet.Callback('snet_cl_entity_network_callback', function(ply, id, name, vars, backward)
-		for i = 1, #vars do
-			local ent = vars[i]
-			if isentity(ent) and ( not IsValid(ent) or table.HasValueBySeq(uids_block, id) ) then
-				return
-			end
-		end
+		if table.HasValueBySeq(uids_block, id) then return end
+
+		-- for i = 1, #vars do
+		-- 	local ent = vars[i]
+		-- 	if isentity(ent) and not IsValid(ent) then
+		-- 		return
+		-- 	end
+		-- end
 
 		snet.Request('snet_sv_entity_network_success', id).InvokeServer()
 		table_insert(uids_block, id)
@@ -143,5 +156,30 @@ else
 				return false
 			end
 		end
+
+		return true
+	end
+
+	local function deep_validator(args)
+		for _, value in pairs(args) do
+			if (isentity(value) and not IsValid(value))
+				or (istable(value) and not deep_validator(value))
+			then
+					return false
+			end
+		end
+
+		return true
+	end
+
+	SNET_DEEP_ENTITY_VALIDATOR = function(backward, id, name, ply, ...)
+		local args = { ... }
+
+		if not deep_validator(args) then
+			snet.Request('snet_sv_entity_network_start', id, backward, true).InvokeServer()
+			return false
+		end
+
+		return true
 	end
 end

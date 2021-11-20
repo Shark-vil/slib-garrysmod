@@ -18,13 +18,14 @@ function slib.Animator.IsPlay(name, entity)
 	return active_animation and active_animation.name == name
 end
 
-function slib.Animator.Play(name, sequence, entity, settings)
+function slib.Animator.Play(name, sequence, entity, settings, data)
 	if not name or not IsValid(entity) then return end
 
 	local animation_data = slib.Animator.GetAnimation(name)
 	if not animation_data then return end
 
 	settings = settings or {}
+	data = data or {}
 
 	slib.Animator.Stop(entity)
 
@@ -70,30 +71,40 @@ function slib.Animator.Play(name, sequence, entity, settings)
 		entity = entity,
 		name = name,
 		sequence = sequence,
+		sequence_id = sequence_id,
 		time = sequence_duration,
+		stop_time = CurTime() + sequence_duration,
 		is_played = false,
 		is_player = entity:IsPlayer(),
 		is_npc = entity:IsNPC(),
 		is_next_bot = entity:IsNextBot(),
 		settings = settings,
+		data = data,
 	}
 
 	table.insert(slib.Storage.ActiveAnimations, anim_info)
 	hook.Run('Slib_PrePlayAnimation', anim_info)
 	timer.Start('SlibraryAnimatorGarbage')
 
-	snet.Request('slib_animator_create_clientside_model', entity, animator, name, sequence_id, sequence_duration)
+	snet.Request('slib_animator_create_clientside_model', anim_info)
 		.Complete(function()
-			animator:slibCreateTimer('animator_' .. animator:EntIndex(), sequence_duration + .1, 1, function()
-				local index, _ = table.WhereFindBySeq(slib.Storage.ActiveAnimations, function(_, v)
-					return v.entity == entity
-				end)
+			local timer_name = 'animator_' .. animator:EntIndex()
+			local timer_duration = sequence_duration + .1
 
-				if index ~= -1 then
-					table.remove(slib.Storage.ActiveAnimations, index)
+			animator:slibCreateTimer(timer_name, timer_duration, 1, function()
+				if settings.loop then
+					anim_info.stop_time = CurTime() + sequence_duration
+				else
+					local index, _ = table.WhereFindBySeq(slib.Storage.ActiveAnimations, function(_, v)
+						return v.entity == entity
+					end)
+
+					if index ~= -1 then
+						table.remove(slib.Storage.ActiveAnimations, index)
+					end
+
+					animator:Remove()
 				end
-
-				animator:Remove()
 			end)
 
 			local _, active_animation = table.WhereFindBySeq(slib.Storage.ActiveAnimations, function(_, v)

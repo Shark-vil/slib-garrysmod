@@ -13,6 +13,13 @@ function slib.Animator.GetAnimation(name)
 	return v
 end
 
+function slib.Animator.Get(ent)
+	local _, v = table.WhereFindBySeq(slib.Storage.ActiveAnimations, function(_, v)
+		return v.entity == ent
+	end)
+	return v
+end
+
 function slib.Animator.ClearInactive(ent)
 	for i = #slib.Storage.ActiveAnimations, 1, -1 do
 		local value = slib.Storage.ActiveAnimations[i]
