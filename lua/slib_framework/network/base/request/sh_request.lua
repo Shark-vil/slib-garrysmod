@@ -22,7 +22,7 @@ function snet.Request(name, ...)
 	obj.id = slib.GenerateUid(name)
 	obj.name = name
 	obj.data = { ... }
-	obj.compressed_data = util_Compress(snet_Serialize(obj.data, false, true))
+	obj.compressed_data = util_Compress(snet_Serialize(obj.data, true))
 	if not obj.compressed_data then
 		obj.compressed_data = util_Compress(snet_Serialize())
 		MsgN('[SNET ERROR] An error occurred while compressing data - ' .. name)

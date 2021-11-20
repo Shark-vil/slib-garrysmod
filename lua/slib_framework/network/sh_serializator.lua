@@ -25,7 +25,7 @@ local util_JSONToTable = util.JSONToTable
 --
 local ValueSerialize = {
 	[TYPE_TABLE] = function(t, v)
-		local getdatatable = snet.Serialize(v, true)
+		local getdatatable = snet.Serialize(v, false)
 		if getdatatable then return t, getdatatable end
 	end,
 	[TYPE_NUMBER] = function(t, v) return t, v end,
@@ -78,7 +78,7 @@ local function GetValueToCompress(k, v)
 	return nil
 end
 
-function snet.Serialize(data, notcompress, fastparser)
+function snet.Serialize(data, numbered_parsing, return_table)
 	local datatable = {}
 
 	if type(data) == 'table' and not data._snet_disable then
@@ -89,7 +89,7 @@ function snet.Serialize(data, notcompress, fastparser)
 				datatable = getdata
 			end
 		else
-			if fastparser then
+			if numbered_parsing then
 				for k = 1, #data do
 					local result = GetValueToCompress(k, data[k])
 
@@ -109,7 +109,7 @@ function snet.Serialize(data, notcompress, fastparser)
 		end
 	end
 
-	if not notcompress then
+	if not return_table then
 		return util_TableToJSON(datatable)
 	else
 		return datatable
@@ -171,7 +171,19 @@ end
 
 function snet.ValueIsValid(value)
 	local typeid = TypeID(value)
-	if typeid == TYPE_TABLE or typeid == TYPE_NUMBER or typeid == TYPE_STRING or typeid == TYPE_BOOL or typeid == TYPE_ENTITY or typeid == TYPE_VECTOR or typeid == TYPE_ANGLE or typeid == TYPE_MATRIX or typeid == TYPE_COLOR then return true end
+
+	if typeid == TYPE_TABLE
+		or typeid == TYPE_NUMBER
+		or typeid == TYPE_STRING
+		or typeid == TYPE_BOOL
+		or typeid == TYPE_ENTITY
+		or typeid == TYPE_VECTOR
+		or typeid == TYPE_ANGLE
+		or typeid == TYPE_MATRIX
+		or typeid == TYPE_COLOR
+	then
+		return true
+	end
 
 	return false
 end
@@ -190,7 +202,7 @@ function snet.GetNormalizeDataTable(data)
 
 	for k, v in pairs(data) do
 		if not snet.ValueIsValid(k) or not snet.ValueIsValid(v) then
-			goto skip
+			continue
 		end
 
 		if istable(v) then
@@ -198,8 +210,6 @@ function snet.GetNormalizeDataTable(data)
 		else
 			new_data[k] = v
 		end
-
-		::skip::
 	end
 
 	return new_data
