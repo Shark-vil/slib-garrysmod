@@ -4,4 +4,7 @@ end)
 
 hook.Add('SlibPlayerFirstSpawn', 'SlibInitializeGlobalClientLanguage', function(ply)
 	snet.InvokeServer('slib_player_set_language', GetConVar('cl_language'):GetString())
+	cvars.AddChangeCallback('cl_language', function(_, _, new_language)
+		snet.InvokeServer('slib_player_set_language', tostring(new_language))
+	end)
 end)

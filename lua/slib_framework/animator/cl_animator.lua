@@ -26,31 +26,35 @@ snet.Callback('slib_animator_create_clientside_model', function(ply, anim)
 
 	animation_model:SetSkin(entity:GetSkin())
 
+	local weapon
 	local weapon_model
-	local weapon = entity:GetActiveWeapon()
 	local r_hand = animator:LookupBone('ValveBiped.Bip01_R_Hand')
 	local l_hand = animator:LookupBone('ValveBiped.Bip01_L_Hand')
 
-	if IsValid(weapon) and r_hand then
-		local b_pos, b_ang = animator:GetBonePosition(r_hand)
-		local world_weapon_model = weapon:GetWeaponWorldModel()
-		if world_weapon_model then
-			weapon_model = ClientsideModel(world_weapon_model, RENDERGROUP_OPAQUE)
-			if IsValid(weapon_model) then
-				weapon_model:SetPos(b_pos)
-				weapon_model:SetAngles(b_ang)
-				weapon_model:SetOwner(animator)
-				weapon_model:SetParent(animator)
-				weapon_model:AddEffects(EF_BONEMERGE)
-				weapon_model:SetNoDraw(true)
-				weapon_model:DrawShadow(true)
+	if entity:IsNPC() or entity:IsPlayer() then
+		weapon = entity:GetActiveWeapon()
 
-				for _, bodygroup in ipairs(weapon:GetBodyGroups()) do
-					local id = bodygroup.id
-					weapon_model:SetBodygroup(id, weapon:GetBodygroup(id))
+		if IsValid(weapon) and r_hand then
+			local b_pos, b_ang = animator:GetBonePosition(r_hand)
+			local world_weapon_model = weapon:GetWeaponWorldModel()
+			if world_weapon_model then
+				weapon_model = ClientsideModel(world_weapon_model, RENDERGROUP_OPAQUE)
+				if IsValid(weapon_model) then
+					weapon_model:SetPos(b_pos)
+					weapon_model:SetAngles(b_ang)
+					weapon_model:SetOwner(animator)
+					weapon_model:SetParent(animator)
+					weapon_model:AddEffects(EF_BONEMERGE)
+					weapon_model:SetNoDraw(true)
+					weapon_model:DrawShadow(true)
+
+					for _, bodygroup in ipairs(weapon:GetBodyGroups()) do
+						local id = bodygroup.id
+						weapon_model:SetBodygroup(id, weapon:GetBodygroup(id))
+					end
+
+					weapon_model:SetSkin(weapon:GetSkin())
 				end
-
-				weapon_model:SetSkin(weapon:GetSkin())
 			end
 		end
 	end

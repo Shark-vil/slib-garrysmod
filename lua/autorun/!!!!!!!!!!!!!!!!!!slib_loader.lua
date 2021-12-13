@@ -1,5 +1,5 @@
 slib = slib or {}
-slib.Version = '1.5.3'
+slib.Version = '1.5.4'
 
 local root_directory = 'slib_framework'
 
@@ -74,7 +74,6 @@ script:using('hooks/sh_player_first_spawn.lua')
 
 script:using('extension/sh_debug.lua')
 script:using('extension/sh_fakeplayer.lua')
-script:using('extension/sh_function_type.lua')
 script:using('extension/sh_generators.lua')
 script:using('extension/sh_player.lua')
 script:using('extension/sh_array.lua')
@@ -88,6 +87,7 @@ script:using('extension/sh_entity.lua')
 script:using('extension/sh_hash.lua')
 script:using('extension/sh_cvars.lua')
 script:using('extension/sh_helpers.lua')
+script:using('extension/sh_single_thread.lua')
 script:using('extension/gui/cl_helpers.lua')
 script:using('extension/gui/cl_listener.lua')
 script:using('extension/gui/cl_extension.lua')

@@ -46,19 +46,21 @@ hook.Add('Think', 'SlibAnimatorFlexController', function()
 		-- 	model:SetFlexScale(i, entity:GetFlexScale(k))
 		-- end
 
-		local current_weapon = entity:GetActiveWeapon()
-		if IsValid(current_weapon) and IsValid(weapon_model) and current_weapon ~= weapon then
-			if IsValid(weapon) then weapon:SetNoDraw(false) end
-			current_weapon:SetNoDraw(true)
+		if entity:IsNPC() or entity:IsPlayer() then
+			local current_weapon = entity:GetActiveWeapon()
+			if IsValid(current_weapon) and IsValid(weapon_model) and current_weapon ~= weapon then
+				if IsValid(weapon) then weapon:SetNoDraw(false) end
+				current_weapon:SetNoDraw(true)
 
-			weapon_model:SetModel(current_weapon:GetModel())
-			for _, bodygroup in ipairs(current_weapon:GetBodyGroups()) do
-				local id = bodygroup.id
-				weapon_model:SetBodygroup(id, current_weapon:GetBodygroup(id))
+				weapon_model:SetModel(current_weapon:GetModel())
+				for _, bodygroup in ipairs(current_weapon:GetBodyGroups()) do
+					local id = bodygroup.id
+					weapon_model:SetBodygroup(id, current_weapon:GetBodygroup(id))
+				end
+				weapon_model:SetSkin(current_weapon:GetSkin())
+
+				value.weapon = current_weapon
 			end
-			weapon_model:SetSkin(current_weapon:GetSkin())
-
-			value.weapon = current_weapon
 		end
 	end
 end)

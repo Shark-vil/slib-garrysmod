@@ -10,6 +10,8 @@ local IsValid = IsValid
 local isbool = isbool
 local LocalPlayer = LocalPlayer
 local player_GetAll = player.GetAll
+local util_TraceLine = util.TraceLine
+local math_pi = math.pi
 --
 local meta = FindMetaTable('Entity')
 local list_door_classes = {'func_door', 'func_door_rotating', 'prop_door_rotating'}
@@ -240,6 +242,44 @@ end
 function meta:slibPredictedClientRPC(function_name, ...)
 	if not IsFirstTimePredicted() then return end
 	snet.ClientRPC(self, function_name, ...)
+end
+
+function meta:slibIsViewVector(pos, radius)
+	if not self.EyePos or not self.GetAimVector then return true end
+	radius = radius or 90
+
+	local DirectionAngle = math_pi / radius
+	local EntityDifference = pos - self:EyePos()
+	local EntityDifferenceDot = self:GetAimVector():Dot(EntityDifference) / EntityDifference:Length()
+
+	return EntityDifferenceDot > DirectionAngle
+end
+
+function meta:slibIsTranceEntity(target, distance, check_view_vector)
+	distance = distance or 1000
+
+	local target_pos = target:LocalToWorld(target:OBBCenter())
+	local eye_pos
+
+	if self.EyePos then
+		eye_pos = self:EyePos()
+	else
+		local obb_center = self:OBBCenter()
+		obb_center.z = self:OBBMaxs().z
+		eye_pos = self:LocalToWorld(obb_center)
+	end
+
+	if check_view_vector and not self:slibIsViewVector(target_pos) then return false end
+
+	local tr = util_TraceLine({
+		start = eye_pos,
+		endpos = target_pos,
+		filter = function(ent)
+			if ent ~= self and ent == target then return true end
+		end
+	})
+
+	return tr.Hit
 end
 
 function snet.ServerRPC(_ent, function_name, ...)

@@ -12,10 +12,24 @@ function sgui.Construct(PANEL)
 end
 
 local function Initialize()
-	local original_vgui_create = vgui.Create
+	local original_vgui_Create = vgui.Create
+	local original_vgui_CreateFromTable = vgui.CreateFromTable
+	local original_vgui_CreateX = vgui.CreateX
 
-	function vgui.Create(classname, parent, name)
-		local PANEL = original_vgui_create(classname, parent, name)
+	function vgui.Create(...)
+		local PANEL = original_vgui_Create(...)
+		if PANEL then sgui.Construct(PANEL) end
+		return PANEL
+	end
+
+	function vgui.CreateFromTable(...)
+		local PANEL = original_vgui_CreateFromTable(...)
+		if PANEL then sgui.Construct(PANEL) end
+		return PANEL
+	end
+
+	function vgui.CreateX(...)
+		local PANEL = original_vgui_CreateX(...)
 		if PANEL then sgui.Construct(PANEL) end
 		return PANEL
 	end
