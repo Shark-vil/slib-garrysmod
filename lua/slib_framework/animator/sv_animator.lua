@@ -18,11 +18,19 @@ function slib.Animator.IsPlay(name, entity)
 	return active_animation and active_animation.name == name
 end
 
+function slib.Animator.GetCurrent(entity)
+	local index, active_animation = table.WhereFindBySeq(slib.Storage.ActiveAnimations, function(_, v)
+		return IsValid(v.animator) and v.entity == entity
+	end)
+
+	return active_animation, index
+end
+
 function slib.Animator.Play(name, sequence, entity, settings, data)
-	if not name or not IsValid(entity) then return end
+	if not name or not IsValid(entity) then return false end
 
 	local animation_data = slib.Animator.GetAnimation(name)
-	if not animation_data then return end
+	if not animation_data then return false end
 
 	settings = settings or {}
 	data = data or {}
@@ -37,6 +45,7 @@ function slib.Animator.Play(name, sequence, entity, settings, data)
 	animator:SetMaterial('invisible')
 	animator:SetPos(entity:GetPos())
 	animator:SetAngles(entity:GetAngles())
+	animator:SetModelScale(entity:GetModelScale())
 	if not settings.not_parent then
 		animator:SetParent(entity)
 	end
@@ -49,7 +58,7 @@ function slib.Animator.Play(name, sequence, entity, settings, data)
 	local sequence_id, sequence_duration = animator:LookupSequence(sequence)
 	if sequence_id == -1 then
 		animator:Remove()
-		return
+		return false
 	end
 
 	entity.slib_animator = animator
