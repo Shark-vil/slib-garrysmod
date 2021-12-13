@@ -72,5 +72,7 @@ function meta:slibLanguage(data)
 end
 
 function meta:slibGetLanguage()
-	return self:slibGetVar('slib_client_language', 'english')
+	local lang = self:slibGetVar('slib_client_language', 'english')
+	local code = self:slibGetVar('slib_client_language_code', 'en')
+	return lang, code
 end
