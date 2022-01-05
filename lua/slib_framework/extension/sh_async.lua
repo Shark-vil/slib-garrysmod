@@ -15,6 +15,9 @@ function async.Add(id, func)
 		end
 
 		worked, value = coroutine_resume(co, coroutine_yield, coroutine_wait)
+		if not worked then
+			ErrorNoHalt('\n' .. value .. '\n')
+		end
 
 		if value == 'stop' then
 			async.Remove(id)

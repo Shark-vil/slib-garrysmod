@@ -99,8 +99,17 @@ function table.RandomOmitBySeq(t, v)
 	return random_value
 end
 
+function table.pop(t)
+	local index = #t
+	local v = t[index]
+	t[index] = nil
+	return v
+end
+
 function table.push(t, v)
-	t[#t + 1] = v
+	local index = #t + 1
+	t[index] = v
+	return index, v
 end
 
 function table.GetFirstValueBySeq(t)
@@ -139,6 +148,7 @@ function table.EqualsBySeq(t1, t2)
 
 	for i = 1, #t1 do
 		local v = t1[i]
+
 		if type(v) == 'table' then
 			if not table.EqualsBySeq(v, t2[i]) then return false end
 		elseif v ~= t2[i] then
@@ -147,4 +157,13 @@ function table.EqualsBySeq(t1, t2)
 	end
 
 	return true
+end
+
+function table.Combine(dest, source)
+	local new_index = #dest + 1
+
+	for i = 1, #source do
+		dest[new_index] = source[i]
+		new_index = new_index + 1
+	end
 end
