@@ -4,13 +4,19 @@ local cvar_locker = {}
 local cvar_locker_another = {}
 
 snet.RegisterCallback('slib_gcvars_register', function(_, cvars_table)
-	slib.Storage.GlobalCvar = cvars_table
+	-- slib.Storage.GlobalCvar = cvars_table
 
 	for cvar_name, cvar_data in pairs(slib.Storage.GlobalCvar) do
 		if not tobool(GetConVar(cvar_name)) then
 			ErrorNoHalt('The global variable must be created on both the server and client!')
 			continue
 		else
+			if cvars_table and cvars_table[cvar_name] then
+				cvar_data.flag = cvars_table[cvar_name].flag or cvar_data.flag
+				cvar_data.helptext = cvars_table[cvar_name].helptext or cvar_data.helptext
+				cvar_data.value = cvars_table[cvar_name].value or cvar_data.value
+			end
+
 			RunConsoleCommand(cvar_name, cvar_data.value)
 			MsgN('Successful cvar sync for client! CVAR [' .. cvar_name .. '] - ' .. cvar_data.value)
 		end
@@ -29,6 +35,14 @@ snet.RegisterCallback('slib_gcvars_register', function(_, cvars_table)
 
 						timer.Create('slib_gcvars_back_cvar_' .. convar_name, 0.1, 1, function()
 							if not cvar_locker[convar_name] then return end
+
+							local text = slib.language({
+								['default'] = 'Insufficient rights to make changes',
+								['russian'] = 'Недостаточно прав для внесения изменений'
+							})
+
+							notification.AddLegacy(text, NOTIFY_ERROR, 4)
+
 							RunConsoleCommand(convar_name, value_old)
 							timer.Remove('slib_gcvars_reset_back_cvar_' .. convar_name)
 
