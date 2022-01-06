@@ -21,6 +21,9 @@ function gcvars.Register(cvar_name, value, flag, helptext, min, max, access_data
 	function public.Access(cvar_access_data)
 		if not slib.Storage.GlobalCvar[cvar_name] or not cvar_access_data then return end
 		slib.Storage.GlobalCvar[cvar_name].access = AccessComponent:Make(cvar_access_data)
+
+		-- slib.DebugLog('Update global cvar access - ',
+		-- 	cvar_name, ', ', table.ToString(slib.Storage.GlobalCvar[cvar_name]))
 	end
 
 	if slib.Storage.GlobalCvar[cvar_name] == nil then
@@ -37,6 +40,9 @@ function gcvars.Register(cvar_name, value, flag, helptext, min, max, access_data
 			access = access_data and AccessComponent:Make(access_data) or access_data
 		}
 
+		-- slib.DebugLog('Register global cvar - ',
+		-- 	cvar_name, ', ', table.ToString(slib.Storage.GlobalCvar[cvar_name]))
+
 		if SERVER then
 			cvars.AddChangeCallback(cvar_name, function(_, old_value, new_value)
 				if old_value == new_value then return end
@@ -46,7 +52,7 @@ function gcvars.Register(cvar_name, value, flag, helptext, min, max, access_data
 					gcvars.Update(cvar_name)
 					snet.InvokeAll('slib_gcvars_change_from_client', cvar_name, new_value)
 				end)
-			end)
+			end, 'Slib_GCvars_Server_OnChange_' .. cvar_name)
 		end
 	end
 

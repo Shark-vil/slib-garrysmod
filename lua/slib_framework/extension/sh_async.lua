@@ -16,14 +16,20 @@ function async.Add(id, func)
 
 		worked, value = coroutine_resume(co, coroutine_yield, coroutine_wait)
 
-		if value == 'stop' or (not worked and value == 'cannot resume dead coroutine') then
+		-- if value == 'stop' or (not worked and value == 'cannot resume dead coroutine') then
+		-- 	slib.DebugLog('Async process "' .. id .. '" is stopped')
+		-- 	async.Remove(id)
+		-- 	return
+		-- end
+
+		if value == 'stop' then
 			slib.DebugLog('Async process "' .. id .. '" is stopped')
 			async.Remove(id)
 			return
 		end
 
-		if not worked then
-			ErrorNoHalt('[SLIB][ASYNC ERROR]\n' .. value .. '\n')
+		if not worked and value ~= 'cannot resume dead coroutine' then
+			ErrorNoHalt('\n[SLIB][ASYNC ERROR] ' .. id .. ':\n' .. value .. '\r')
 		end
 	end)
 end
