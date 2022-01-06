@@ -61,7 +61,11 @@ function Component:Make(data)
 	public.IsAccessComponent = true
 
 	function public.IsValid(ply)
+		slib.DebugLog('Start valid access checker from ', ply)
+
 		if private.custom then
+			slib.DebugLog('Valid type - custom')
+
 			local result = private.Parse(private.custom, function(func)
 				return private.IsValidCustom(ply, func)
 			end)
@@ -70,6 +74,8 @@ function Component:Make(data)
 		end
 
 		if private.usergroups then
+			slib.DebugLog('Valid type - usergroups')
+
 			local result = private.Parse(private.usergroups, function(usergroup)
 				return private.IsValidUserGroup(ply, usergroup)
 			end)
@@ -78,6 +84,8 @@ function Component:Make(data)
 		end
 
 		if private.teams then
+			slib.DebugLog('Valid type - teams')
+
 			local result = private.Parse(private.teams, function(team_id)
 				return private.IsValidTeam(ply, team_id)
 			end)
@@ -86,6 +94,8 @@ function Component:Make(data)
 		end
 
 		if private.steamids then
+			slib.DebugLog('Valid type - steamids')
+
 			local result = private.Parse(private.steamids, function(steamid)
 				return private.IsValidSteamID(ply, steamid)
 			end)
@@ -94,6 +104,8 @@ function Component:Make(data)
 		end
 
 		if private.steamids64 then
+			slib.DebugLog('Valid type - steamids64')
+
 			local result = private.Parse(private.steamids64, function(steamid64)
 				return private.IsValidSteamID64(ply, steamid64)
 			end)
@@ -102,6 +114,8 @@ function Component:Make(data)
 		end
 
 		if private.nicknames then
+			slib.DebugLog('Valid type - nicknames')
+
 			local result = private.Parse(private.nicknames, function(nickname)
 				return private.IsValidNickName(ply, nickname)
 			end)
@@ -109,9 +123,19 @@ function Component:Make(data)
 			if result then return true end
 		end
 
-		if private.isAdmin and private.IsValidAdmin(ply) then return true end
+		if private.isAdmin then
+			slib.DebugLog('Valid type - isAdmin')
 
-		if private.isSuperAdmin and private.IsValidSuperAdmin(ply) then return true end
+			if private.IsValidAdmin(ply) then return true end
+		end
+
+		if private.isSuperAdmin then
+			slib.DebugLog('Valid type - isSuperAdmin')
+
+			if private.IsValidSuperAdmin(ply) then return true end
+		end
+
+		slib.DebugLog('Stop valid access checker from ', ply)
 
 		return false
 	end
@@ -121,9 +145,14 @@ end
 
 function Component.IsValid(ply, access)
 	if not access or not istable(access) then return true end
+
+	slib.DebugLog('IsValid component: ', ply, ', ', table.ToString(access))
+
 	if not access.IsAccessComponent or not access.IsValid then
+		slib.DebugLog('IsValid component dynamic created')
 		return Component:Make(access).IsValid(ply)
 	else
+		slib.DebugLog('IsValid component exists')
 		return access.IsValid(ply)
 	end
 end
