@@ -1,5 +1,5 @@
 slib = slib or {}
-slib.Version = '1.5.8'
+slib.Version = '1.6'
 
 local root_directory = 'slib_framework'
 
@@ -14,6 +14,9 @@ script:using('core/base/sh_global.lua')
 script:using('core/sh_components.lua')
 script:using('core/sh_storage.lua')
 script:using('core/sh_access.lua')
+
+script:using('core/class/sh_sql_table.lua')
+script:using('core/class/sh_sql.lua')
 
 script:using('debug/sh_profiler.lua')
 script:using('debug/sh_message.lua')
@@ -79,6 +82,7 @@ script:using('extension/sh_player.lua')
 script:using('extension/sh_array.lua')
 script:using('extension/sh_sound_duration.lua')
 script:using('extension/sh_file.lua')
+script:using('extension/sh_filestream.lua')
 script:using('extension/sh_time.lua')
 script:using('extension/sh_hook.lua')
 script:using('extension/sh_table.lua')
