@@ -166,4 +166,6 @@ function table.Combine(dest, source)
 		dest[new_index] = source[i]
 		new_index = new_index + 1
 	end
+
+	return dest
 end
