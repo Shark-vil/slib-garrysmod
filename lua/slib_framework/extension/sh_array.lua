@@ -76,7 +76,8 @@ function table.RandomBySeq(t)
 	if count == 0 then return nil end
 	if count == 1 then return t[1] end
 
-	return t[math_random(count)]
+	local index = math_random(count)
+	return t[index], index
 end
 
 function table.RandomOmitBySeq(t, v)
