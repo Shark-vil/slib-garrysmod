@@ -245,12 +245,20 @@ function meta:slibPredictedClientRPC(function_name, ...)
 end
 
 function meta:slibIsViewVector(pos, radius)
-	if not self.EyePos or not self.GetAimVector then return true end
+	local view_entity
+
+	if self.GetViewEntity then
+		view_entity = self:GetViewEntity()
+	else
+		view_entity = self
+	end
+
+	if not view_entity.EyePos or not view_entity.GetAimVector then return true end
 	radius = radius or 90
 
 	local DirectionAngle = math_pi / radius
-	local EntityDifference = pos - self:EyePos()
-	local EntityDifferenceDot = self:GetAimVector():Dot(EntityDifference) / EntityDifference:Length()
+	local EntityDifference = pos - view_entity:EyePos()
+	local EntityDifferenceDot = view_entity:GetAimVector():Dot(EntityDifference) / EntityDifference:Length()
 
 	return EntityDifferenceDot > DirectionAngle
 end

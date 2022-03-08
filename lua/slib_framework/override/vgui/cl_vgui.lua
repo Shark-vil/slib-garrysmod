@@ -11,29 +11,20 @@ function sgui.Construct(PANEL)
 	PANEL.sgui_init = true
 end
 
-local function Initialize()
-	local original_vgui_Create = vgui.Create
-	local original_vgui_CreateFromTable = vgui.CreateFromTable
-	local original_vgui_CreateX = vgui.CreateX
-
-	function vgui.Create(...)
-		local PANEL = original_vgui_Create(...)
-		if PANEL then sgui.Construct(PANEL) end
-		return PANEL
-	end
-
-	function vgui.CreateFromTable(...)
-		local PANEL = original_vgui_CreateFromTable(...)
-		if PANEL then sgui.Construct(PANEL) end
-		return PANEL
-	end
-
-	function vgui.CreateX(...)
-		local PANEL = original_vgui_CreateX(...)
-		if PANEL then sgui.Construct(PANEL) end
-		return PANEL
-	end
-
-	hook.Remove('PreGamemodeLoaded', 'SguiInitializeVguiExtension')
+function sgui.Create(...)
+	local PANEL = vgui.Create(...)
+	if PANEL then sgui.Construct(PANEL) end
+	return PANEL
 end
-hook.Add('PreGamemodeLoaded', 'SguiInitializeVguiExtension', Initialize)
+
+function sgui.CreateFromTable(...)
+	local PANEL = vgui.CreateFromTable(...)
+	if PANEL then sgui.Construct(PANEL) end
+	return PANEL
+end
+
+function sgui.CreateX(...)
+	local PANEL = vgui.CreateX(...)
+	if PANEL then sgui.Construct(PANEL) end
+	return PANEL
+end
