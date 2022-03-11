@@ -134,3 +134,12 @@ function slib.SafeHookRun(hook_type, ...)
 	table_remove(result, 1)
 	return unpack(result)
 end
+
+function slib.MoveTowards(current_vector, target_vector, max_distance_delta)
+	local direction_vector = target_vector - current_vector
+	local magnitude = slib.magnitude(direction_vector)
+	if magnitude <= max_distance_delta or magnitude == 0 then
+		return target_vector
+	end
+	return current_vector + direction_vector / magnitude * max_distance_delta
+end
