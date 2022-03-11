@@ -30,7 +30,14 @@ function slib.Animator.Play(name, sequence, entity, settings, data)
 	if not name or not IsValid(entity) then return false end
 
 	local animation_data = slib.Animator.GetAnimation(name)
-	if not animation_data then return false end
+	if util.IsValidModel(name) then
+		animation_data = {
+			name = name,
+			model = name,
+		}
+	elseif not animation_data then
+		return false
+	end
 
 	settings = settings or {}
 	data = data or {}
@@ -46,7 +53,13 @@ function slib.Animator.Play(name, sequence, entity, settings, data)
 	animator:SetPos(entity:GetPos())
 	animator:SetAngles(entity:GetAngles())
 	animator:SetModelScale(entity:GetModelScale())
-	if not settings.not_parent then
+	if settings.move_towards then
+		animator:slibCreateTimer('lerp_movement', .1, 0, function()
+			if not IsValid(entity) then return end
+			animator:slibMoveTowardsPosition(entity:GetPos(), 1000 * slib.deltaTime)
+			animator:slibMoveTowardsAngles(entity:GetAngles(), 1000 * slib.deltaTime)
+		end)
+	elseif not settings.not_parent then
 		animator:SetParent(entity)
 	end
 	if not settings.collision then
@@ -73,6 +86,7 @@ function slib.Animator.Play(name, sequence, entity, settings, data)
 		end
 	end
 
+	sequence_duration = isnumber(settings.time) and settings.time or sequence_duration
 	animator:slibSetVar('animation_time', sequence_duration)
 
 	local anim_info = {
