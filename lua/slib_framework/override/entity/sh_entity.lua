@@ -244,6 +244,16 @@ function meta:slibPredictedClientRPC(function_name, ...)
 	snet.ClientRPC(self, function_name, ...)
 end
 
+function meta:slibMoveTowardsPosition(target_vector, max_distance_delta)
+	local new_vector = slib.MoveTowards(self:GetPos(), target_vector, max_distance_delta)
+	self:SetPos(new_vector)
+end
+
+function meta:slibMoveTowardsAngles(target_angle, max_distance_delta)
+	local new_angle = slib.MoveTowards(self:GetAngles(), target_angle, max_distance_delta)
+	self:SetAngles(new_angle)
+end
+
 function meta:slibIsViewVector(pos, radius)
 	local view_entity
 
