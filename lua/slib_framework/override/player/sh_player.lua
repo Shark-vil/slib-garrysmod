@@ -3,20 +3,20 @@
 --
 local meta = FindMetaTable('Player')
 
-function meta:slibNotify(text, notify_type, length, sound)
+function meta:slibNotify(text, notify_type, length, sound_name)
 	text = text or ''
 	notify_type = notify_type or NOTIFY_GENERIC
 	length = length or 3
 
 	if SERVER then
-		snet.Invoke('slib_player_notify', self, text, notify_type, length, sound)
+		snet.Invoke('slib_player_notify', self, text, notify_type, length, sound_name)
 		return
 	end
 
 	notification.AddLegacy(text, notify_type, length)
 
-	if sound then
-		surface.PlaySound(sound)
+	if sound_name then
+		surface.PlaySound(sound_name)
 	end
 end
 
@@ -28,7 +28,7 @@ function meta:slibGetActiveTool(tool_name, ignore_gmod_tool_active)
 	ignore_gmod_tool_active = ignore_gmod_tool_active or false
 
 	if not ignore_gmod_tool_active then
-		local wep = LocalPlayer():GetActiveWeapon()
+		local wep = self:GetActiveWeapon()
 		if not IsValid(wep) or wep:GetClass() ~= 'gmod_tool' then return nil end
 	end
 

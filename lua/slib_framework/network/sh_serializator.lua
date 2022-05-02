@@ -25,7 +25,7 @@ local util_JSONToTable = util.JSONToTable
 --
 local ValueSerialize = {
 	[TYPE_TABLE] = function(t, v)
-		local getdatatable = snet.Serialize(v, false)
+		local getdatatable = slib.Serialize(v, false)
 		if getdatatable then return t, getdatatable end
 	end,
 	[TYPE_NUMBER] = function(t, v) return t, v end,
@@ -78,7 +78,7 @@ local function GetValueToCompress(k, v)
 	return nil
 end
 
-function snet.Serialize(data, numbered_parsing, return_table)
+function slib.Serialize(data, numbered_parsing, return_table)
 	local datatable = {}
 
 	if type(data) == 'table' and not data._snet_disable then
@@ -115,10 +115,12 @@ function snet.Serialize(data, numbered_parsing, return_table)
 		return datatable
 	end
 end
+-- Compatibility with older versions
+snet.Serialize = slib.Serialize
 
 local ValueDeserialize = {
 	[TYPE_TABLE] = function(v)
-		local getdatatable = snet.Deserialize(v)
+		local getdatatable = slib.Deserialize(v)
 		if getdatatable then return getdatatable end
 	end,
 	[TYPE_NUMBER] = function(v) return v end,
@@ -131,7 +133,7 @@ local ValueDeserialize = {
 	[TYPE_COLOR] = function(v) return Color(v[1], v[2], v[3], v[4]) end,
 }
 
-function snet.Deserialize(json_datatable)
+function slib.Deserialize(json_datatable)
 	local datatable = {}
 	local t_type = type(json_datatable)
 	local getdatatable
@@ -168,6 +170,8 @@ function snet.Deserialize(json_datatable)
 
 	return datatable
 end
+-- Compatibility with older versions
+snet.Deserialize = slib.Deserialize
 
 function snet.ValueIsValid(value)
 	local typeid = TypeID(value)
@@ -214,3 +218,4 @@ function snet.GetNormalizeDataTable(data)
 
 	return new_data
 end
+slib.GetNormalizeDataTable = snet.GetNormalizeDataTable

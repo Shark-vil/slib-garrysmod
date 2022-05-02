@@ -37,7 +37,7 @@ snet.RegisterCallback('slib_gcvars_register', function(_, cvars_table)
 			end
 
 			RunConsoleCommand(cvar_name, cvar_data.value)
-			MsgN('Successful cvar sync for client! CVAR [' .. cvar_name .. '] - ' .. cvar_data.value)
+			-- MsgN('Successful cvar sync for client! CVAR [' .. cvar_name .. '] - ' .. cvar_data.value)
 		end
 
 		cvar_locker[cvar_name] = cvar_locker[cvar_name] or 0

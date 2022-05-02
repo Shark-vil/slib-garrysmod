@@ -91,9 +91,12 @@ snet.Callback('slib_animator_play', function(ply, _animator)
 					weapon_model:SetNoDraw(false)
 				end
 			end
+
 			entity:SetMaterial('invisible')
 			animator:ResetSequence(value.sequence_id)
 			animator:SetNoDraw(true)
+			animator:DrawShadow(false)
+
 			if IsValid(weapon) then
 				weapon:SetNoDraw(true)
 			end

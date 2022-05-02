@@ -17,14 +17,14 @@ local hook_Run = hook.Run
 if SERVER then
 	local entities_queue = {}
 
-	local function entities_pack(tbl, data, is_deep_search)
+	local function EntitiesPack(tbl, data, is_deep_search)
 		if not is_deep_search then
 			for i = 1, #data do
 				local value = data[i]
 				if isentity(value) and IsValid(value) then
 					table_insert(tbl, value)
 				elseif istable(value) then
-					entities_pack(tbl, value, is_deep_search)
+					EntitiesPack(tbl, value, is_deep_search)
 				end
 			end
 		else
@@ -32,7 +32,7 @@ if SERVER then
 				if isentity(value) and IsValid(value) then
 					table_insert(tbl, value)
 				elseif istable(value) then
-					entities_pack(tbl, value, is_deep_search)
+					EntitiesPack(tbl, value, is_deep_search)
 				end
 			end
 		end
@@ -43,7 +43,7 @@ if SERVER then
 		if not request then return end
 
 		local entities = {}
-		entities_pack(entities, request.data, is_deep_search)
+		EntitiesPack(entities, request.data, is_deep_search)
 
 		if #entities == 0 then return end
 
@@ -160,12 +160,10 @@ else
 		return true
 	end
 
-	local function deep_validator(args)
+	local function DeepValidator(args)
 		for _, value in pairs(args) do
-			if (isentity(value) and not IsValid(value))
-				or (istable(value) and not deep_validator(value))
-			then
-					return false
+			if (isentity(value) and not IsValid(value)) or (istable(value) and not DeepValidator(value)) then
+				return false
 			end
 		end
 
@@ -175,7 +173,7 @@ else
 	SNET_DEEP_ENTITY_VALIDATOR = function(backward, id, name, ply, ...)
 		local args = { ... }
 
-		if not deep_validator(args) then
+		if not DeepValidator(args) then
 			snet.Request('snet_sv_entity_network_start', id, backward, true).InvokeServer()
 			return false
 		end

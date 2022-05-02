@@ -74,20 +74,29 @@ function sgui.SystemParentExtension(PANEL)
 		table.insert(self.sgui_validators, func)
 	end
 
-	function PANEL:Bind(key_name)
-		if not self.SetValue then return end
+	function PANEL:Bind(key_name, data_context)
+		if not self.SetValue and not self.SetText then return end
 
 		local rootpanel = GetRootPanel(self)
-		if not rootpanel then return end
-
-		local DataContext = rootpanel.DataContext
+		local DataContext = data_context or self.DataContext or (rootpanel and rootpanel.DataContext)
 		if not DataContext or not DataContext[key_name] then return end
 
 		self.sgui_default_binded[key_name] = self.sgui_default_binded[key_name] or DataContext[key_name]
 
+		self:AddListener('OnEnter', function(panel)
+			local value = panel:GetValue()
+
+			if IsFailedChangeValue(panel, value) then
+				DataContext[key_name] = self.sgui_default_binded[key_name]
+				return
+			end
+
+			DataContext[key_name] = value
+		end)
+
 		self:AddListener('OnValueChange', function(panel, value)
 			if IsFailedChangeValue(panel, value) then
-				DataContext[key_name] = self.sgui_default_binded[key_name]	
+				DataContext[key_name] = self.sgui_default_binded[key_name]
 				return
 			end
 
@@ -129,6 +138,12 @@ function sgui.SystemParentExtension(PANEL)
 			end
 		end)
 
-		self:SetValue( DataContext[key_name] )
+		if self.SetText then
+			self:SetText( DataContext[key_name] )
+		end
+
+		if self.SetValue then
+			self:SetValue( DataContext[key_name] )
+		end
 	end
 end

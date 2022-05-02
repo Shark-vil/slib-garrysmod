@@ -4,33 +4,25 @@ function slib.Animator.Stop(entity)
 	end)
 
 	if active_animation then
+		if isfunction(active_animation.OnStop) then active_animation.OnStop(entity) end
 		active_animation.animator:Remove()
-		snet.InvokeAll('slib_animator_destroyed', entity)
+		snet.InvokeAll('slib_animator_destroyed', active_animation)
 		slib.Animator.ClearInactive()
 	end
-end
-
-function slib.Animator.IsPlay(name, entity)
-	local _, active_animation = table.WhereFindBySeq(slib.Storage.ActiveAnimations, function(_, v)
-		return IsValid(v.animator) and v.entity == entity
-	end)
-
-	return active_animation and active_animation.name == name
-end
-
-function slib.Animator.GetCurrent(entity)
-	local index, active_animation = table.WhereFindBySeq(slib.Storage.ActiveAnimations, function(_, v)
-		return IsValid(v.animator) and v.entity == entity
-	end)
-
-	return active_animation, index
 end
 
 function slib.Animator.Play(name, sequence, entity, settings, data)
 	if not name or not IsValid(entity) then return false end
 
 	local animation_data = slib.Animator.GetAnimation(name)
-	if not animation_data then return false end
+	if util.IsValidModel(name) then
+		animation_data = {
+			name = name,
+			model = name,
+		}
+	elseif not animation_data then
+		return false
+	end
 
 	settings = settings or {}
 	data = data or {}
@@ -46,7 +38,13 @@ function slib.Animator.Play(name, sequence, entity, settings, data)
 	animator:SetPos(entity:GetPos())
 	animator:SetAngles(entity:GetAngles())
 	animator:SetModelScale(entity:GetModelScale())
-	if not settings.not_parent then
+	if settings.move_towards then
+		animator:slibCreateTimer('lerp_movement', .1, 0, function()
+			if not IsValid(entity) then return end
+			animator:slibMoveTowardsPosition(entity:GetPos(), 1000 * slib.deltaTime)
+			animator:slibMoveTowardsAngles(entity:GetAngles(), 1000 * slib.deltaTime)
+		end)
+	elseif not settings.not_parent then
 		animator:SetParent(entity)
 	end
 	if not settings.collision then
@@ -73,6 +71,7 @@ function slib.Animator.Play(name, sequence, entity, settings, data)
 		end
 	end
 
+	sequence_duration = isnumber(settings.time) and settings.time or sequence_duration
 	animator:slibSetVar('animation_time', sequence_duration)
 
 	local anim_info = {

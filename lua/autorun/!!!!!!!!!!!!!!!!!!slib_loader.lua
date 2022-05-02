@@ -1,5 +1,5 @@
 slib = slib or {}
-slib.Version = '1.6'
+slib.Version = '1.6.2'
 
 local root_directory = 'slib_framework'
 
@@ -29,19 +29,13 @@ script:using('network/base/callback/sh_callback.lua')
 script:using('network/base/request/sh_request.lua')
 script:using('network/base/request/sh_request_simple.lua')
 script:using('network/base/sh_handler.lua')
+script:using('network/base/sh_packages.lua')
 script:using('network/base/backward/sv_backward.lua')
 script:using('network/base/backward/cl_backward.lua')
 script:using('network/validator/sh_validator.lua')
 script:using('network/validator/sh_validator_server.lua')
 script:using('network/validator/sh_validator_client.lua')
 script:using('network/entity/sh_entity_callback.lua')
-
-script:using('network/bigdata/sh_callback_bigdata.lua')
-script:using('network/bigdata/server/sv_init_networkstring.lua')
-script:using('network/bigdata/server/sv_processing.lua')
-script:using('network/bigdata/server/sv_ok_or_error.lua')
-script:using('network/bigdata/client/cl_processing.lua')
-script:using('network/bigdata/client/cl_ok_or_error.lua')
 
 script:using('network/file/sv_netfile_reader.lua')
 script:using('network/file/cl_netfile_reader.lua')
@@ -75,6 +69,11 @@ script:using('commands/gcommands/sh_gcommands.lua')
 
 script:using('hooks/sh_player_first_spawn.lua')
 
+script:using('extension/sh_concommand.lua')
+script:using('extension/sh_net.lua')
+script:using('extension/duplicator/cl_saver.lua')
+script:using('extension/duplicator/sh_handler.lua')
+script:using('extension/duplicator/sh_duplicator.lua')
 script:using('extension/sh_debug.lua')
 script:using('extension/sh_fakeplayer.lua')
 script:using('extension/sh_generators.lua')
@@ -91,7 +90,7 @@ script:using('extension/sh_entity.lua')
 script:using('extension/sh_hash.lua')
 script:using('extension/sh_cvars.lua')
 script:using('extension/sh_helpers.lua')
-script:using('extension/sh_single_thread.lua')
+script:using('extension/sh_think_queue.lua')
 script:using('extension/gui/cl_helpers.lua')
 script:using('extension/gui/cl_listener.lua')
 script:using('extension/gui/cl_extension.lua')

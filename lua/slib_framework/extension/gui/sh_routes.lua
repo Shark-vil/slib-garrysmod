@@ -11,6 +11,10 @@ if CLIENT then
 			func(...)
 		end
 	end
+
+	function sgui.RouteRemove(adr)
+		sgui.routes_storage[adr] = nil
+	end
 end
 
 function sgui.route(adr, ...)

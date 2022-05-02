@@ -1,11 +1,12 @@
-function slib.Animator.RegisterAnimation(name, model, sequence_list)
+local IsValid = IsValid
+
+function slib.Animator.RegisterAnimation(name, model)
 	local i, _ = table.WhereFindBySeq(slib.Storage.Animations, function(_, v) return v.name == name end)
 	if i ~= -1 then table.remove(slib.Storage.Animations, i) end
 
 	table.insert(slib.Storage.Animations, {
 		name = name,
-		model = Model(model),
-		sequence_list = sequence_list or {}
+		model = Model(model)
 	})
 end
 
@@ -46,4 +47,34 @@ function slib.Animator.ClearInactive(ent)
 			table.remove(slib.Storage.ActiveAnimations, i)
 		end
 	end
+end
+
+function slib.Animator.InAnimation(entity)
+	if not IsValid(entity) then return end
+
+	local _, active_animation = table.WhereFindBySeq(slib.Storage.ActiveAnimations, function(_, v)
+		return v.entity == entity
+	end)
+
+	return active_animation ~= nil
+end
+
+function slib.Animator.IsPlay(name, entity)
+	if not IsValid(entity) then return end
+
+	local _, active_animation = table.WhereFindBySeq(slib.Storage.ActiveAnimations, function(_, v)
+		return IsValid(v.animator) and v.entity == entity
+	end)
+
+	return active_animation and active_animation.name == name
+end
+
+function slib.Animator.GetCurrent(entity)
+	if not IsValid(entity) then return end
+
+	local index, active_animation = table.WhereFindBySeq(slib.Storage.ActiveAnimations, function(_, v)
+		return IsValid(v.animator) and v.entity == entity
+	end)
+
+	return active_animation, index
 end
