@@ -43,6 +43,7 @@ local function DestroyAnimatorAction(ent)
 	if not anim then return end
 
 	if isfunction(anim.OnDestroy) then anim.OnDestroy(ent) end
+	if isfunction(anim.OnStop) then anim.OnStop(ent) end
 
 	snet.InvokeAll('slib_animator_destroyed', ent)
 	slib.Animator.ClearInactive()

@@ -6,20 +6,7 @@ local table_Random = table.Random
 --
 
 function table.isArray(t)
-	local past_value_type
-
-	for key, value in next, t do
-		if type(key) ~= 'number' then return false end
-		local value_type = type(value)
-
-		if past_value_type == nil then
-			past_value_type = value_type
-		elseif value_type ~= past_value_type then
-			return false
-		end
-	end
-
-	return true
+	return #t > 0 and next(t, #t) == nil
 end
 
 function table.HasValueBySeq(t, val)

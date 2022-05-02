@@ -123,6 +123,18 @@ function slib.StringLinePairs(text)
 	end
 end
 
+function slib.def(methods)
+	if methods.try then
+		xpcall(methods.try, function(ex)
+			if not methods.catch then return end
+			methods.catch(debug_traceback(ex))
+		end)
+	end
+	if methods.finally then
+		methods.finally()
+	end
+end
+
 function slib.SafeHookRun(hook_type, ...)
 	local result = { xpcall(hook_Run, function(err)
 		ErrorNoHalt(debug_traceback(err))
@@ -135,11 +147,22 @@ function slib.SafeHookRun(hook_type, ...)
 	return unpack(result)
 end
 
-function slib.MoveTowards(current_vector, target_vector, max_distance_delta)
+function math.sign(x)
+	return x > 0 and 1 or x < 0 and -1 or 0
+end
+
+function slib.MoveTowardsVector(current_vector, target_vector, delta_time)
 	local direction_vector = target_vector - current_vector
 	local magnitude = slib.magnitude(direction_vector)
-	if magnitude <= max_distance_delta or magnitude == 0 then
+	if magnitude <= delta_time or magnitude == 0 then
 		return target_vector
 	end
-	return current_vector + direction_vector / magnitude * max_distance_delta
+	return current_vector + direction_vector / magnitude * delta_time
+end
+
+function slib.MoveTowardsNumber(current_number, target_number, delta_time)
+	if math.abs(target_number - current_number) <= delta_time then
+		return target_number
+	end
+	return current_number + math.sign(target_number - current_number) * delta_time
 end

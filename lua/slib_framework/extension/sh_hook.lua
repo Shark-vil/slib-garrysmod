@@ -1,10 +1,4 @@
-local function Initialize()
-	hook = hook or {}
-
-	function hook.Exists(hook_type, hook_name)
-		return hook.Get(hook_type, hook_name) ~= nil
-	end
-
+hook.Add('PreGamemodeLoaded', 'SlibInitializeHookExtension', function()
 	function hook.Get(hook_type, hook_name)
 		local hooks_data = hook.GetTable()
 
@@ -19,6 +13,7 @@ local function Initialize()
 		return nil
 	end
 
-	hook.Remove('PreGamemodeLoaded', 'SlibInitializeHookExtension')
-end
-hook.Add('PreGamemodeLoaded', 'SlibInitializeHookExtension', Initialize)
+	function hook.Exists(hook_type, hook_name)
+		return hook.Get(hook_type, hook_name) ~= nil
+	end
+end)

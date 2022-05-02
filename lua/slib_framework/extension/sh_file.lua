@@ -1,6 +1,5 @@
 local isstring = isstring
 local istable = istable
-local slib_GetNormalizeDataTable = slib.GetNormalizeDataTable
 local string_GetPathFromFilename = string.GetPathFromFilename
 local file_CreateDir = file.CreateDir
 local file_Write = file.Write
@@ -35,7 +34,7 @@ function slib.FileWrite(path, data)
 	if isstring(data) then
 		fileData = { [1] = data }
 	elseif istable(data) then
-		fileData = { [1] = slib_GetNormalizeDataTable(data) }
+		fileData = { [1] = slib.GetNormalizeDataTable(data) }
 	end
 
 	if not fileData then return end

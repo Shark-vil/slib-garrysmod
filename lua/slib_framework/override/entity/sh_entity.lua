@@ -245,12 +245,12 @@ function meta:slibPredictedClientRPC(function_name, ...)
 end
 
 function meta:slibMoveTowardsPosition(target_vector, max_distance_delta)
-	local new_vector = slib.MoveTowards(self:GetPos(), target_vector, max_distance_delta)
+	local new_vector = slib.MoveTowardsVector(self:GetPos(), target_vector, max_distance_delta)
 	self:SetPos(new_vector)
 end
 
 function meta:slibMoveTowardsAngles(target_angle, max_distance_delta)
-	local new_angle = slib.MoveTowards(self:GetAngles(), target_angle, max_distance_delta)
+	local new_angle = slib.MoveTowardsVector(self:GetAngles(), target_angle, max_distance_delta)
 	self:SetAngles(new_angle)
 end
 
@@ -273,7 +273,7 @@ function meta:slibIsViewVector(pos, radius)
 	return EntityDifferenceDot > DirectionAngle
 end
 
-function meta:slibIsTranceEntity(target, distance, check_view_vector)
+function meta:slibIsTraceEntity(target, distance, check_view_vector)
 	distance = distance or 1000
 
 	local target_pos = target:LocalToWorld(target:OBBCenter())
@@ -293,11 +293,11 @@ function meta:slibIsTranceEntity(target, distance, check_view_vector)
 		start = eye_pos,
 		endpos = target_pos,
 		filter = function(ent)
-			if ent ~= self and ent == target then return true end
+			if ent ~= self then return true end
 		end
 	})
 
-	return tr.Hit
+	return tr.Hit and tr.Entity == target
 end
 
 function snet.ServerRPC(_ent, function_name, ...)

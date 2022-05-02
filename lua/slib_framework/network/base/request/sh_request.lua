@@ -1,34 +1,61 @@
 local slib = slib
 local snet = slib.Components.Network
-local net = net
-local table = table
-local player = player
 local CLIENT = CLIENT
 local SERVER = SERVER
-local MsgN = MsgN
 local istable = istable
-local isstring =  isstring
 local isfunction = isfunction
 local RealTime = RealTime
+local string_len = string.len
+local table_insert = table.insert
+local table_HasValueBySeq = table.HasValueBySeq
+local table_remove = table.remove
 local xpcall = xpcall
-local snet_Serialize = snet.Serialize
+local snet_Serialize = slib.Serialize
 local util_Compress = util.Compress
+local player_GetHumans = player.GetHumans
+local net_Start = net.Start
+local net_WriteString = net.WriteString
+local net_WriteUInt = net.WriteUInt
+local net_WriteData = net.WriteData
+local net_WriteBool = net.WriteBool
+local net_Send = net.Send
+local net_SendToServer = net.SendToServer
 --
 local REQUEST_LIFE_TIME = snet.REQUEST_LIFE_TIME
-local request_storage = {}
+local REQUEST_STORAGE = {}
+
+local function SplitIntoPackages(text_data, max_size)
+	local network_packages = {}
+	local network_packages_index = 0
+
+	for i = 1, #text_data, max_size do
+		local single_package = util_Compress(text_data:sub(i, i + max_size - 1))
+		network_packages_index = network_packages_index + 1
+		network_packages[network_packages_index] = {
+			data = single_package,
+			length = string_len(single_package)
+		}
+	end
+
+	return network_packages
+end
 
 function snet.Request(name, ...)
 	local obj = {}
 	obj.id = slib.GenerateUid(name)
 	obj.name = name
 	obj.data = { ... }
-	obj.compressed_data = util_Compress(snet_Serialize(obj.data, true))
-	if not obj.compressed_data then
-		obj.compressed_data = util_Compress(snet_Serialize())
-		MsgN('[SNET ERROR] An error occurred while compressing data - ' .. name)
+	do
+		local serialize_data = snet_Serialize(obj.data, true)
+		if not serialize_data then
+			serialize_data = snet_Serialize()
+			slib.DebugError('An error occurred while compressing data - ' .. name)
+		end
+		obj.packages = SplitIntoPackages(serialize_data, 4096)
 	end
-	obj.compressed_length = #obj.compressed_data
-	obj.bigdata = nil
+	obj.unreliable = nil
+	obj.package_count = #obj.packages
+	obj.package_index = 1
 	obj.backward = false
 	obj.func_success = nil
 	obj.func_error = nil
@@ -37,16 +64,10 @@ function snet.Request(name, ...)
 	obj.receiver = {}
 	obj.receiver_count = 1
 	obj.receiver_complete_count = 0
+	obj.progress_text = ''
 
-	function obj.BigData(data, max_size, progress_text)
-		if not istable(data) and not isstring(data) then return end
-
-		obj.bigdata = {
-			data = data,
-			max_size = max_size,
-			progress_text = progress_text
-		}
-
+	function obj.ProgressText(text)
+		obj.progress_text = text
 		return obj
 	end
 
@@ -95,30 +116,29 @@ function snet.Request(name, ...)
 		obj.receiver_count = #receiver
 		obj.receiver = receiver
 
-		local bigdata = obj.bigdata
-		if bigdata then
-			for i = 1, #receiver do
-				snet.InvokeBigData(obj, receiver[i], bigdata.data, bigdata.max_size, bigdata.progress_text)
-			end
-			return obj
-		end
-
 		snet.AddRequestToList(obj)
-		unreliable = unreliable or false
+		obj.unreliable = unreliable or false
 
-		net.Start('cl_network_rpc_callback', unreliable)
-		net.WriteString(obj.id)
-		net.WriteString(obj.name)
-		net.WriteUInt(obj.compressed_length, 32)
-		net.WriteData(obj.compressed_data, obj.compressed_length)
-		net.WriteBool(obj.backward)
-		net.Send(receiver)
+		local single_package = obj.packages[obj.package_index]
+		local compressed_data = single_package.data
+		local compressed_length = single_package.length
+
+		net_Start('cl_network_rpc_callback', obj.unreliable)
+		net_WriteString(obj.id)
+		net_WriteUInt(compressed_length, 32)
+		net_WriteData(compressed_data, compressed_length)
+		net_WriteUInt(obj.package_index, 12)
+		net_WriteUInt(obj.package_count, 12)
+		net_WriteString(obj.name)
+		net_WriteBool(obj.backward)
+		net_WriteString(obj.progress_text)
+		net_Send(receiver)
 		return obj
 	end
 
 	function obj.InvokeAll(unreliable)
 		if CLIENT then return end
-		obj.Invoke(player.GetHumans(), unreliable)
+		obj.Invoke(player_GetHumans(), unreliable)
 		return obj
 	end
 
@@ -127,18 +147,18 @@ function snet.Request(name, ...)
 		local receivers = {}
 
 		if isentity(receiver) then
-			table.insert(receivers, receiver)
+			table_insert(receivers, receiver)
 		end
 
 		if #receivers == 0 then
-			obj.Invoke(player.GetHumans(), unreliable)
+			obj.Invoke(player_GetHumans(), unreliable)
 		else
-			local players = player.GetHumans()
+			local players = player_GetHumans()
 			local player_list = {}
 			for i = 1, #players do
 				local ply = players[i]
-				if not table.HasValueBySeq(receivers, ply) then
-					table.insert(player_list, ply)
+				if not table_HasValueBySeq(receivers, ply) then
+					table_insert(player_list, ply)
 				end
 			end
 			obj.Invoke(player_list, unreliable)
@@ -149,31 +169,34 @@ function snet.Request(name, ...)
 
 	function obj.InvokeServer(unreliable)
 		if SERVER then return end
-		local bigdata = obj.bigdata
-		if bigdata then
-			snet.InvokeBigData(obj, nil, bigdata.data, bigdata.max_size, bigdata.progress_text)
-			return
-		end
 
 		snet.AddRequestToList(obj)
-		unreliable = unreliable or false
+		obj.unreliable = unreliable or false
 
-		net.Start('sv_network_rpc_callback', unreliable)
-		net.WriteString(obj.id)
-		net.WriteString(obj.name)
-		net.WriteUInt(obj.compressed_length, 32)
-		net.WriteData(obj.compressed_data, obj.compressed_length)
-		net.WriteBool(obj.backward)
-		net.SendToServer()
+		local single_package = obj.packages[obj.package_index]
+		local compressed_data = single_package.data
+		local compressed_length = single_package.length
+
+		net_Start('sv_network_rpc_callback', obj.unreliable)
+		net_WriteString(obj.id)
+		net_WriteUInt(compressed_length, 32)
+		net_WriteData(compressed_data, compressed_length)
+		net_WriteUInt(obj.package_index, 12)
+		net_WriteUInt(obj.package_count, 12)
+		net_WriteString(obj.name)
+		net_WriteBool(obj.backward)
+		net_WriteString(obj.progress_text)
+		net_SendToServer()
 		return obj
 	end
 
 	function obj:Clone()
 		local clone = snet.Request(obj.name)
 		clone.data = obj.data
-		clone.compressed_data = obj.compressed_data
-		clone.compressed_length = obj.compressed_length
-		clone.bigdata = obj.bigdata
+		clone.packages = obj.packages
+		clone.package_count = obj.package_count
+		clone.package_index = obj.package_index
+		clone.progress_text = obj.progress_text
 		clone.backward = obj.backward
 		clone.func_success = obj.func_success
 		clone.func_error = obj.func_error
@@ -185,22 +208,21 @@ function snet.Request(name, ...)
 end
 
 function snet.AddRequestToList(request)
-	table.insert(request_storage, {
+	table_insert(REQUEST_STORAGE, {
 		request = request,
 		timeout = RealTime() + (request.lifetime or REQUEST_LIFE_TIME)
 	})
 end
 
 function snet.GetRequestList()
-	return request_storage
+	return REQUEST_STORAGE
 end
-
 
 function snet.FindRequestById(id, to_extend)
 	to_extend = to_extend or false
 
-	for i = #request_storage, 1, -1 do
-		local data = request_storage[i]
+	for i = #REQUEST_STORAGE, 1, -1 do
+		local data = REQUEST_STORAGE[i]
 		if data and data.request and data.request.id == id then
 			if to_extend then data.timeout = RealTime() + data.request.lifetime end
 			return data.request
@@ -210,10 +232,10 @@ function snet.FindRequestById(id, to_extend)
 end
 
 function snet.RemoveRequestById(id)
-	for i = #request_storage, 1, -1 do
-		local data = request_storage[i]
+	for i = #REQUEST_STORAGE, 1, -1 do
+		local data = REQUEST_STORAGE[i]
 		if data and data.request and data.request.id == id then
-			table.remove(request_storage, i)
+			table_remove(REQUEST_STORAGE, i)
 			return true
 		end
 	end
@@ -224,8 +246,8 @@ timer.Create('SNet_AutoResetRequestAfterTimeDealy', 1, 0, function()
 	xpcall(function()
 		local counting_requests = {}
 
-		for i = #request_storage, 1, -1 do
-			local data = request_storage[i]
+		for i = #REQUEST_STORAGE, 1, -1 do
+			local data = REQUEST_STORAGE[i]
 			if not data or (data.request and not data.request.eternal and data.timeout < RealTime()) then
 				if data and data.request and data.request.func_complete then
 					xpcall(function()
@@ -235,7 +257,7 @@ timer.Create('SNet_AutoResetRequestAfterTimeDealy', 1, 0, function()
 						slib.Error('NETWORK ERROR:\n' .. error_message)
 					end)
 				end
-				table.remove(request_storage, i)
+				table_remove(REQUEST_STORAGE, i)
 			end
 
 			if data and data.request then
@@ -245,13 +267,15 @@ timer.Create('SNet_AutoResetRequestAfterTimeDealy', 1, 0, function()
 			end
 		end
 
-		local count = #request_storage
+		local count = #REQUEST_STORAGE
 		if count >= 500 then
 			slib.Warning('Something is making too many requests (' .. count .. ')')
 			for k, v in pairs(counting_requests) do
 				slib.Warning('COUNTING REQUEST: ' .. k .. ' - ' .. v)
 			end
 		end
+
+		-- print('Request storage count - ', count)
 	end, function(error_message)
 		slib.Error('Attention! Something is creating errors in the request queue!'
 			.. ' Contact the developer to identify issues.')

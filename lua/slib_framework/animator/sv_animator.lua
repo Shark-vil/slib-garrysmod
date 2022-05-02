@@ -4,26 +4,11 @@ function slib.Animator.Stop(entity)
 	end)
 
 	if active_animation then
+		if isfunction(active_animation.OnStop) then active_animation.OnStop(entity) end
 		active_animation.animator:Remove()
-		snet.InvokeAll('slib_animator_destroyed', entity)
+		snet.InvokeAll('slib_animator_destroyed', active_animation)
 		slib.Animator.ClearInactive()
 	end
-end
-
-function slib.Animator.IsPlay(name, entity)
-	local _, active_animation = table.WhereFindBySeq(slib.Storage.ActiveAnimations, function(_, v)
-		return IsValid(v.animator) and v.entity == entity
-	end)
-
-	return active_animation and active_animation.name == name
-end
-
-function slib.Animator.GetCurrent(entity)
-	local index, active_animation = table.WhereFindBySeq(slib.Storage.ActiveAnimations, function(_, v)
-		return IsValid(v.animator) and v.entity == entity
-	end)
-
-	return active_animation, index
 end
 
 function slib.Animator.Play(name, sequence, entity, settings, data)

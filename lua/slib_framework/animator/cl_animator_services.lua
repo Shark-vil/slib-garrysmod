@@ -1,27 +1,35 @@
 local lock_PostPlayerDraw = false
 
-local function lock() lock_PostPlayerDraw = true end
-local function unlock() lock_PostPlayerDraw = false end
+local function DrawLock() lock_PostPlayerDraw = true end
+local function DrawUnlock() lock_PostPlayerDraw = false end
 
 hook.Add('PreDrawOpaqueRenderables', 'Slib.Animator.DrawController', function()
 	if lock_PostPlayerDraw then return end
 
 	for i = 1, #slib.Storage.ActiveAnimations do
 		local value = slib.Storage.ActiveAnimations[i]
-		if not value.is_played or value.settings.no_draw then continue end
+		if not value.is_played then continue end
 
 		local entity = value.entity
 		if not IsValid(entity) or not entity:IsPlayer() then continue end
+
+		if value.settings.no_draw and entity == LocalPlayer() and not entity:slibHasUseAnotherCamera() then
+			continue
+		end
 
 		local model = value.model
 		local weapon_model = value.weapon_model
 
 		if IsValid(model) then
-			lock() model:DrawModel() unlock()
+			DrawLock()
+			model:DrawModel()
+			DrawUnlock()
 		end
 
 		if IsValid(weapon_model) then
-			lock() weapon_model:DrawModel() unlock()
+			DrawLock()
+			weapon_model:DrawModel()
+			DrawUnlock()
 		end
 	end
 end)

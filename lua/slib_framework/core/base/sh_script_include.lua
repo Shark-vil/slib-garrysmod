@@ -1,6 +1,6 @@
 local valid_prefix_list = { 'cl', 'sv', 'sh' }
 
-local function script_include(file_path, loading_text)
+local function ScriptInclude(file_path, loading_text)
 	if not isstring(file_path) or not file.Exists(file_path, 'LUA') then
 		MsgN('[SLibrary] Script failed load - ' .. file_path)
 		return
@@ -10,10 +10,10 @@ local function script_include(file_path, loading_text)
 	   MsgN(string.Replace(loading_text, '{file}', file_path))
 	end
 
-	include(file_path)
+	return include(file_path)
 end
 
-local function getFileNetworkType(file_path)
+local function GetFileNetworkType(file_path)
 	return string.lower(string.sub(string.GetFileFromFilename(file_path), 1, 2))
 end
 
@@ -31,7 +31,7 @@ function slib.CreateIncluder(root_directory, loading_text)
 			file_path = file_path
 		end
 
-		local network_type = getFileNetworkType(file_path)
+		local network_type = GetFileNetworkType(file_path)
 		if not network_type or not table.HasValue(valid_prefix_list, network_type) then
 			ErrorNoHalt('[SLIB.ERROR] The prefix was not found in the file name. The script '
 				.. file_path .. ' will not be included!')
@@ -42,13 +42,13 @@ function slib.CreateIncluder(root_directory, loading_text)
 
 			if not disable_auto_include then
 				if CLIENT and network_type == 'cl' then
-					script_include(file_path, self.loading_text)
+					return ScriptInclude(file_path, self.loading_text)
 				elseif network_type == 'sh' then
-					script_include(file_path, self.loading_text)
+					return ScriptInclude(file_path, self.loading_text)
 				end
 			end
 		elseif network_type == 'sv' and SERVER and not disable_auto_include then
-			script_include(file_path, self.loading_text)
+			return ScriptInclude(file_path, self.loading_text)
 		end
 	end
 
@@ -64,7 +64,7 @@ function slib.usingDirectory(root_scripts_directory_path, loading_text, disable_
 	for _, file_path in ipairs(files) do
 		table.insert(files_list, {
 			file_path = file_path,
-			file_type = getFileNetworkType(file_path)
+			file_type = GetFileNetworkType(file_path)
 		})
 	end
 

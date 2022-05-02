@@ -1,11 +1,11 @@
 local type = type
 local tostring = tostring
-local snet_Serialize = snet.Serialize
+local snet_Serialize = slib.Serialize
 local util_Base64Encode = util.Base64Encode
 local util_CRC = util.CRC
 --
 
-local function get_string_data(data)
+local function AnyDataToString(data)
 	local datatype = type(data)
 
 	if datatype == 'nil' then
@@ -32,11 +32,11 @@ local function get_string_data(data)
 end
 
 function slib.GetHash(data)
-	local normalize_data = get_string_data(data)
+	local normalize_data = AnyDataToString(data)
 	return util_Base64Encode(normalize_data)
 end
 
 function slib.GetHashSumm(data)
-	local normalize_data = get_string_data(data)
+	local normalize_data = AnyDataToString(data)
 	return util_CRC(normalize_data)
 end
