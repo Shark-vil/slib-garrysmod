@@ -10,7 +10,10 @@ local string_Trim = string.Trim
 local tostring = tostring
 local math_random = math.random
 local type = type
+local table_Copy = table.Copy
+local istable = istable
 --
+local call_markers = {}
 local language_codes = {
 	['bg'] = 'bulgarian',
 	['cs'] = 'czech',
@@ -165,4 +168,24 @@ function slib.MoveTowardsNumber(current_number, target_number, delta_time)
 		return target_number
 	end
 	return current_number + math.sign(target_number - current_number) * delta_time
+end
+
+function slib.MarkCall(name, nesting)
+	local debug_info = debug.getinfo(nesting or 3, 'S')
+	call_markers[name] = debug_info
+end
+
+function slib.GetCallMarker(name, destroy_after_getting)
+	destroy_after_getting = destroy_after_getting or false
+
+	if call_markers[name] then
+		local response = table_Copy(call_markers[name])
+
+		if destroy_after_getting then
+			call_markers[name] = nil
+		end
+
+		return response
+	end
+end
 end
