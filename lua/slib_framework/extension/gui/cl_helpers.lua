@@ -8,6 +8,7 @@ local surface_SetMaterial = surface.SetMaterial
 local surface_DrawTexturedRect = surface.DrawTexturedRect
 local render_UpdateScreenEffectTexture = render.UpdateScreenEffectTexture
 local spawnmenu_AddContentType = spawnmenu.AddContentType
+local original_DermaMenu = DermaMenu
 --
 local m_blur_material = Material('pp/blurscreen')
 local m_blur_color = Color(255, 255, 255)
@@ -43,4 +44,19 @@ function spawnmenu.AddContentType(name, constructor)
 
 		return icon
 	end)
+end
+
+function DermaMenu(keepOpen, parent)
+	local debug_info = debug.getinfo(2, 'S')
+	local caller_script_path = ''
+
+	if debug_info and debug_info.short_src then
+		caller_script_path = debug_info.short_src
+	end
+
+	local menu = original_DermaMenu(keepOpen, parent)
+
+	hook.Run('SlibCreateDermaMenu', menu, keepOpen, parent, caller_script_path)
+
+	return menu
 end
