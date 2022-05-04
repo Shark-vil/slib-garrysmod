@@ -12,6 +12,8 @@ local math_random = math.random
 local type = type
 local table_Copy = table.Copy
 local istable = istable
+local engine_GetAddons = engine.GetAddons
+local ipairs = ipairs
 --
 local call_markers = {}
 local language_codes = {
@@ -188,4 +190,13 @@ function slib.GetCallMarker(name, destroy_after_getting)
 		return response
 	end
 end
+
+function slib.GetAddon(wsid)
+	wsid = isstring(wsid) and wsid or tostring(wsid)
+
+	for _, addon in ipairs(engine_GetAddons()) do
+		if tostring(addon.wsid)	== wsid and addon.mounted then
+			return addon
+		end
+	end
 end
