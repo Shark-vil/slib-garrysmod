@@ -1,8 +1,12 @@
 local originalConcommandAdd = concommand.Add
 
-function concommand.Add(name, func)
-	return originalConcommandAdd(name, function(...)
+local function GetCallbackFunction(name, func)
+	return function(...)
 		if hook.Run('OnCallCommand', name, ...) == false then return end
 		return func(...)
-	end)
+	end
+end
+
+function concommand.Add(name, func, ...)
+	return originalConcommandAdd(name, GetCallbackFunction(name, func), ...)
 end
