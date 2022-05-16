@@ -274,6 +274,8 @@ function meta:slibIsViewVector(pos, radius)
 end
 
 function meta:slibIsTraceEntity(target, distance, check_view_vector)
+	if not IsValid(target) then return false end
+
 	distance = distance or 1000
 
 	local target_pos = target:LocalToWorld(target:OBBCenter())
