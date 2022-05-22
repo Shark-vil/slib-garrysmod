@@ -19,6 +19,7 @@ local list_door_classes = {'func_door', 'func_door_rotating', 'prop_door_rotatin
 function meta:slibSetLocalVar(key, value)
 	self.slibLocalVariables = self.slibLocalVariables or {}
 	self.slibLocalVariables[key] = value
+	return self.slibLocalVariables[key]
 end
 
 function meta:slibGetLocalVar(key, fallback, assign_a_fallback)
@@ -75,6 +76,8 @@ function meta:slibSetVar(key, value, unreliable)
 			snet.Request('slib_entity_variable_set', self, key, value).InvokeAll(unreliable)
 		end
 	end
+
+	return self.slibVariables[key]
 end
 
 function meta:slibGetVar(key, fallback, assign_a_fallback)
