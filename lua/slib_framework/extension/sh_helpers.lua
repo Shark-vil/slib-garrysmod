@@ -1,11 +1,5 @@
 local engine_TickInterval = engine.TickInterval
 local math_sqrt = math.sqrt
-local xpcall = xpcall
-local hook_Run = hook.Run
-local debug_traceback = debug.traceback
-local ErrorNoHalt = ErrorNoHalt
-local table_remove = table.remove
-local unpack = unpack
 local string_Trim = string.Trim
 local tostring = tostring
 local math_random = math.random
@@ -126,30 +120,6 @@ function slib.StringLinePairs(text)
 			return parse_index, text_lines[parse_index]
 		end
 	end
-end
-
-function slib.def(methods)
-	if methods.try then
-		xpcall(methods.try, function(ex)
-			if not methods.catch then return end
-			methods.catch(debug_traceback(ex))
-		end)
-	end
-	if methods.finally then
-		methods.finally()
-	end
-end
-
-function slib.SafeHookRun(hook_type, ...)
-	local result = { xpcall(hook_Run, function(err)
-		ErrorNoHalt(debug_traceback(err))
-	end, hook_type, ...) }
-
-	local succ = result[1]
-	if not succ then return nil end
-
-	table_remove(result, 1)
-	return unpack(result)
 end
 
 function math.sign(x)
