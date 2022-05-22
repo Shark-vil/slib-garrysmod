@@ -150,20 +150,19 @@ function meta:slibDoorIsLocked()
 	return true
 end
 
-function meta:slibIsPlayersSee() return self:slibIsPlayerSee() end
-
-function meta:slibIsPlayerSee(ply)
-	local position = self:GetPos()
-
-	if not ply then
-		local players = player_GetAll()
-		for i = 1, #players do
-			if players[i]:slibIsViewVector(position) then return true end
-		end
-	elseif IsValid(ply) then
+function meta:slibSinglePlayerWatching(ply)
+	if IsValid(ply) then
 		return ply:slibIsViewVector(position)
 	end
+	return false
+end
 
+function meta:slibPlayersWatching()
+	local players = player_GetAll()
+	for i = 1, #players do
+		local ply = players[i]
+		if IsValid(ply) and ply:slibIsViewVector(position) then return true end
+	end
 	return false
 end
 
