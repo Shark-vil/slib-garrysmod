@@ -16,6 +16,7 @@ script:using('core/base/sh_global.lua')
 script:using('core/sh_components.lua')
 script:using('core/sh_storage.lua')
 script:using('core/sh_access.lua')
+script:using('core/sh_override.lua')
 script:using('core/sh_safe_calls.lua')
 
 script:using('core/class/sh_sql_table.lua')
