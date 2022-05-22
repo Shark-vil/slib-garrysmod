@@ -7,7 +7,7 @@ snet.RegisterCallback('slib_player_notify', function(ply, text, message_type, le
 	ply:slibNotify(text, message_type, length, sound_path)
 end)
 
-hook.Add('SlibPlayerFirstSpawn', 'SlibInitializeGlobalClientLanguage', function(ply)
+hook.Add('slib.FirstPlayerSpawn', 'SlibInitializeGlobalClientLanguage', function(ply)
 	snet.InvokeServer('slib_player_set_language', GetConVar('cl_language'):GetString())
 	cvars.AddChangeCallback('cl_language', function(_, _, new_language)
 		snet.InvokeServer('slib_player_set_language', tostring(new_language))

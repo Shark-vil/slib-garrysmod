@@ -14,7 +14,7 @@ snet.Callback('slib_gcvars_change_from_server', function(ply, cvar_name, value)
 	end
 end)
 
-hook.Add('SlibPlayerFirstSpawn', 'Slib_GCvars_RegisterForPlayer', function(ply)
+hook.Add('slib.FirstPlayerSpawn', 'Slib_GCvars_RegisterForPlayer', function(ply)
 	gcvars.Update()
 	snet.Invoke('slib_gcvars_register', ply, slib.Storage.GlobalCvar)
 end)

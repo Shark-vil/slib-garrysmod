@@ -63,7 +63,7 @@ if CLIENT then
 		end
 	end
 
-	hook.Add('OnCallCommand', 'Slib.CustomDuplicator.Override', function(commandName, ply, cmd, arg)
+	hook.Add('slib.OnCallCommand', 'Slib.CustomDuplicator.Override', function(commandName, ply, cmd, arg)
 		if commandName ~= 'dupe_arm' then return end
 		CustomCommandHandler(ply, cmd, arg)
 		return false
@@ -149,7 +149,7 @@ else
 		net.Send(client)
 	end
 
-	hook.Add('OnCallNetMessage', 'Slib.CustomDuplicator.Override', function(messageName, size, client)
+	hook.Add('slib.OnCallNetMessage', 'Slib.CustomDuplicator.Override', function(messageName, size, client)
 		if messageName ~= 'ArmDupe' then return end
 		CustomNetworkHandler(size, client)
 		return false

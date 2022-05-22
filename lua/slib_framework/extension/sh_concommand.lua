@@ -2,7 +2,7 @@ local originalConcommandAdd = concommand.Add
 
 local function GetCallbackFunction(name, func)
 	return function(...)
-		if hook.Run('OnCallCommand', name, ...) == false then return end
+		if hook.Run('slib.OnCallCommand', name, ...) == false then return end
 		return func(...)
 	end
 end
