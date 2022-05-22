@@ -91,7 +91,7 @@ function slib.Animator.Play(name, sequence, entity, settings, data)
 	}
 
 	table.insert(slib.Storage.ActiveAnimations, anim_info)
-	hook.Run('Slib_PrePlayAnimation', anim_info)
+	hook.Run('slib.PreAnimationPlay', anim_info)
 	timer.Start('SlibraryAnimatorGarbage')
 
 	snet.Request('slib_animator_create_clientside_model', anim_info)
@@ -122,7 +122,7 @@ function slib.Animator.Play(name, sequence, entity, settings, data)
 			if active_animation and IsValid(animator) then
 				active_animation.is_played = true
 				snet.InvokeAll('slib_animator_play', animator)
-				hook.Run('Slib_PlayAnimation', anim_info)
+				hook.Run('slib.AnimationPlaying', anim_info)
 			end
 		end).InvokeAll()
 

@@ -23,7 +23,7 @@ if SERVER then
 				ply.snet_ready = true
 				table.insert(slib.Storage.LoadedPlayers, ply)
 
-				hook.Run('SlibPlayerFirstSpawn', ply)
+				hook.Run('slib.FirstPlayerSpawn', ply)
 				snet.Request('slib_first_player_spawn', ply).InvokeAll()
 
 				hook.Remove('SetupMove', hook_name)
@@ -31,7 +31,7 @@ if SERVER then
 		end)
 	end)
 
-	hook.Add('SlibPlayerFirstSpawn', 'Slib_SyncExistsNetworkVariable', function(ply)
+	hook.Add('slib.FirstPlayerSpawn', 'Slib_SyncExistsNetworkVariable', function(ply)
 		for _, ent in ipairs(ents.GetAll()) do
 			if ent.slibVariables and table.Count(ent.slibVariables) ~= 0 then
 				for key, value in pairs(ent.slibVariables) do
@@ -62,7 +62,7 @@ else
 		ply.snet_ready = true
 		table.insert(slib.Storage.LoadedPlayers, ply)
 
-		hook.Run('SlibPlayerFirstSpawn', ply)
+		hook.Run('slib.FirstPlayerSpawn', ply)
 	end).Validator(SNET_ENTITY_VALIDATOR)
 
 	snet.Callback('slib_first_player_spawn_sync', function(_, players)

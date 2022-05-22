@@ -1,4 +1,9 @@
-function slib.ConsoleMessage(prefix, message_type, ...)
+local error_color = Color(255, 115, 115, 200)
+local warning_color = Color(250, 205, 81, 200)
+local log_color = Color(219, 241, 245, 200)
+local debug_traceback = debug.traceback
+
+local function ConsoleMessage(prefix, message_type, ...)
 	local tags = string.Explode('.', prefix)
 	local stylized_prefix = ''
 	local message_args = { ... }
@@ -17,35 +22,38 @@ function slib.ConsoleMessage(prefix, message_type, ...)
 	end
 
 	if message_type == 'error' then
-		ErrorNoHalt(stylized_prefix .. ' ' .. message .. '\n')
+		MsgC(error_color, stylized_prefix .. ' ' .. debug_traceback(message, 3) .. '\n')
+		ErrorNoHalt()
+	elseif message_type == 'warning' then
+		MsgC(warning_color, stylized_prefix .. ' ' .. debug_traceback(message, 3) .. '\n')
 	else
-		MsgN(stylized_prefix .. ' ' .. message)
+		MsgC(log_color, stylized_prefix .. ' ' .. message .. '\n')
 	end
 end
 
 function slib.Log(...)
-	slib.ConsoleMessage('SLIB.LOG', nil, ...)
+	ConsoleMessage('LOG', 'log', ...)
 end
 
 function slib.Warning(...)
-	slib.ConsoleMessage('SLIB.WARNING', nil, ...)
+	ConsoleMessage('WARNING', 'warning', ...)
 end
 
 function slib.Error(...)
-	slib.ConsoleMessage('SLIB.ERROR', 'error', ...)
+	ConsoleMessage('ERROR', 'error', ...)
 end
 
 function slib.DebugLog(...)
 	if not slib.CvarCheckValue('slib_debug', 1) then return end
-	slib.ConsoleMessage('SLIB.LOG', nil, ...)
+	ConsoleMessage('DEBUG LOG', 'error', ...)
 end
 
 function slib.DebugWarning(...)
 	if not slib.CvarCheckValue('slib_debug', 1) then return end
-	slib.ConsoleMessage('SLIB.WARNING', nil, ...)
+	ConsoleMessage('DEBUG WARNING', 'warning', ...)
 end
 
 function slib.DebugError(...)
 	if not slib.CvarCheckValue('slib_debug', 1) then return end
-	slib.ConsoleMessage('SLIB.ERROR', 'error', ...)
+	ConsoleMessage('DEBUG ERROR', 'error', ...)
 end

@@ -19,10 +19,16 @@ local list_door_classes = {'func_door', 'func_door_rotating', 'prop_door_rotatin
 function meta:slibSetLocalVar(key, value)
 	self.slibLocalVariables = self.slibLocalVariables or {}
 	self.slibLocalVariables[key] = value
+	return self.slibLocalVariables[key]
 end
 
-function meta:slibGetLocalVar(key, fallback)
-	if not self.slibLocalVariables or self.slibLocalVariables[key] == nil then return fallback end
+function meta:slibGetLocalVar(key, fallback, assign_a_fallback)
+	if not self.slibLocalVariables or self.slibLocalVariables[key] == nil then
+		if assign_a_fallback and fallback ~= nil then
+			return self:slibSetVar(key, fallback)
+		end
+		return fallback
+	end
 	return self.slibLocalVariables[key]
 end
 
@@ -70,10 +76,17 @@ function meta:slibSetVar(key, value, unreliable)
 			snet.Request('slib_entity_variable_set', self, key, value).InvokeAll(unreliable)
 		end
 	end
+
+	return self.slibVariables[key]
 end
 
-function meta:slibGetVar(key, fallback)
-	if not self.slibVariables or self.slibVariables[key] == nil then return fallback end
+function meta:slibGetVar(key, fallback, assign_a_fallback)
+	if not self.slibVariables or self.slibVariables[key] == nil then
+		if assign_a_fallback and fallback ~= nil then
+			return self:slibSetVar(key, fallback)
+		end
+		return fallback
+	end
 	return self.slibVariables[key]
 end
 
@@ -137,20 +150,19 @@ function meta:slibDoorIsLocked()
 	return true
 end
 
-function meta:slibIsPlayersSee() return self:slibIsPlayerSee() end
-
-function meta:slibIsPlayerSee(ply)
-	local position = self:GetPos()
-
-	if not ply then
-		local players = player_GetAll()
-		for i = 1, #players do
-			if players[i]:slibIsViewVector(position) then return true end
-		end
-	elseif IsValid(ply) then
+function meta:slibSinglePlayerWatching(ply)
+	if IsValid(ply) then
 		return ply:slibIsViewVector(position)
 	end
+	return false
+end
 
+function meta:slibPlayersWatching()
+	local players = player_GetAll()
+	for i = 1, #players do
+		local ply = players[i]
+		if IsValid(ply) and ply:slibIsViewVector(position) then return true end
+	end
 	return false
 end
 
@@ -274,6 +286,8 @@ function meta:slibIsViewVector(pos, radius)
 end
 
 function meta:slibIsTraceEntity(target, distance, check_view_vector)
+	if not IsValid(target) then return false end
+
 	distance = distance or 1000
 
 	local target_pos = target:LocalToWorld(target:OBBCenter())

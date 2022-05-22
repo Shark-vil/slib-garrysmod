@@ -1,5 +1,5 @@
 slib = slib or {}
-slib.Version = '1.6.3'
+slib.Version = '1.6.4'
 
 local root_directory = 'slib_framework'
 
@@ -10,13 +10,18 @@ include(root_directory .. '/core/base/sh_base.lua')
 
 local script = slib.CreateIncluder(root_directory, '[SLibrary] Script load - {file}')
 
+script:using('core/table/sh_array.lua')
+script:using('core/table/sh_table.lua')
 script:using('core/base/sh_global.lua')
 script:using('core/sh_components.lua')
 script:using('core/sh_storage.lua')
 script:using('core/sh_access.lua')
+script:using('core/sh_override.lua')
+script:using('core/sh_safe_calls.lua')
 
 script:using('core/class/sh_sql_table.lua')
 script:using('core/class/sh_sql.lua')
+script:using('core/class/sh_hook.lua')
 
 script:using('debug/sh_profiler.lua')
 script:using('debug/sh_message.lua')
@@ -78,13 +83,10 @@ script:using('extension/sh_debug.lua')
 script:using('extension/sh_fakeplayer.lua')
 script:using('extension/sh_generators.lua')
 script:using('extension/sh_player.lua')
-script:using('extension/sh_array.lua')
 script:using('extension/sh_sound_duration.lua')
 script:using('extension/sh_file.lua')
 script:using('extension/sh_filestream.lua')
 script:using('extension/sh_time.lua')
-script:using('extension/sh_hook.lua')
-script:using('extension/sh_table.lua')
 script:using('extension/sh_async.lua')
 script:using('extension/sh_entity.lua')
 script:using('extension/sh_hash.lua')

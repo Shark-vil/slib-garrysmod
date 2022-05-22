@@ -67,7 +67,7 @@ snet.Callback('slib_animator_create_clientside_model', function(ply, anim)
 	anim.material = entity:GetMaterial()
 
 	table.insert(slib.Storage.ActiveAnimations, anim)
-	hook.Run('Slib_PrePlayAnimation', anim)
+	hook.Run('slib.PreAnimationPlay', anim)
 end).Validator(SNET_DEEP_ENTITY_VALIDATOR)
 
 snet.Callback('slib_animator_play', function(ply, _animator)
@@ -102,7 +102,7 @@ snet.Callback('slib_animator_play', function(ply, _animator)
 			end
 
 			value.is_played = true
-			hook.Run('Slib_PlayAnimation', value)
+			hook.Run('slib.AnimationPlaying', value)
 
 			local timer_name = 'animator_' .. slib.UUID()
 
