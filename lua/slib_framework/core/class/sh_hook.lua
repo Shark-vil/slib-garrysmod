@@ -56,4 +56,39 @@ function Class.Run(...)
 	return hook.Run(...)
 end
 
+function Class.SetHandler(hook_type, hook_name, handler)
+	if not isstring(hook_type) or not isstring(hook_name) or not isfunction(handler) then
+		return
+	end
+
+	local hooks_data = Class.Get(hook_type)
+	if not istable(hooks_data) then return end
+
+	local hook_function = hooks_data[hook_name]
+	if not isfunction(hook_function) then return end
+
+	hook.Add(hook_type, hook_name, function(...)
+		local args = { handler(...) }
+		if args and #args ~= 0 then return unpack(args) end
+		return hook_function(...)
+	end)
+end
+
+function Class.SetHandlerAll(hook_type, handler)
+	if not isstring(hook_type) or not isfunction(handler) then
+		return
+	end
+
+	local hooks_data = Class.Get(hook_type)
+	if not istable(hooks_data) then return end
+
+	for hook_name, hook_function in pairs(hooks_data) do
+		hook.Add(hook_type, hook_name, function(...)
+			local args = { handler(...) }
+			if args and #args ~= 0 then return unpack(args) end
+			return hook_function(...)
+		end)
+	end
+end
+
 slib.SetComponent('Hook', Class)

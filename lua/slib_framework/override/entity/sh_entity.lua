@@ -1,6 +1,5 @@
 local snet = slib.Components.Network
 local SERVER = SERVER
-local table = table
 local timer = timer
 local istable = istable
 local ipairs = ipairs
@@ -8,13 +7,25 @@ local isfunction = isfunction
 local isentity = isentity
 local IsValid = IsValid
 local isbool = isbool
+local unpack = unpack
 local LocalPlayer = LocalPlayer
 local player_GetAll = player.GetAll
 local util_TraceLine = util.TraceLine
+local table_InsertOrReplace = table.InsertOrReplace
+local table_insert = table.insert
+local table_HasValueBySeq = table.HasValueBySeq
+local timer_Exists = timer.Exists
+local timer_Remove = timer.Remove
+local timer_Create = timer.Create
+local hook_Add = hook.Add
+local hook_Remove = hook.Remove
+local util_CRC = util.CRC
 local math_pi = math.pi
+local ColorAlpha = ColorAlpha
+local RENDERMODE_TRANSCOLOR = RENDERMODE_TRANSCOLOR
+local RealTime = RealTime
 --
 local meta = FindMetaTable('Entity')
-local list_door_classes = {'func_door', 'func_door_rotating', 'prop_door_rotating'}
 
 function meta:slibSetLocalVar(key, value)
 	self.slibLocalVariables = self.slibLocalVariables or {}
@@ -94,29 +105,29 @@ function meta:slibOnInstanceVarCallback(key, func)
 	if not isfunction(func) then return end
 	self.slibVariablesInstanceCallback = self.slibVariablesInstanceCallback or {}
 	self.slibVariablesInstanceCallback[key] = self.slibVariablesInstanceCallback[key] or {}
-	table.insert(self.slibVariablesInstanceCallback[key], func)
+	table_insert(self.slibVariablesInstanceCallback[key], func)
 end
 
 function meta:slibAddSetVarCallback(key, func)
 	if not isfunction(func) then return end
 	self.slibVariablesSetCallback = self.slibVariablesSetCallback or {}
 	self.slibVariablesSetCallback[key] = self.slibVariablesSetCallback[key] or {}
-	table.insert(self.slibVariablesSetCallback[key], func)
+	table_insert(self.slibVariablesSetCallback[key], func)
 end
 
 function meta:slibAddChangeVarCallback(key, func)
 	if not isfunction(func) then return end
 	self.slibVariablesChangeCallback = self.slibVariablesChangeCallback or {}
 	self.slibVariablesChangeCallback[key] = self.slibVariablesChangeCallback[key] or {}
-	table.insert(self.slibVariablesChangeCallback[key], func)
+	table_insert(self.slibVariablesChangeCallback[key], func)
 end
 
 function meta:slibCreateTimer(timer_name, delay, repetitions, func)
-	timer_name = 'SLIB_ENTITY_TIMER_' .. util.CRC(self:EntIndex() .. timer_name)
+	timer_name = 'SLIB_ENTITY_TIMER_' .. util_CRC(self:EntIndex() .. timer_name)
 
-	timer.Create(timer_name, delay, repetitions, function()
+	timer_Create(timer_name, delay, repetitions, function()
 		if not IsValid(self) then
-			timer.Remove(timer_name)
+			timer_Remove(timer_name)
 			return
 		end
 
@@ -125,20 +136,24 @@ function meta:slibCreateTimer(timer_name, delay, repetitions, func)
 end
 
 function meta:slibExistsTimer(timer_name)
-	timer_name = 'SLIB_ENTITY_TIMER_' .. util.CRC(self:EntIndex() .. timer_name)
-	return timer.Exists(timer_name)
+	timer_name = 'SLIB_ENTITY_TIMER_' .. util_CRC(self:EntIndex() .. timer_name)
+	return timer_Exists(timer_name)
 end
 
 function meta:slibRemoveTimer(timer_name)
-	timer_name = 'SLIB_ENTITY_TIMER_' .. util.CRC(self:EntIndex() .. timer_name)
+	timer_name = 'SLIB_ENTITY_TIMER_' .. util_CRC(self:EntIndex() .. timer_name)
 
-	if timer.Exists(timer_name) then
-		timer.Remove(timer_name)
+	if timer_Exists(timer_name) then
+		timer_Remove(timer_name)
 	end
 end
 
-function meta:slibIsDoor()
-	return table.HasValueBySeq(list_door_classes, self:GetClass())
+do
+	local list_door_classes = {'func_door', 'func_door_rotating', 'prop_door_rotating'}
+
+	function meta:slibIsDoor()
+		return table_HasValueBySeq(list_door_classes, self:GetClass())
+	end
 end
 
 function meta:slibDoorIsLocked()
@@ -179,7 +194,7 @@ function meta:slibFadeRemove(minus)
 	minus = minus or 1
 
 	self:SetRenderMode(RENDERMODE_TRANSCOLOR)
-	self:slibCreateTimer('_system_entity_fade_remove_', 0.01, 0, function()
+	self:slibCreateTimer('slib.system.entity.remove.fade', 0.01, 0, function()
 		local color = self:GetColor()
 		if color.a - minus >= 0 then
 			local newColor = ColorAlpha(color, color.a - minus)
@@ -198,9 +213,9 @@ end
 
 function meta:slibAddHook(hook_type, hook_name, func)
 	hook_name = 'slib_system_entity_' .. hook_type .. '_' .. hook_name .. '_' .. tostring(self:EntIndex())
-	hook.Add(hook_type, hook_name, function(...)
+	hook_Add(hook_type, hook_name, function(...)
 		if not IsValid(self) then
-			hook.Remove(hook_type, hook_name)
+			hook_Remove(hook_type, hook_name)
 			return
 		end
 		func(...)
@@ -209,7 +224,7 @@ end
 
 function meta:slibRemoveHook(hook_type, hook_name)
 	hook_name = 'slib_system_entity_' .. hook_type .. '_' .. hook_name .. '_' .. tostring(self:EntIndex())
-	hook.Remove(hook_type, hook_name)
+	hook_Remove(hook_type, hook_name)
 end
 
 function meta:slibIsSingleCall()
@@ -218,16 +233,15 @@ function meta:slibIsSingleCall()
 	return delay < RealTime()
 end
 
-function snet.ClientRPC(_ent, function_name, ...)
+function snet.ClientRPC(ent, function_name, ...)
 	if not SERVER then return end
-
-	local ent = _ent
 
 	if not isentity(ent) and ent.Weapon then
 		ent = ent.Weapon
 	end
 
 	if not ent or not IsValid(ent) then return end
+
 	local ply
 	local owner = ent:GetOwner()
 
@@ -314,10 +328,8 @@ function meta:slibIsTraceEntity(target, distance, check_view_vector)
 	return tr.Hit and tr.Entity == target
 end
 
-function snet.ServerRPC(_ent, function_name, ...)
+function snet.ServerRPC(ent, function_name, ...)
 	if not CLIENT then return end
-
-	local ent = _ent
 
 	if not isentity(ent) and ent.Weapon then
 		ent = ent.Weapon
@@ -343,4 +355,85 @@ end
 function meta:slibPredictedServerRPC(function_name, ...)
 	if not IsFirstTimePredicted() then return end
 	snet.ServerRPC(self, function_name, ...)
+end
+
+do
+	local network_vars_types = {
+		[1] = 'SetNWAngle',
+		[2] = 'SetNWBool',
+		[3] = 'SetNWEntity',
+		[4] = 'SetNWFloat',
+		[5] = 'SetNWInt',
+		[6] = 'SetNWString',
+		[7] = 'SetNWVarProxy',
+		[8] = 'SetNWVector'
+	}
+
+	local network_vars_types_comparison = {
+		['angle'] = network_vars_types[1],
+		['ang'] = network_vars_types[1],
+		['bool'] = network_vars_types[2],
+		['boolean'] = network_vars_types[2],
+		['entity'] = network_vars_types[3],
+		['ent'] = network_vars_types[3],
+		['float'] = network_vars_types[4],
+		['num'] = network_vars_types[4],
+		['number'] = network_vars_types[4],
+		['int'] = network_vars_types[5],
+		['integer'] = network_vars_types[5],
+		['string'] = network_vars_types[6],
+		['str'] = network_vars_types[6],
+		['text'] = network_vars_types[6],
+		['varproxy'] = network_vars_types[7],
+		['proxy'] = network_vars_types[7],
+		['vector'] = network_vars_types[8],
+		['vec'] = network_vars_types[8],
+	}
+
+	function meta:slibSetNWListener(nw_type, listener_name, func, unique_id)
+		local nw_listener_type = network_vars_types_comparison[nw_type]
+		if not nw_listener_type or not isfunction(func) then return end
+
+		self.slibSetNWVarsListeners = self.slibSetNWVarsListeners or {}
+		self.slibSetNWVarsListeners[nw_listener_type] = self.slibSetNWVarsListeners[nw_listener_type] or {}
+
+		local listeners = self.slibSetNWVarsListeners[nw_listener_type]
+		listeners[listener_name] = listeners[listener_name] or {}
+
+		if not unique_id then
+			table_insert(listeners[listener_name], { id = slib.UUID(), func = func })
+		else
+			table_InsertOrReplace(listeners[listener_name], { id = unique_id, func = func }, function(_, value)
+				return value.id == unique_id
+			end)
+		end
+	end
+
+	for i = 1, #network_vars_types do
+		local nw_listener_type = network_vars_types[i]
+		local original_function = meta[nw_listener_type]
+		if not original_function or not isfunction(original_function) then continue end
+
+		meta[nw_listener_type] = function(self, key, ...)
+			local listeners = self.slibSetNWVarsListeners
+			if listeners and listeners[nw_listener_type] and listeners[nw_listener_type][key] then
+				local args = { ... }
+				local def = slib.def
+				local error = slib.Error
+				local handlers = listeners[nw_listener_type][key]
+
+				for handler_index = 1, #handlers do
+					local handler = handlers[handler_index]
+					if handler and handler.func then
+						def({
+							try = function() handler.func(unpack(args)) end,
+							catch = function(error_message) error(error_message) end,
+						})
+					end
+				end
+			end
+
+			return original_function(self, key, ...)
+		end
+	end
 end
