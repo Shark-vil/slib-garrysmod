@@ -3,7 +3,6 @@ local math_sqrt = math.sqrt
 local string_Trim = string.Trim
 local tostring = tostring
 local math_random = math.random
-local type = type
 local table_Copy = table.Copy
 local istable = istable
 local engine_GetAddons = engine.GetAddons
@@ -94,9 +93,13 @@ function slib.magnitude(vec)
 	return magnitude
 end
 
-function slib.StringLinePairs(text)
-	if type(text) ~= 'string' then
+function slib.StringLinePairs(text, start_index)
+	if not text or not isstring(text) then
 		text = tostring(text)
+	end
+
+	if start_index and isnumber(start_index) then
+		start_index = start_index
 	end
 
 	local line_index = 1
@@ -114,6 +117,14 @@ function slib.StringLinePairs(text)
 	end
 
 	local parse_index = 0
+
+	if start_index then
+		parse_index = start_index - 1
+		if parse_index < 0 then
+			parse_index = 0
+		end
+	end
+
 	return function()
 		parse_index = parse_index + 1
 		if parse_index <= line_index and text_lines[parse_index] ~= nil then
