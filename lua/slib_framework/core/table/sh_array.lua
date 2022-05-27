@@ -3,6 +3,7 @@ local next = next
 local math_random = math.random
 local table_remove = table.remove
 local table_Random = table.Random
+local table_insert = table.insert
 --
 
 function table.isArray(t)
@@ -156,4 +157,30 @@ function table.Combine(dest, source)
 	end
 
 	return dest
+end
+
+function table.InsertNoValue(t, v, condition)
+	local index
+
+	if condition then
+		index = table.WhereFindBySeq(t, condition)
+	else
+		index = table.FindBySeq(t, v)
+	end
+
+	if index ~= -1 then
+		return index, false
+	end
+
+	return table_insert(t, v), true
+end
+
+function table.InsertOrReplace(t, v, condition)
+	local index, exists = table.InsertNoValue(t, v, condition)
+
+	if exists then
+		t[index] = v
+	end
+
+	return index
 end

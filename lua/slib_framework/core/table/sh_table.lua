@@ -1,6 +1,5 @@
 local type = type
 local next = next
-local table_insert = table.insert
 local table_remove = table.remove
 local math_random = math.random
 --
@@ -129,9 +128,4 @@ end
 function table.RemoveFirstValue(t)
 	if #t == 0 then return end
 	table_remove(t, 1)
-end
-
-function table.InsertNoValue(t, v)
-	if table.HasValueBySeq(t, v) then return end
-	return table_insert(t, v)
 end
