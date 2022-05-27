@@ -99,7 +99,7 @@ function slib.Animator.Play(name, sequence, entity, settings, data)
 			local timer_name = 'animator_' .. animator:EntIndex()
 			local timer_duration = sequence_duration + .1
 
-			animator:slibCreateTimer(timer_name, timer_duration, 1, function()
+			animator:slibCreateTimer(timer_name, timer_duration, 0, function()
 				if settings.loop then
 					anim_info.stop_time = CurTime() + sequence_duration
 				else
