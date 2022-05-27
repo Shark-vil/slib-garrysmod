@@ -45,7 +45,7 @@ end
 
 function slib.DebugLog(...)
 	if not slib.CvarCheckValue('slib_debug', 1) then return end
-	ConsoleMessage('DEBUG LOG', 'error', ...)
+	ConsoleMessage('DEBUG LOG', 'log', ...)
 end
 
 function slib.DebugWarning(...)
