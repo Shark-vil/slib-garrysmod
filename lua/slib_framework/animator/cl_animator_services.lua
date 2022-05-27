@@ -13,7 +13,7 @@ hook.Add('PreDrawOpaqueRenderables', 'Slib.Animator.DrawController', function()
 		local entity = value.entity
 		if not IsValid(entity) or not entity:IsPlayer() then continue end
 
-		if value.settings.no_draw and entity == LocalPlayer() and not entity:slibHasUseAnotherCamera() then
+		if value.settings.no_draw or (entity == LocalPlayer() and not entity:slibHasUseAnotherCamera()) then
 			continue
 		end
 
