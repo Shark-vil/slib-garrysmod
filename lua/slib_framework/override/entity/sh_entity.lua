@@ -17,6 +17,7 @@ local table_HasValueBySeq = table.HasValueBySeq
 local timer_Exists = timer.Exists
 local timer_Remove = timer.Remove
 local timer_Create = timer.Create
+local timer_Simple = timer.Simple
 local hook_Add = hook.Add
 local hook_Remove = hook.Remove
 local util_CRC = util.CRC
@@ -131,6 +132,13 @@ function meta:slibCreateTimer(timer_name, delay, repetitions, func)
 			return
 		end
 
+		func(self)
+	end)
+end
+
+function meta:slibSimpleTimer(delay, func)
+	timer_Simple(delay, function()
+		if not IsValid(self) then return end
 		func(self)
 	end)
 end
