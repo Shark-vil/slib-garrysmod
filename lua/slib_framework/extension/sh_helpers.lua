@@ -7,6 +7,7 @@ local table_Copy = table.Copy
 local istable = istable
 local engine_GetAddons = engine.GetAddons
 local ipairs = ipairs
+local isfunction = isfunction
 --
 local call_markers = {}
 local language_codes = {
@@ -180,4 +181,14 @@ function slib.GetAddon(wsid)
 			return addon
 		end
 	end
+end
+
+function slib.ClientAction(func)
+	if SERVER or not isfunction(func) then return end
+	func()
+end
+
+function slib.ServerAction(func)
+	if CLIENT or not isfunction(func) then return end
+	func()
 end
