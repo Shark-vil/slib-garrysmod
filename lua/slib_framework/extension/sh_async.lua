@@ -40,14 +40,6 @@ local function async_execute(obj)
 	end
 end
 
--- hook.Add('Think', 'slib.system.async_process_handler', function()
--- 	for i = #registred_async_process, 1, -1 do
--- 		local obj = registred_async_process[i]
--- 		if not obj then continue end
--- 		async_execute(obj)
--- 	end
--- end)
-
 do
 	local current_index = 0
 
