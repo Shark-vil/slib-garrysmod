@@ -34,12 +34,12 @@ end
 
 function spawnmenu.AddContentType(name, constructor)
 	spawnmenu_AddContentType(name, function(container, obj)
-		local new_icon = hook.Run('PreSlibSpawnmenuAddContentType', name, container, obj)
+		local new_icon = hook.Run('slib.PreSpawnmenuAddContentType', name, container, obj)
 		if new_icon then return new_icon end
 
 		local icon = constructor(container, obj)
 
-		new_icon = hook.Run('PostSlibSpawnmenuAddContentType', name, icon, container, obj)
+		new_icon = hook.Run('slib.PostSpawnmenuAddContentType', name, icon, container, obj)
 		if new_icon then return new_icon end
 
 		return icon
@@ -56,7 +56,7 @@ function DermaMenu(keepOpen, parent)
 
 	local menu = original_DermaMenu(keepOpen, parent)
 
-	hook.Run('SlibCreateDermaMenu', menu, keepOpen, parent, caller_script_path)
+	hook.Run('slib.CreateDermaMenu', menu, keepOpen, parent, caller_script_path)
 
 	return menu
 end
