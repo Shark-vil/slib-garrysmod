@@ -20,3 +20,8 @@ snet = slib.Components.Network
 sgui = slib.Components.GUI
 scvar = slib.Components.GlobalCvar
 scommand = slib.Components.GlobalCommand
+
+-- slib.Network = slib.Components.Network
+-- slib.GUI = slib.Components.GUI
+-- slib.SharedCvars = slib.Components.GlobalCvar
+-- slib.SharedCommands = slib.Components.GlobalCommand
