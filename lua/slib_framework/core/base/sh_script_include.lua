@@ -81,6 +81,11 @@ function slib.usingDirectory(root_scripts_directory_path, loading_text, disable_
 	end
 
 	for _, directory_path in ipairs(directories) do
-		slib.usingDirectory(root_scripts_directory_path .. '/' .. directory_path, loading_text)
+		local sub_return_values = slib.usingDirectory(root_scripts_directory_path .. '/' .. directory_path, loading_text)
+		for key, table_value in pairs(sub_return_values) do
+			table.Add(return_values[key], table_value)
+		end
 	end
+
+	return return_values
 end
