@@ -75,9 +75,30 @@ function slib.usingDirectory(root_scripts_directory_path, loading_text, disable_
 		['sh'] = {},
 	}
 
-	for _, fileData in pairs(files_list) do
-		local return_value = inc:using(root_scripts_directory_path .. '/' .. fileData.file_path, disable_auto_include)
-		table.insert(return_values[fileData.file_type], return_value)
+	for i = #files_list, 1, -1 do
+		local fileData = files_list[i]
+		if fileData.file_type == 'sh' then
+			local return_value = inc:using(root_scripts_directory_path .. '/' .. fileData.file_path, disable_auto_include)
+			table.insert(return_values[fileData.file_type], return_value)
+			table.remove(files_list, i)
+		end
+	end
+
+	for i = #files_list, 1, -1 do
+		local fileData = files_list[i]
+		if fileData.file_type == 'sv' then
+			local return_value = inc:using(root_scripts_directory_path .. '/' .. fileData.file_path, disable_auto_include)
+			table.insert(return_values[fileData.file_type], return_value)
+			table.remove(files_list, i)
+		end
+	end
+
+	for i = #files_list, 1, -1 do
+		local fileData = files_list[i]
+		if fileData.file_type == 'cl' then
+			local return_value = inc:using(root_scripts_directory_path .. '/' .. fileData.file_path, disable_auto_include)
+			table.insert(return_values[fileData.file_type], return_value)
+		end
 	end
 
 	for _, directory_path in ipairs(directories) do
