@@ -84,6 +84,11 @@ function slib.usingDirectory(root_scripts_directory_path, loading_text, disable_
 			inc:using(root_scripts_directory_path .. '/' .. fileData.file_path, disable_auto_include)
 			table.remove(files_list, i)
 		end
+	local return_values = {
+		['cl'] = {},
+		['sv'] = {},
+		['sh'] = {},
+	}
 	end
 
 	for i = #files_list, 1, -1 do
