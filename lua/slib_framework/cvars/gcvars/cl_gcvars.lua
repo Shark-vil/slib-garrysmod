@@ -46,10 +46,10 @@ hook.Add('slib.OnChangeGlobalCvar', 'slib.OnChangeByClient', function(cvar_name,
 		return
 	end
 
-	gcvars.Update(convar_name)
+	gcvars.Update(cvar_name)
 
 	if cvar_data.send_client then
-		snet.InvokeServer('slib_gcvars_change_from_server', convar_name, value_new)
+		snet.InvokeServer('slib_gcvars_change_from_server', cvar_name, value_new)
 	end
 end)
 
