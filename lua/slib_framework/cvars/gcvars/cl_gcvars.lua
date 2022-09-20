@@ -18,6 +18,7 @@ local function IsLock(cvar_name)
 end
 
 local function ChangeValue(cvar_name, value)
+	if not isstring(cvar_name) or value == nil then return end
 	LockCvar(cvar_name)
 	RunConsoleCommand(cvar_name, value)
 	gcvars.Update(cvar_name, value)
@@ -48,9 +49,7 @@ hook.Add('slib.OnChangeGlobalCvar', 'slib.OnChangeByClient', function(cvar_name,
 
 	gcvars.Update(cvar_name)
 
-	if cvar_data.send_client then
-		snet.InvokeServer('slib_gcvars_change_from_server', cvar_name, value_new)
-	end
+	snet.InvokeServer('slib_gcvars_change_from_server', cvar_name, new_value)
 end)
 
 snet.RegisterCallback('slib_gcvars_client_player_sync', function(_, sync_data)
@@ -59,16 +58,17 @@ snet.RegisterCallback('slib_gcvars_client_player_sync', function(_, sync_data)
 	end
 end)
 
-snet.RegisterCallback('slib_gcvars_server_update_success', function(_, cvar_name, value, is_server)
+snet.RegisterCallback('slib_gcvars_server_update_success', function(_, cvar_name, value)
 	ChangeValue(cvar_name, value)
+
+	cvar_name = tostring(cvar_name)
+	value = tostring(value)
 
 	slib.DebugLog('[SUCCESS] Server update cvar - ', cvar_name, ' (', value, ')')
 
-	if is_server then
-		local ply = LocalPlayer()
-		if not ply:IsAdmin() and not ply:IsSuperAdmin() then
-			return
-		end
+	local cvar_data = slib.Storage.GlobalCvar[cvar_name]
+	if not cvar_data or not access.IsValid(LocalPlayer(), cvar_data.access) then
+		return
 	end
 
 	local text = slib.language({
@@ -83,6 +83,9 @@ end)
 
 snet.RegisterCallback('slib_gcvars_server_update_error', function(_, cvar_name, value)
 	ChangeValue(cvar_name, value)
+
+	cvar_name = tostring(cvar_name)
+	value = tostring(value)
 
 	slib.DebugLog('[ERROR] Server update cvar - ', cvar_name, ' (', value, ')')
 
