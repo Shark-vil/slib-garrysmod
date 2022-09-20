@@ -19,7 +19,7 @@ snet.Callback('slib_gcvars_change_from_server', function(ply, cvar_name, value)
 		cvar_data.send_server = false
 
 		RunConsoleCommand(cvar_name, value)
-		gcvars.Update(cvar_name)
+		gcvars.Update(cvar_name, value)
 
 		timer.Simple(.5, function()
 			if cvar_data.send_server then return end
@@ -30,4 +30,19 @@ snet.Callback('slib_gcvars_change_from_server', function(ply, cvar_name, value)
 	else
 		snet.Invoke('slib_gcvars_server_update_error', ply, cvar_name, cvar_data.value)
 	end
+end)
+
+hook.Add('slib.FirstPlayerSpawn', 'slib.UpdateGlobalCvarsFromClient', function(ply)
+	gcvars.Update()
+
+	local sync_data = {}
+
+	for cvar_name, cvar_data in pairs(slib.Storage.GlobalCvar) do
+		table.insert(sync_data, {
+			cvar_name = cvar_name,
+			cvar_value = cvar_data.value
+		})
+	end
+
+	snet.Invoke('slib_gcvars_client_player_sync', ply, sync_data)
 end)

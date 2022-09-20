@@ -8,10 +8,10 @@ local pairs = pairs
 local istable = istable
 --
 
-function gcvars.Update(cvar_name)
+function gcvars.Update(cvar_name, value)
 	if cvar_name and slib.Storage.GlobalCvar[cvar_name] then
 		local data = slib.Storage.GlobalCvar[cvar_name]
-		data.value = GetConVar(cvar_name):GetString()
+		data.value = value ~= nil and tostring(value) or GetConVar(cvar_name):GetString()
 	else
 		for cvar_name_key, _ in pairs(slib.Storage.GlobalCvar) do
 			gcvars.Update(cvar_name_key)
@@ -85,7 +85,7 @@ function gcvars.Register(cvar_name, value, flag, helptext, min, max, access_data
 				if SERVER and cvar_data.send_server then
 					slib.DebugLog('Change cvaer on serverside. Update cvar - ', cvar_name, ' (', value, ')')
 
-					gcvars.Update(cvar_name)
+					gcvars.Update(cvar_name, new_value)
 					snet.InvokeAll('slib_gcvars_server_update_success', cvar_name, new_value, true)
 				end
 

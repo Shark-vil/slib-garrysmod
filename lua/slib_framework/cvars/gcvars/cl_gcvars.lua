@@ -20,6 +20,7 @@ end
 local function ChangeValue(cvar_name, value)
 	LockCvar(cvar_name)
 	RunConsoleCommand(cvar_name, value)
+	gcvars.Update(cvar_name, value)
 end
 
 hook.Add('slib.OnChangeGlobalCvar', 'slib.OnChangeByClient', function(cvar_name, old_value, new_value)
@@ -52,8 +53,10 @@ hook.Add('slib.OnChangeGlobalCvar', 'slib.OnChangeByClient', function(cvar_name,
 	end
 end)
 
-hook.Add('slib.FirstPlayerSpawn', 'slib.UpdateGlobalCvarsFromClient', function(ply)
-	gcvars.Update()
+snet.RegisterCallback('slib_gcvars_client_player_sync', function(_, sync_data)
+	for _, v in ipairs(sync_data) do
+		ChangeValue(v.cvar_name, v.cvar_value)
+	end
 end)
 
 snet.RegisterCallback('slib_gcvars_server_update_success', function(_, cvar_name, value, is_server)
