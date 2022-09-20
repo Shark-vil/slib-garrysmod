@@ -20,15 +20,17 @@ local function RequestHandler(backward, id, name, ply, ...)
 	local data = snet.GetCallback(name)
 	if not data then return false end
 
-	if data.isAdmin and (not ply:IsAdmin() and not ply:IsSuperAdmin()) then return false end
+	if data.isAdmin and (not ply:IsAdmin() and not ply:IsSuperAdmin()) then
+		return false
+	end
 
 	if data.limits then
-		local isExist = false
+		local is_exists = false
 
 		for i = #REQUEST_LIMITS_LIST, 1, -1 do
 			local value = REQUEST_LIMITS_LIST[i]
 			if value and value.ply == ply and value.name == name then
-				isExist = true
+				is_exists = true
 
 				if value.nextTime <= RealTime() then
 					table_remove(REQUEST_LIMITS_LIST, i)
@@ -46,7 +48,7 @@ local function RequestHandler(backward, id, name, ply, ...)
 			end
 		end
 
-		if not isExist then
+		if not is_exists then
 			REQUEST_LIMITS_LIST[#REQUEST_LIMITS_LIST + 1] = {
 				ply = ply,
 				name = name,
@@ -134,7 +136,14 @@ local function NetReceiveHandler(len, ply)
 	local progress_text = net.ReadString()
 
 	if package_count == 1 then
-		snet.UploadProgressUpdate(id, progress_text, package_index, package_count, ply)
+		snet.UploadProgressUpdate(
+			id,
+			progress_text,
+			package_index,
+			package_count,
+			ply
+		)
+
 		local vars = snet_Deserialize(util_Decompress(compressed_data))
 		snet.execute(backward, id, name, ply, unpack(vars))
 		return
@@ -144,7 +153,15 @@ local function NetReceiveHandler(len, ply)
 	if request then
 		request.package_index = package_index
 		request.data = request.data .. util_Decompress(compressed_data)
-		snet.UploadProgressUpdate(id, request.progress_text, request.package_index, request.package_count, ply)
+
+		snet.UploadProgressUpdate(
+			id,
+			request.progress_text,
+			request.package_index,
+			request.package_count,
+			ply
+		)
+
 		if request.package_index == request.package_count then
 			local vars = snet_Deserialize(request.data)
 			snet.execute(request.backward, request.id, request.name, ply, unpack(vars))
@@ -154,7 +171,14 @@ local function NetReceiveHandler(len, ply)
 			request.hold_time = RealTime() + 10
 		end
 	else
-		snet.UploadProgressUpdate(id, progress_text, package_index, package_count, ply)
+		snet.UploadProgressUpdate(
+			id,
+			progress_text,
+			package_index,
+			package_count,
+			ply
+		)
+
 		REQUEST_STORAGE[#REQUEST_STORAGE + 1] = {
 			id = id,
 			name = name,
@@ -167,17 +191,9 @@ local function NetReceiveHandler(len, ply)
 		}
 	end
 
-	if SERVER then
-		net.Start('cl_network_get_next_package')
-	else
-		net.Start('sv_network_get_next_package')
-	end
+	net.Start(SERVER and 'cl_network_get_next_package' or 'sv_network_get_next_package')
 	net.WriteString(id)
-	if SERVER then
-		net.Send(ply)
-	else
-		net.SendToServer()
-	end
+	if SERVER then net.Send(ply) else net.SendToServer() end
 end
 
 if SERVER then
@@ -189,7 +205,13 @@ else
 		local progress_text = net.ReadString()
 		local package_index = net.ReadUInt(12)
 		local package_count = net.ReadUInt(12)
-		snet.UploadProgressUpdate(id, progress_text, package_index, package_count)
+
+		snet.UploadProgressUpdate(
+			id,
+			progress_text,
+			package_index,
+			package_count
+		)
 	end)
 end
 
