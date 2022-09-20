@@ -67,8 +67,6 @@ function gcvars.Register(cvar_name, value, flag, helptext, min, max, access_data
 			min = min,
 			max = max,
 			access = access_data and AccessComponent:Make(access_data) or access_data,
-			send_client = true,
-			send_server = true,
 		}
 
 		slib.DebugLog('Register global cvar - ', cvar_name)
@@ -82,11 +80,11 @@ function gcvars.Register(cvar_name, value, flag, helptext, min, max, access_data
 			timer.Remove('slib.SystemTimer.Cvars.OnChange.' .. cvar_name)
 
 			timer.Create('slib.SystemTimer.Cvars.OnChange.' .. cvar_name, 0.5, 1, function()
-				if SERVER and cvar_data.send_server then
+				if SERVER then
 					slib.DebugLog('Change cvaer on serverside. Update cvar - ', cvar_name, ' (', value, ')')
 
 					gcvars.Update(cvar_name, new_value)
-					snet.InvokeAll('slib_gcvars_server_update_success', cvar_name, new_value, true)
+					snet.InvokeAll('slib_gcvars_server_update_success', cvar_name, new_value)
 				end
 
 				hook.Run('slib.OnChangeGlobalCvar', cvar_name, old_value, new_value)
