@@ -36,14 +36,14 @@ function gcvars.Register(cvar_name, value, flag, helptext, min, max, access_data
 			if isnumber(flag) then
 				new_flag = { flag }
 			elseif flag and not istable(flag) then
-				new_flag = nil
+				new_flag = FCVAR_NONE
 			elseif istable(flag) then
 				if not table.IsArray(flag) then
-					new_flag = nil
+					new_flag = FCVAR_NONE
 				else
 					for _, v in pairs(flag) do
 						if not isnumber(v) then
-							new_flag = nil
+							new_flag = FCVAR_NONE
 							break
 						end
 					end
@@ -53,8 +53,8 @@ function gcvars.Register(cvar_name, value, flag, helptext, min, max, access_data
 			flag = new_flag
 		end
 
-		if not table.HasValueBySeq(flag, FCVAR_REPLICATED) then
-			table.insert(flag, FCVAR_REPLICATED)
+		if istable(flag) and table.HasValueBySeq(flag, FCVAR_REPLICATED) then
+			table.RemoveValueBySeq(flag, FCVAR_REPLICATED)
 		end
 
 		helptext = helptext or ''
