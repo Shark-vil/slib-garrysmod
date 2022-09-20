@@ -57,7 +57,7 @@ do
 
 		async_execute(obj)
 
-		slib.DebugLog('Current asynchronous process - ', obj.id, ' [', obj.uuid, ']')
+		-- slib.DebugLog('Current asynchronous process - ', obj.id, ' [', obj.uuid, ']')
 	end)
 end
 
