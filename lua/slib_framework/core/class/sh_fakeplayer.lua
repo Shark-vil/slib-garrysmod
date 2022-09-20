@@ -26,4 +26,4 @@ function Class:Spawn(name, pos, ang)
 	return ent
 end
 
-slib.Components.FakePlayer = Class
+slib.SetComponent('FakePlayer', Class)

@@ -1,5 +1,18 @@
+local player_GetHumans = player.GetHumans
+local IsValid = IsValid
+local isfunction = isfunction
+local table_WhereFindBySeq = table.WhereFindBySeq
+local table_remove = table.remove
+local table_insert = table.insert
+local util_IsValidModel = util.IsValidModel
+local hook_Run = hook.Run
+local timer_Start = timer.Start
+local timer_Stop = timer.Stop
+local ents_Create = ents.Create
+--
+
 function slib.Animator.Stop(entity)
-	local _, active_animation = table.WhereFindBySeq(slib.Storage.ActiveAnimations, function(_, v)
+	local _, active_animation = table_WhereFindBySeq(slib.Storage.ActiveAnimations, function(_, v)
 		return IsValid(v.animator) and v.entity == entity
 	end)
 
@@ -13,9 +26,26 @@ end
 
 function slib.Animator.Play(name, sequence, entity, settings, data)
 	if not name or not IsValid(entity) then return false end
+	if entity:IsDormant() then return false end
+
+	local players = player_GetHumans()
+	local players_count = #players
+	if players_count == 0 then return end
+
+	local is_pvs = false
+
+	for i = 1, players_count do
+		local ply = players[i]
+		if IsValid(ply) and entity:TestPVS(ply) then
+			is_pvs = true
+			break
+		end
+	end
+
+	if not is_pvs then return false end
 
 	local animation_data = slib.Animator.GetAnimation(name)
-	if util.IsValidModel(name) then
+	if util_IsValidModel(name) then
 		animation_data = {
 			name = name,
 			model = name,
@@ -29,9 +59,9 @@ function slib.Animator.Play(name, sequence, entity, settings, data)
 
 	slib.Animator.Stop(entity)
 
-	timer.Stop('SlibraryAnimatorGarbage')
+	timer_Stop('SlibraryAnimatorGarbage')
 
-	local animator = ents.Create('prop_dynamic')
+	local animator = ents_Create('prop_dynamic')
 	animator:SetModel(animation_data.model)
 	-- Invisible Material - https://steamcommunity.com/workshop/filedetails/?id=576040807
 	animator:SetMaterial('invisible')
@@ -90,9 +120,9 @@ function slib.Animator.Play(name, sequence, entity, settings, data)
 		data = data,
 	}
 
-	table.insert(slib.Storage.ActiveAnimations, anim_info)
-	hook.Run('slib.PreAnimationPlay', anim_info)
-	timer.Start('SlibraryAnimatorGarbage')
+	table_insert(slib.Storage.ActiveAnimations, anim_info)
+	hook_Run('slib.PreAnimationPlay', anim_info)
+	timer_Start('SlibraryAnimatorGarbage')
 
 	snet.Request('slib_animator_create_clientside_model', anim_info)
 		.Complete(function()
@@ -103,26 +133,26 @@ function slib.Animator.Play(name, sequence, entity, settings, data)
 				if settings.loop then
 					anim_info.stop_time = CurTime() + sequence_duration
 				else
-					local index, _ = table.WhereFindBySeq(slib.Storage.ActiveAnimations, function(_, v)
+					local index, _ = table_WhereFindBySeq(slib.Storage.ActiveAnimations, function(_, v)
 						return v.entity == entity
 					end)
 
 					if index ~= -1 then
-						table.remove(slib.Storage.ActiveAnimations, index)
+						table_remove(slib.Storage.ActiveAnimations, index)
 					end
 
 					animator:Remove()
 				end
 			end)
 
-			local _, active_animation = table.WhereFindBySeq(slib.Storage.ActiveAnimations, function(_, v)
+			local _, active_animation = table_WhereFindBySeq(slib.Storage.ActiveAnimations, function(_, v)
 				return v.animator == animator
 			end)
 
 			if active_animation and IsValid(animator) then
 				active_animation.is_played = true
 				snet.InvokeAll('slib_animator_play', animator)
-				hook.Run('slib.AnimationPlaying', anim_info)
+				hook_Run('slib.AnimationPlaying', anim_info)
 			end
 		end).InvokeAll()
 

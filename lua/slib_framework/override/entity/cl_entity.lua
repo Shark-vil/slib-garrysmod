@@ -15,13 +15,17 @@ end).Validator(SNET_ENTITY_VALIDATOR)
 snet.RegisterCallback('snet_entity_tool_call_client_rpc', function(ply, ent, tool_mode, func_name, ...)
 	if not ent or not IsValid(ent) or ent:GetClass() ~= 'gmod_tool' then return end
 
-	local tool = ply:GetTool()
-	if tool:GetMode() ~= tool_mode then return end
+	local args = { ... }
 
-	local func = tool[func_name]
-	if not func then return end
+	timer.Simple(func_name == 'Deploy' and .5 or .1, function()
+		local tool = ply:GetTool()
+		if not tool or tool:GetMode() ~= tool_mode then return end
 
-	func(tool, ...)
+		local func = tool[func_name]
+		if not func then return end
+
+		func(tool, unpack(args))
+	end)
 end)
 
 snet.Callback('snet_entity_call_client_rpc', function(ply, ent, func_name, ...)

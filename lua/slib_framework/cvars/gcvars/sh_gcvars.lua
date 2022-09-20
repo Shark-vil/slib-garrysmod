@@ -1,13 +1,17 @@
 local gcvars = slib.Components.GlobalCvar
 local AccessComponent = slib.Components.Access
+local isnumber = isnumber
+local isbool = isbool
+local isstring = isstring
+local GetConVar = GetConVar
+local pairs = pairs
+local istable = istable
+--
 
 function gcvars.Update(cvar_name)
-	if cvar_name then
+	if cvar_name and slib.Storage.GlobalCvar[cvar_name] then
 		local data = slib.Storage.GlobalCvar[cvar_name]
-
-		if data then
-			data.value = GetConVar(cvar_name):GetString()
-		end
+		data.value = GetConVar(cvar_name):GetString()
 	else
 		for cvar_name_key, _ in pairs(slib.Storage.GlobalCvar) do
 			gcvars.Update(cvar_name_key)
@@ -21,13 +25,38 @@ function gcvars.Register(cvar_name, value, flag, helptext, min, max, access_data
 	function public.Access(cvar_access_data)
 		if not slib.Storage.GlobalCvar[cvar_name] or not cvar_access_data then return end
 		slib.Storage.GlobalCvar[cvar_name].access = AccessComponent:Make(cvar_access_data)
-
-		-- slib.DebugLog('Update global cvar access - ',
-		-- 	cvar_name, ', ', table.ToString(slib.Storage.GlobalCvar[cvar_name]))
 	end
 
 	if slib.Storage.GlobalCvar[cvar_name] == nil then
 		if not isnumber(value) and not isbool(value) and not isstring(value) then return end
+
+		do
+			local new_flag = flag
+
+			if isnumber(flag) then
+				new_flag = { flag }
+			elseif flag and not istable(flag) then
+				new_flag = nil
+			elseif istable(flag) then
+				if not table.IsArray(flag) then
+					new_flag = nil
+				else
+					for _, v in pairs(flag) do
+						if not isnumber(v) then
+							new_flag = nil
+							break
+						end
+					end
+				end
+			end
+
+			flag = new_flag
+		end
+
+		if not table.HasValueBySeq(flag, FCVAR_REPLICATED) then
+			table.insert(flag, FCVAR_REPLICATED)
+		end
+
 		helptext = helptext or ''
 		CreateConVar(cvar_name, value, flag, helptext, min, max)
 
@@ -37,23 +66,32 @@ function gcvars.Register(cvar_name, value, flag, helptext, min, max, access_data
 			helptext = helptext,
 			min = min,
 			max = max,
-			access = access_data and AccessComponent:Make(access_data) or access_data
+			access = access_data and AccessComponent:Make(access_data) or access_data,
+			send_client = true,
+			send_server = true,
 		}
 
-		-- slib.DebugLog('Register global cvar - ',
-		-- 	cvar_name, ', ', table.ToString(slib.Storage.GlobalCvar[cvar_name]))
+		slib.DebugLog('Register global cvar - ', cvar_name)
 
-		if SERVER then
-			cvars.AddChangeCallback(cvar_name, function(_, old_value, new_value)
-				if old_value == new_value then return end
-				timer.Remove('Slib_GCvars_OnChange_' .. cvar_name)
+		cvars.AddChangeCallback(cvar_name, function(_, old_value, new_value)
+			if old_value == new_value then return end
 
-				timer.Create('Slib_GCvars_OnChange_' .. cvar_name, 0.5, 1, function()
+			local cvar_data = slib.Storage.GlobalCvar[cvar_name]
+			if not cvar_data then return end
+
+			timer.Remove('slib.SystemTimer.Cvars.OnChange.' .. cvar_name)
+
+			timer.Create('slib.SystemTimer.Cvars.OnChange.' .. cvar_name, 0.5, 1, function()
+				if SERVER and cvar_data.send_server then
+					slib.DebugLog('Change cvaer on serverside. Update cvar - ', cvar_name, ' (', value, ')')
+
 					gcvars.Update(cvar_name)
-					snet.InvokeAll('slib_gcvars_change_from_client', cvar_name, new_value)
-				end)
-			end, 'Slib_GCvars_Server_OnChange_' .. cvar_name)
-		end
+					snet.InvokeAll('slib_gcvars_server_update_success', cvar_name, new_value, true)
+				end
+
+				hook.Run('slib.OnChangeGlobalCvar', cvar_name, old_value, new_value)
+			end)
+		end, 'slib_GlobalCvars_OnChange_' .. cvar_name)
 	end
 
 	return public

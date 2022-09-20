@@ -1,3 +1,7 @@
+local IsValid = IsValid
+local ClientsideModel = ClientsideModel
+--
+
 snet.RegisterCallback('slib_animator_destroyed', function(_, ent)
 	slib.Animator.ClearInactive(ent)
 end).Validator(SNET_ENTITY_VALIDATOR)
@@ -37,7 +41,7 @@ snet.Callback('slib_animator_create_clientside_model', function(ply, anim)
 		if IsValid(weapon) and r_hand then
 			local b_pos, b_ang = animator:GetBonePosition(r_hand)
 			local world_weapon_model = weapon:GetWeaponWorldModel()
-			if world_weapon_model then
+			if b_pos and b_ang and world_weapon_model then
 				weapon_model = ClientsideModel(world_weapon_model, RENDERGROUP_OPAQUE)
 				if IsValid(weapon_model) then
 					weapon_model:SetPos(b_pos)

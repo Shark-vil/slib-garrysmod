@@ -142,7 +142,9 @@ function slib.Deserialize(json_datatable)
 		getdatatable = util_JSONToTable(json_datatable)
 	elseif t_type == 'table' then
 		getdatatable = json_datatable
-	else
+	end
+
+	if not getdatatable then
 		return datatable
 	end
 

@@ -1,5 +1,5 @@
 slib = slib or {}
-slib.Version = '1.6.6'
+slib.Version = '1.6.8'
 
 local root_directory = 'slib_framework'
 
@@ -22,6 +22,7 @@ script:using('core/sh_safe_calls.lua')
 script:using('core/class/sh_sql_table.lua')
 script:using('core/class/sh_sql.lua')
 script:using('core/class/sh_hook.lua')
+script:using('core/class/sh_fakeplayer.lua')
 
 script:using('debug/sh_profiler.lua')
 script:using('debug/sh_message.lua')
@@ -80,7 +81,6 @@ script:using('extension/duplicator/cl_saver.lua')
 script:using('extension/duplicator/sh_handler.lua')
 script:using('extension/duplicator/sh_duplicator.lua')
 script:using('extension/sh_debug.lua')
-script:using('extension/sh_fakeplayer.lua')
 script:using('extension/sh_generators.lua')
 script:using('extension/sh_player.lua')
 script:using('extension/sh_sound_duration.lua')
@@ -92,7 +92,6 @@ script:using('extension/sh_entity.lua')
 script:using('extension/sh_hash.lua')
 script:using('extension/sh_cvars.lua')
 script:using('extension/sh_helpers.lua')
-script:using('extension/sh_think_queue.lua')
 script:using('extension/gui/cl_helpers.lua')
 script:using('extension/gui/cl_listener.lua')
 script:using('extension/gui/cl_extension.lua')

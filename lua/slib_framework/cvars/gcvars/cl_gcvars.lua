@@ -1,72 +1,94 @@
 local access = slib.Components.Access
 local gcvars = slib.Components.GlobalCvar
+local RunConsoleCommand = RunConsoleCommand
+--
 local cvar_locker = {}
 
-local function AddLockTime(cvar_name, time)
-	cvar_locker[cvar_name] = cvar_locker[cvar_name] or 0
-	cvar_locker[cvar_name] = CurTime() + time
+local function LockCvar(cvar_name)
+	cvar_locker[cvar_name] = true
+end
+
+local function UnlockCvar(cvar_name)
+	cvar_locker[cvar_name] = false
 end
 
 local function IsLock(cvar_name)
-	cvar_locker[cvar_name] = cvar_locker[cvar_name] or 0
-	return cvar_locker[cvar_name] >= CurTime()
+	if cvar_locker[cvar_name] then return true end
+	return false
 end
 
-local function ChangeValue(cvar_name, value, lock_time)
-	lock_time = lock_time or 0
-
-	AddLockTime(cvar_name, lock_time + .2)
-
-	timer.Create('slib_gcvars_change_value_timer_' .. cvar_name, .1, 1, function()
-		RunConsoleCommand(cvar_name, value)
-	end)
+local function ChangeValue(cvar_name, value)
+	LockCvar(cvar_name)
+	RunConsoleCommand(cvar_name, value)
 end
 
-snet.RegisterCallback('slib_gcvars_register', function(_, cvars_table)
-	-- slib.Storage.GlobalCvar = cvars_table
+hook.Add('slib.OnChangeGlobalCvar', 'slib.OnChangeByClient', function(cvar_name, old_value, new_value)
+	if IsLock(cvar_name) then
+		UnlockCvar(cvar_name)
+		return
+	end
 
-	for cvar_name, cvar_data in pairs(slib.Storage.GlobalCvar) do
-		if not tobool(GetConVar(cvar_name)) then
-			ErrorNoHalt('The global variable must be created on both the server and client!')
-			continue
-		else
-			if cvars_table and cvars_table[cvar_name] then
-				cvar_data.flag = cvars_table[cvar_name].flag or cvar_data.flag
-				cvar_data.helptext = cvars_table[cvar_name].helptext or cvar_data.helptext
-				cvar_data.value = cvars_table[cvar_name].value or cvar_data.value
-			end
+	local cvar_data = slib.Storage.GlobalCvar[cvar_name]
 
-			RunConsoleCommand(cvar_name, cvar_data.value)
-			-- MsgN('Successful cvar sync for client! CVAR [' .. cvar_name .. '] - ' .. cvar_data.value)
-		end
+	if not access.IsValid(LocalPlayer(), cvar_data.access) then
+		ChangeValue(cvar_name, old_value)
 
-		cvar_locker[cvar_name] = cvar_locker[cvar_name] or 0
+		local text = slib.language({
+			['default'] = 'Insufficient rights to make changes',
+			['russian'] = 'Недостаточно прав для внесения изменений'
+		})
 
-		cvars.AddChangeCallback(cvar_name, function(convar_name, value_old, value_new)
-			if value_old == value_new then return end
-			if IsLock(cvar_name) then return end
+		notification.AddLegacy(text, NOTIFY_ERROR, 4)
 
-			local ply = LocalPlayer()
+		surface.PlaySound('buttons/combine_button_locked.wav')
 
-			if not access.IsValid(ply, cvar_data.access) then
-				ChangeValue(cvar_name, value_old, .3)
+		return
+	end
 
-				local text = slib.language({
-					['default'] = 'Insufficient rights to make changes',
-					['russian'] = 'Недостаточно прав для внесения изменений'
-				})
+	gcvars.Update(convar_name)
 
-				notification.AddLegacy(text, NOTIFY_ERROR, 4)
-				return
-			end
-
-			gcvars.Update(convar_name)
-			snet.InvokeServer('slib_gcvars_change_from_server', convar_name, value_new)
-		end, 'slib_gcvars_client_on_change_' .. cvar_name)
+	if cvar_data.send_client then
+		snet.InvokeServer('slib_gcvars_change_from_server', convar_name, value_new)
 	end
 end)
 
-snet.RegisterCallback('slib_gcvars_change_from_client', function(_, cvar_name, value)
-	ChangeValue(cvar_name, value, .3)
-	-- slib.DebugLog('Server update cvar - ', cvar_name, ' (', value, ')')
+hook.Add('slib.FirstPlayerSpawn', 'slib.UpdateGlobalCvarsFromClient', function(ply)
+	gcvars.Update()
+end)
+
+snet.RegisterCallback('slib_gcvars_server_update_success', function(_, cvar_name, value, is_server)
+	ChangeValue(cvar_name, value)
+
+	slib.DebugLog('[SUCCESS] Server update cvar - ', cvar_name, ' (', value, ')')
+
+	if is_server then
+		local ply = LocalPlayer()
+		if not ply:IsAdmin() and not ply:IsSuperAdmin() then
+			return
+		end
+	end
+
+	local text = slib.language({
+		['default'] = 'New value for "' .. cvar_name .. '" - ' .. value,
+		['russian'] = 'Новое значение для "' .. cvar_name .. '" - ' .. value
+	})
+
+	notification.AddLegacy(text, NOTIFY_GENERIC, 4)
+
+	surface.PlaySound('UI/buttonclick.wav')
+end)
+
+snet.RegisterCallback('slib_gcvars_server_update_error', function(_, cvar_name, value)
+	ChangeValue(cvar_name, value)
+
+	slib.DebugLog('[ERROR] Server update cvar - ', cvar_name, ' (', value, ')')
+
+	local text = slib.language({
+		['default'] = 'Cancel value for "' .. cvar_name .. '" - ' .. value,
+		['russian'] = 'Отмена значения для "' .. cvar_name .. '" - ' .. value
+	})
+
+	notification.AddLegacy(text, NOTIFY_ERROR, 4)
+
+	surface.PlaySound('Resource/warning.wav')
 end)
