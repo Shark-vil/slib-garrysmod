@@ -4,9 +4,12 @@ local math_random = math.random
 local table_remove = table.remove
 local table_Random = table.Random
 local table_insert = table.insert
+local type = type
+local table_type_name = 'table'
 --
 
 function table.isArray(t)
+	if type(t) ~= table_type_name then return false end
 	return #t > 0 and next(t, #t) == nil
 end
 
