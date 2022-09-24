@@ -4,9 +4,12 @@ local math_random = math.random
 local table_remove = table.remove
 local table_Random = table.Random
 local table_insert = table.insert
+local type = type
+local table_type_name = 'table'
 --
 
 function table.isArray(t)
+	if type(t) ~= table_type_name then return false end
 	return #t > 0 and next(t, #t) == nil
 end
 
@@ -146,6 +149,34 @@ function table.EqualsBySeq(t1, t2)
 	end
 
 	return true
+end
+
+function table.ValuesToArray(t)
+	if table.isArray(t) then return t end
+
+	local new_table = {}
+	local index = 1
+
+	for _, value in pairs(t) do
+		new_table[index] = value
+		index = index + 1
+	end
+
+	return  new_table
+end
+
+function table.KeysToArray(t)
+	if table.isArray(t) then return t end
+
+	local new_table = {}
+	local index = 1
+
+	for key, _ in pairs(t) do
+		new_table[index] = key
+		index = index + 1
+	end
+
+	return  new_table
 end
 
 function table.Combine(dest, source)

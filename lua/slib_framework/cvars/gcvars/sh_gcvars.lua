@@ -5,7 +5,7 @@ local isbool = isbool
 local isstring = isstring
 local GetConVar = GetConVar
 local pairs = pairs
-local istable = istable
+local table_remove = table.remove
 --
 
 function gcvars.Update(cvar_name, value)
@@ -33,28 +33,22 @@ function gcvars.Register(cvar_name, value, flag, helptext, min, max, access_data
 		do
 			local new_flag = flag
 
-			if isnumber(flag) then
-				new_flag = { flag }
-			elseif flag and not istable(flag) then
+			if (isnumber(flag) and flag == FCVAR_REPLICATED) or not table.isArray(flag) then
 				new_flag = FCVAR_NONE
-			elseif istable(flag) then
-				if not table.IsArray(flag) then
-					new_flag = FCVAR_NONE
-				else
-					for _, v in pairs(flag) do
-						if not isnumber(v) then
-							new_flag = FCVAR_NONE
-							break
-						end
+			else
+				for i = #new_flag, 1, -1 do
+					local flag_value = new_flag[i]
+					if not isnumber(flag_value) or flag_value == FCVAR_REPLICATED then
+						table_remove(new_flag, i)
 					end
+				end
+
+				if #new_flag == 0 then
+					new_flag = FCVAR_NONE
 				end
 			end
 
 			flag = new_flag
-		end
-
-		if istable(flag) and table.HasValueBySeq(flag, FCVAR_REPLICATED) then
-			table.RemoveValueBySeq(flag, FCVAR_REPLICATED)
 		end
 
 		helptext = helptext or ''
