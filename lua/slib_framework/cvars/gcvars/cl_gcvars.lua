@@ -19,6 +19,8 @@ end
 
 local function ChangeValue(cvar_name, value)
 	if not isstring(cvar_name) or value == nil then return end
+	if GetConVar(cvar_name):GetString() == tostring(value) then return end
+
 	LockCvar(cvar_name)
 	RunConsoleCommand(cvar_name, value)
 	gcvars.Update(cvar_name, value)
