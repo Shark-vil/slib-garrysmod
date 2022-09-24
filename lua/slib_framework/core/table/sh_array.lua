@@ -148,6 +148,34 @@ function table.EqualsBySeq(t1, t2)
 	return true
 end
 
+function table.ValuesToArray(t)
+	if table.isArray(t) then return t end
+
+	local new_table = {}
+	local index = 1
+
+	for _, value in pairs(t) do
+		new_table[index] = value
+		index = index + 1
+	end
+
+	return  new_table
+end
+
+function table.KeysToArray(t)
+	if table.isArray(t) then return t end
+
+	local new_table = {}
+	local index = 1
+
+	for key, _ in pairs(t) do
+		new_table[index] = key
+		index = index + 1
+	end
+
+	return  new_table
+end
+
 function table.Combine(dest, source)
 	local new_index = #dest + 1
 
