@@ -2,6 +2,7 @@ local gcvars = slib.Components.GlobalCvar
 local AccessComponent = slib.Components.Access
 local isnumber = isnumber
 local isbool = isbool
+local istable = istable
 local isstring = isstring
 local GetConVar = GetConVar
 local pairs = pairs
@@ -33,9 +34,11 @@ function gcvars.Register(cvar_name, value, flag, helptext, min, max, access_data
 		do
 			local new_flag = flag
 
-			if (isnumber(flag) and flag == FCVAR_REPLICATED) or not table.isArray(flag) then
+			if (isnumber(flag) and flag == FCVAR_REPLICATED)
+				or (istable(flag) and not table.isArray(flag))
+			then
 				new_flag = FCVAR_NONE
-			else
+			elseif istable(flag) then
 				for i = #new_flag, 1, -1 do
 					local flag_value = new_flag[i]
 					if not isnumber(flag_value) or flag_value == FCVAR_REPLICATED then
