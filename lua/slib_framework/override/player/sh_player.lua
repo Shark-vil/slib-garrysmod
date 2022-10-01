@@ -5,7 +5,24 @@ local meta = FindMetaTable('Player')
 
 function meta:slibNotify(text, notify_type, length, sound_name)
 	text = text or ''
-	notify_type = notify_type or NOTIFY_GENERIC
+
+	if isstring(notify_type) then
+		if notify_type == 'generic' then
+			notify_type = 0
+		elseif notify_type == 'error' then
+			notify_type = 1
+		elseif notify_type == 'undo' then
+			notify_type = 2
+		elseif notify_type == 'hint' then
+			notify_type = 3
+		elseif notify_type == 'cleanup' then
+			notify_type = 4
+		else
+			notify_type = 0
+		end
+	end
+
+	notify_type = notify_type or 0
 	length = length or 3
 
 	if SERVER then
