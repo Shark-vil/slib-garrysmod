@@ -20,6 +20,9 @@ local net_WriteData = net.WriteData
 local net_WriteBool = net.WriteBool
 local net_Send = net.Send
 local net_SendToServer = net.SendToServer
+local Error = slib.Error
+local DebugError = slib.DebugError
+local garbage_collection_timer_name = 'snet.TimerForDeletingObsoleteRequests'
 --
 local REQUEST_LIFE_TIME = snet.REQUEST_LIFE_TIME
 local REQUEST_STORAGE = {}
@@ -49,7 +52,7 @@ function snet.Request(name, ...)
 		local serialize_data = snet_Serialize(obj.data, true)
 		if not serialize_data then
 			serialize_data = snet_Serialize()
-			slib.DebugError('An error occurred while compressing data - ' .. name)
+			DebugError('An error occurred while compressing data - ' .. name)
 		end
 		obj.packages = SplitIntoPackages(serialize_data, 4096)
 	end
@@ -116,7 +119,7 @@ function snet.Request(name, ...)
 		obj.receiver_count = #receiver
 		obj.receiver = receiver
 
-		snet.AddRequestToList(obj)
+		snet.PushRequest(obj)
 		obj.unreliable = unreliable or false
 
 		local single_package = obj.packages[obj.package_index]
@@ -170,7 +173,7 @@ function snet.Request(name, ...)
 	function obj.InvokeServer(unreliable)
 		if SERVER then return end
 
-		snet.AddRequestToList(obj)
+		snet.PushRequest(obj)
 		obj.unreliable = unreliable or false
 
 		local single_package = obj.packages[obj.package_index]
@@ -207,15 +210,46 @@ function snet.Request(name, ...)
 	return obj
 end
 
-function snet.AddRequestToList(request)
+function snet.PushRequest(request)
 	table_insert(REQUEST_STORAGE, {
 		request = request,
 		timeout = RealTime() + (request.lifetime or REQUEST_LIFE_TIME)
 	})
 end
 
+function snet.PopRequest(id)
+	local request
+	local count = #REQUEST_STORAGE
+	if count ~= 0 then
+		if id then
+			for i = 1, count do
+				local data = REQUEST_STORAGE[i]
+				if data and data.request and data.request.id == id then
+					request = data
+					table_remove(REQUEST_STORAGE, i)
+					break
+				end
+			end
+		else
+			request = REQUEST_STORAGE[1]
+			table_remove(REQUEST_STORAGE, 1)
+		end
+	end
+	return request
+end
+
+function snet.PeekRequest()
+	if #REQUEST_STORAGE ~= 0 then
+		return REQUEST_STORAGE[1]
+	end
+end
+
 function snet.GetRequestList()
 	return REQUEST_STORAGE
+end
+
+function snet.Clear()
+	REQUEST_STORAGE = {}
 end
 
 function snet.FindRequestById(id, to_extend)
@@ -242,43 +276,14 @@ function snet.RemoveRequestById(id)
 	return false
 end
 
-timer.Create('SNet_AutoResetRequestAfterTimeDealy', 1, 0, function()
-	xpcall(function()
-		local counting_requests = {}
-
-		for i = #REQUEST_STORAGE, 1, -1 do
-			local data = REQUEST_STORAGE[i]
-			if not data or (data.request and not data.request.eternal and data.timeout < RealTime()) then
-				if data and data.request and data.request.func_complete then
-					xpcall(function()
-						data.request.func_complete(data.receiver, data)
-					end, function(error_message)
-						slib.Error('Failed to complete the request due to an error')
-						slib.Error('NETWORK ERROR:\n' .. error_message)
-					end)
-				end
-				table_remove(REQUEST_STORAGE, i)
-			end
-
-			if data and data.request then
-				local request_name = data.request.name
-				counting_requests[request_name] = counting_requests[request_name] or 0
-				counting_requests[request_name] = counting_requests[request_name] + 1
-			end
-		end
-
-		local count = #REQUEST_STORAGE
-		if count >= 500 then
-			slib.Warning('Something is making too many requests (' .. count .. ')')
-			for k, v in pairs(counting_requests) do
-				slib.Warning('COUNTING REQUEST: ' .. k .. ' - ' .. v)
-			end
-		end
-
-		-- print('Request storage count - ', count)
-	end, function(error_message)
-		slib.Error('Attention! Something is creating errors in the request queue!'
-			.. ' Contact the developer to identify issues.')
-		slib.Error('NETWORK ERROR: ' .. error_message)
+if not timer.Exists(garbage_collection_timer_name) then
+	local RunGarbageCollection = snet.RunGarbageCollection
+	timer.Create(garbage_collection_timer_name, 1, 0, function()
+		xpcall(function()
+			RunGarbageCollection(REQUEST_STORAGE)
+		end, function(error_message)
+			Error('Attention! Something is creating errors in the request queue! Contact the developer to identify issues.')
+			Error('NETWORK ERROR: ' .. error_message)
+		end)
 	end)
-end)
+end
