@@ -1,5 +1,5 @@
 slib = slib or {}
-slib.Version = '1.6.15'
+slib.Version = '1.6.16'
 
 local root_directory = 'slib_framework'
 
@@ -31,6 +31,7 @@ script:using('network/sh_base_params.lua')
 script:using('network/sh_addnetwork.lua')
 script:using('network/sh_serializator.lua')
 script:using('network/base/sv_nethooks.lua')
+script:using('network/base/sh_garbage_collection.lua')
 script:using('network/base/callback/sh_callback.lua')
 script:using('network/base/request/sh_request.lua')
 script:using('network/base/request/sh_request_simple.lua')

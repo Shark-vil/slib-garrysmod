@@ -12,6 +12,7 @@ local snet_Deserialize = slib.Deserialize
 local util_Decompress = util.Decompress
 --
 local REQUEST_LIMITS_LIST = snet.REQUEST_LIMITS_LIST
+local REQUEST_LIFE_TIME = snet.REQUEST_LIFE_TIME
 local REQUEST_STORAGE = {}
 
 local function RequestHandler(backward, id, name, ply, ...)
@@ -168,7 +169,7 @@ local function NetReceiveHandler(len, ply)
 			table_remove(REQUEST_STORAGE, index)
 			return
 		else
-			request.hold_time = RealTime() + 10
+			request.hold_time = RealTime() + REQUEST_LIFE_TIME
 		end
 	else
 		snet.UploadProgressUpdate(
@@ -182,7 +183,7 @@ local function NetReceiveHandler(len, ply)
 		REQUEST_STORAGE[#REQUEST_STORAGE + 1] = {
 			id = id,
 			name = name,
-			hold_time = RealTime() + 10,
+			hold_time = RealTime() + REQUEST_LIFE_TIME,
 			backward = backward,
 			package_index = package_index,
 			package_count = package_count,
