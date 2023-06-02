@@ -34,11 +34,18 @@ function meta:slibSetLocalVar(key, value)
 	return self.slibLocalVariables[key]
 end
 
-function meta:slibGetLocalVar(key, fallback, assign_a_fallback)
+-- function meta:slibGetLocalVar(key, fallback, assign_a_fallback)
+-- 	if not self.slibLocalVariables or self.slibLocalVariables[key] == nil then
+-- 		if assign_a_fallback and fallback ~= nil then
+-- 			return self:slibSetVar(key, fallback)
+-- 		end
+-- 		return fallback
+-- 	end
+-- 	return self.slibLocalVariables[key]
+-- end
+
+function meta:slibGetLocalVar(key, fallback)
 	if not self.slibLocalVariables or self.slibLocalVariables[key] == nil then
-		if assign_a_fallback and fallback ~= nil then
-			return self:slibSetVar(key, fallback)
-		end
 		return fallback
 	end
 	return self.slibLocalVariables[key]

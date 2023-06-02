@@ -60,13 +60,15 @@ snet.RegisterCallback('slib_gcvars_client_player_sync', function(_, sync_data)
 	end
 end)
 
-snet.RegisterCallback('slib_gcvars_server_update_success', function(_, cvar_name, value)
-	ChangeValue(cvar_name, value)
+snet.RegisterCallback('slib_gcvars_server_update_success', function(_, cvar_name, old_value, new_value)
+	hook.Run('slib.OnChangeGlobalCvar', cvar_name, old_value, new_value)
+
+	ChangeValue(cvar_name, new_value)
 
 	cvar_name = tostring(cvar_name)
-	value = tostring(value)
+	new_value = tostring(new_value)
 
-	slib.DebugLog('[SUCCESS] Server update cvar - ', cvar_name, ' (', value, ')')
+	slib.DebugLog('[SUCCESS] Server update cvar - ', cvar_name, ' (', new_value, ')')
 
 	local cvar_data = slib.Storage.GlobalCvar[cvar_name]
 	if not cvar_data or not access.IsValid(LocalPlayer(), cvar_data.access) then
@@ -74,8 +76,8 @@ snet.RegisterCallback('slib_gcvars_server_update_success', function(_, cvar_name
 	end
 
 	local text = slib.language({
-		['default'] = 'New value for "' .. cvar_name .. '" - ' .. value,
-		['russian'] = 'Новое значение для "' .. cvar_name .. '" - ' .. value
+		['default'] = 'New value for "' .. cvar_name .. '" - ' .. new_value,
+		['russian'] = 'Новое значение для "' .. cvar_name .. '" - ' .. new_value
 	})
 
 	notification.AddLegacy(text, NOTIFY_GENERIC, 4)
