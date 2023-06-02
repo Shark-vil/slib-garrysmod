@@ -1,5 +1,12 @@
 if SERVER then
 	hook.Add('PlayerDisconnected', 'Slib_PlayerDisconnectedRemoveLoadedPlayer', function(disconnected_player)
+		if disconnected_player and IsValid(disconnected_player) then
+			local hook_name = disconnected_player.slib_first_spawn_hook_name
+			if hook_name and isstring(hook_name) then
+				hook.Remove('SetupMove', hook_name)
+			end
+		end
+
 		for i = #slib.Storage.LoadedPlayers, 1, -1 do
 			local ply = slib.Storage.LoadedPlayers[i]
 			if not IsValid(ply) or ply == disconnected_player then
@@ -15,16 +22,23 @@ if SERVER then
 		if ply.slib_player_spawn then return end
 		ply.slib_player_spawn = true
 
-		local hook_name = 'SlibFirstSpawn' .. slib.GenerateUid(ply:UserID())
-		hook.Add('SetupMove', hook_name, function(p, mv, cmd)
-			if p == ply and not cmd:IsForced() then
-				if not IsValid(ply) then return end
+		local hook_name = 'slib.FirstSpawnSetupMove_' .. slib.GenerateUid(ply:UserID())
+		ply.slib_first_spawn_hook_name = hook_name
 
+		hook.Add('SetupMove', hook_name, function(p, mv, cmd)
+			if p and ply and IsValid(ply) and IsValid(p) and p == ply and not cmd:IsForced() then
 				ply.snet_ready = true
+				ply.slib_first_spawn_hook_name = nil
+
 				table.insert(slib.Storage.LoadedPlayers, ply)
 
 				hook.Run('slib.FirstPlayerSpawn', ply)
 				snet.Request('slib_first_player_spawn', ply).InvokeAll()
+
+				-- timer.Simple(1.5, function()
+				-- 	if not ply or not IsValid(ply) then return end
+				-- 	snet.Request('slib_first_player_spawn', ply).InvokeAll()
+				-- end)
 
 				hook.Remove('SetupMove', hook_name)
 			end
