@@ -94,3 +94,123 @@ function gcvars.Register(cvar_name, value, flag, helptext, min, max, access_data
 	return public
 end
 
+do
+	local cvars_watchers
+
+	if CLIENT then
+		cvars_watchers = {}
+	end
+
+	function slib.GlobalCvarAddChangeCallback(name, callback, identifier)
+		assert(slib.Storage.GlobalCvar[name] ~= nil, 'CVAR should be a global CVAR slib')
+		assert(isstring(name), 'name must be a string')
+		assert(isfunction(callback), 'callback must be a function')
+		assert(isstring(identifier) or not identifier, 'identifier must be a string or nil')
+
+		if CLIENT then
+			cvars_watchers[name] = cvars_watchers[name] or {}
+
+			if not isstring(identifier) then
+				cvars_watchers[name]['array'] = cvars_watchers[name]['array'] or {}
+				table.insert(cvars_watchers[name]['array'], callback)
+			else
+				cvars_watchers[name]['dictionary'] = cvars_watchers[name]['dictionary'] or {}
+				cvars_watchers[name]['dictionary'][identifier] = callback
+			end
+		end
+
+		if SERVER then
+			cvars.AddChangeCallback(name, function(convar_name, value_old, value_new)
+				callback(convar_name, value_old, value_new)
+				snet.InvokeAll('slib.Server.GlobalCvarAddChangeCallback', name, convar_name, value_old, value_new, identifier)
+			end, identifier)
+		end
+	end
+
+	if CLIENT then
+		snet.RegisterCallback('slib.Server.GlobalCvarAddChangeCallback', function(_, name, convar_name, value_old, value_new, identifier)
+			if not cvars_watchers[name] then return end
+
+			local convar = GetConVar(convar_name)
+			if not convar then return end
+
+			-- if convar:GetString() == tostring(value_new) then return end
+
+			if isstring(identifier) and cvars_watchers[name]['dictionary'] then
+				local callback = cvars_watchers[name]['dictionary'][identifier]
+				if not callback then return end
+				callback(convar_name, value_old, value_new)
+				return
+			end
+
+			if not cvars_watchers[name]['array'] then return end
+
+			local callbacks = cvars_watchers[name]['array']
+			local callbacks_count = #callbacks
+			if callbacks_count == 0 then return end
+
+			for i = 1, callbacks_count do
+				local callback = cvars_watchers[name]['array'][i]
+				if callback then
+					callback(convar_name, value_old, value_new)
+				end
+			end
+		end)
+	end
+end
+
+-- do
+-- 	local cvars_watchers = {}
+
+-- 	function slib.AddChangeCallback(name, callback, identifier)
+-- 		assert(isstring(name), 'name must be a string')
+-- 		assert(isfunction(callback), 'callback must be a function')
+-- 		assert(isstring(identifier) or not identifier, 'identifier must be a string or nil')
+
+-- 		cvars_watchers[name] = cvars_watchers[name] or {}
+-- 		cvars_watchers[name]['array'] = cvars_watchers[name]['array'] or {}
+-- 		cvars_watchers[name]['dictionary'] = cvars_watchers[name]['dictionary'] or {}
+
+-- 		if not identifier then
+-- 			table.insert(cvars_watchers[name]['array'], callback)
+-- 		else
+-- 			cvars_watchers[name]['dictionary'][identifier] = callback
+-- 		end
+
+-- 		cvars.AddChangeCallback(name, function(convar_name, value_old, value_new)
+-- 			callback(convar_name, value_old, value_new)
+-- 			if SERVER then
+-- 				timer.Create('slib.Timer.Server.AddChangeCallback.' .. convar_name, 1.5, 1, function()
+-- 					snet.InvokeAll('slib.Server.AddChangeCallback', convar_name, value_old, value_new, identifier)
+-- 				end)
+-- 			end
+-- 		end, identifier)
+-- 	end
+
+-- 	if CLIENT then
+-- 		snet.RegisterCallback('slib.Server.AddChangeCallback', function(_, convar_name, value_old, value_new, identifier)
+-- 			if not cvars_watchers[name] then return end
+
+-- 			local convar = GetConVar(convar_name)
+-- 			if not convar or convar:GetString() == tostring(value_new) then return end
+
+-- 			if identifier then
+-- 				local callback = cvars_watchers[name]['dictionary'][convar_name]
+-- 				if not callback then return end
+-- 				callback(convar_name, value_old, value_new)
+-- 				return
+-- 			end
+
+-- 			local callbacks = cvars_watchers[name]['array']
+-- 			local callbacks_count = #callbacks
+-- 			if callbacks_count == 0 then return end
+
+-- 			for i = 1, callbacks_count do
+-- 				local callback = cvars_watchers[name]['array'][i]
+-- 				if callback then
+-- 					callback(convar_name, value_old, value_new)
+-- 				end
+-- 			end
+-- 		end)
+-- 	end
+-- end
