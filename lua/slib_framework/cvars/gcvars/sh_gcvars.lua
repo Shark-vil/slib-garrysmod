@@ -81,13 +81,16 @@ function gcvars.Register(cvar_name, value, flag, helptext, min, max, access_data
 					slib.DebugLog('Change cvaer on serverside. Update cvar - ', cvar_name, ' (', value, ')')
 
 					gcvars.Update(cvar_name, new_value)
-					snet.InvokeAll('slib_gcvars_server_update_success', cvar_name, new_value)
+					snet.InvokeAll('slib_gcvars_server_update_success', cvar_name, old_value, new_value)
 				end
 
-				hook.Run('slib.OnChangeGlobalCvar', cvar_name, old_value, new_value)
+				if SERVER then
+					hook.Run('slib.OnChangeGlobalCvar', cvar_name, old_value, new_value)
+				end
 			end)
 		end, 'slib_GlobalCvars_OnChange_' .. cvar_name)
 	end
 
 	return public
 end
+
