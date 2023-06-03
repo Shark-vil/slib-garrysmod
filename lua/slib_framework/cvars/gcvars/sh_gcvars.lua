@@ -104,7 +104,6 @@ do
 	function slib.GlobalCvarAddChangeCallback(name, callback, identifier)
 		assert(slib.Storage.GlobalCvar[name] ~= nil, 'CVAR should be a global CVAR slib')
 		assert(isstring(name), 'name must be a string')
-		assert(isfunction(callback), 'callback must be a function')
 		assert(isstring(identifier) or not identifier, 'identifier must be a string or nil')
 
 		if CLIENT then
@@ -121,9 +120,15 @@ do
 
 		if SERVER then
 			cvars.AddChangeCallback(name, function(convar_name, value_old, value_new)
-				callback(convar_name, value_old, value_new)
+				if callback and isfunction(callback) then callback(convar_name, value_old, value_new) end
 				snet.InvokeAll('slib.Server.GlobalCvarAddChangeCallback', name, convar_name, value_old, value_new, identifier)
 			end, identifier)
+		end
+	end
+
+	if SERVER then
+		function slib.GlobalCvarRegisterChangeCallback(name, identifier)
+			slib.GlobalCvarAddChangeCallback(name, nil, identifier)
 		end
 	end
 
@@ -138,7 +143,7 @@ do
 
 			if isstring(identifier) and cvars_watchers[name]['dictionary'] then
 				local callback = cvars_watchers[name]['dictionary'][identifier]
-				if not callback then return end
+				if not callback or not isfunction(callback) then return end
 				callback(convar_name, value_old, value_new)
 				return
 			end
@@ -151,7 +156,7 @@ do
 
 			for i = 1, callbacks_count do
 				local callback = cvars_watchers[name]['array'][i]
-				if callback then
+				if callback and isfunction(callback) then
 					callback(convar_name, value_old, value_new)
 				end
 			end
