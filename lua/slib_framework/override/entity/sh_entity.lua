@@ -18,7 +18,6 @@ local timer_Exists = timer.Exists
 local timer_Remove = timer.Remove
 local timer_Create = timer.Create
 local timer_Simple = timer.Simple
-local hook_Add = hook.Add
 local hook_Remove = hook.Remove
 local util_CRC = util.CRC
 local math_pi = math.pi
@@ -228,7 +227,7 @@ end
 
 function meta:slibAddHook(hook_type, hook_name, func)
 	hook_name = 'slib_system_entity_' .. hook_type .. '_' .. hook_name .. '_' .. tostring(self:EntIndex())
-	hook_Add(hook_type, hook_name, function(...)
+	hook.Add(hook_type, hook_name, function(...)
 		if not IsValid(self) then
 			hook_Remove(hook_type, hook_name)
 			return
