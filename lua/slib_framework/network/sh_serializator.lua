@@ -19,31 +19,31 @@ local Matrix = Matrix
 local Color = Color
 local Vector = Vector
 local Angle = Angle
+local tonumber = tonumber
+local tostring = tostring
 local table_insert = table.insert
 local util_TableToJSON = util.TableToJSON
 local util_JSONToTable = util.JSONToTable
+local string_Split = string.Split
 --
 local ValueSerialize = {
 	[TYPE_TABLE] = function(t, v)
 		local getdatatable = slib.Serialize(v, false)
 		if getdatatable then return t, getdatatable end
 	end,
-	[TYPE_NUMBER] = function(t, v) return t, v end,
+	[TYPE_NUMBER] = function(t, v) return t, tostring(v) end,
 	[TYPE_STRING] = function(t, v) return t, v end,
-	[TYPE_BOOL] = function(t, v) return t, v end,
+	[TYPE_BOOL] = function(t, v) return t, v == true and '.' or '' end,
 	[TYPE_ENTITY] = function(t, v)
 		if not v or not IsValid(v) then return end
 		local index = v:EntIndex()
 		if index == -1 then return end
-
-		return t, index
+		return t, tostring(index)
 	end,
-	[TYPE_VECTOR] = function(t, v) return t, v:ToTable() end,
-	[TYPE_ANGLE] = function(t, v) return t, v:ToTable() end,
+	[TYPE_VECTOR] = function(t, v) return t, v.x .. ':' .. v.y .. ':' .. v.z end,
+	[TYPE_ANGLE] = function(t, v) return t, v.x .. ':' .. v.y .. ':' .. v.z end,
 	[TYPE_MATRIX] = function(t, v) return t, v:ToTable() end,
-	[TYPE_COLOR] = function(t, v)
-		return t, { v.r, v.g, v.b, v.a }
-	end,
+	[TYPE_COLOR] = function(t, v) return t, v.r .. ':' .. v.g .. ':' .. v.b .. ':' .. v.a end,
 }
 
 local function GetValueType(value)
@@ -123,14 +123,23 @@ local ValueDeserialize = {
 		local getdatatable = slib.Deserialize(v)
 		if getdatatable then return getdatatable end
 	end,
-	[TYPE_NUMBER] = function(v) return v end,
+	[TYPE_NUMBER] = function(v) return tonumber(v) end,
 	[TYPE_STRING] = function(v) return v end,
-	[TYPE_BOOL] = function(v) return v end,
-	[TYPE_ENTITY] = function(v) return Entity(v) end,
-	[TYPE_VECTOR] = function(v) return Vector(v[1], v[2], v[3]) end,
-	[TYPE_ANGLE] = function(v) return Angle(v[1], v[2], v[3]) end,
+	[TYPE_BOOL] = function(v) return v == '.' and true or false end,
+	[TYPE_ENTITY] = function(v) return Entity(tonumber(v)) end,
+	[TYPE_VECTOR] = function(v)
+		local value = string_Split(v, ':')
+		return Vector(tonumber(value[1]), tonumber(value[2]), tonumber(value[3]))
+	end,
+	[TYPE_ANGLE] = function(v)
+		local value = string_Split(v, ':')
+		return Angle(tonumber(value[1]), tonumber(value[2]), tonumber(value[3]))
+	end,
 	[TYPE_MATRIX] = function(v) return Matrix(v) end,
-	[TYPE_COLOR] = function(v) return Color(v[1], v[2], v[3], v[4]) end,
+	[TYPE_COLOR] = function(v)
+		local value = string_Split(v, ':')
+		return Color(tonumber(value[1]), tonumber(value[2]), tonumber(value[3]), tonumber(value[4]))
+	end,
 }
 
 function slib.Deserialize(json_datatable)
