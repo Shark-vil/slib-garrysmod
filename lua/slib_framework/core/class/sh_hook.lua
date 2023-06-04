@@ -1,18 +1,10 @@
 local unpack = unpack
-local istable = istable
-local isfunction = isfunction
-local isstring = isstring
 local pairs = pairs
-local hook_Add = hook.Add
-local hook_Run = hook.Run
-local hook_Call = hook.Call
-local hook_GetTable = hook.GetTable
-local hook_Remove = hook.Remove
 --
 local Class = {}
 
 function Class.Get(hook_type, hook_name)
-	local hooks_data = hook_GetTable()
+	local hooks_data = hook.GetTable()
 
 	if hook_type and hooks_data[hook_type] then
 		if hook_type and hook_name then
@@ -35,7 +27,7 @@ function Class.SafeRun(hook_type, ...)
 
 	slib.def({
 		try = function()
-			result = { hook_Run(hook_type, unpack(args)) }
+			result = { hook.Run(hook_type, unpack(args)) }
 		end,
 		catch = function(ex)
 			slib.Error(ex)
@@ -48,23 +40,23 @@ function Class.SafeRun(hook_type, ...)
 end
 
 function Class.Add(...)
-	return hook_Add(...)
+	return hook.Add(...)
 end
 
 function Class.Call(...)
-	return hook_Call(...)
+	return hook.Call(...)
 end
 
 function Class.GetTable(...)
-	return hook_GetTable(...)
+	return hook.GetTable(...)
 end
 
 function Class.Remove(...)
-	return hook_Remove(...)
+	return hook.Remove(...)
 end
 
 function Class.Run(...)
-	return hook_Run(...)
+	return hook.Run(...)
 end
 
 function Class.SetHandler(hook_type, hook_name, handler)
@@ -78,7 +70,7 @@ function Class.SetHandler(hook_type, hook_name, handler)
 	local hook_function = hooks_data[hook_name]
 	if not isfunction(hook_function) then return end
 
-	hook_Add(hook_type, hook_name, function(...)
+	hook.Add(hook_type, hook_name, function(...)
 		local args = { handler(...) }
 		if args and #args ~= 0 then return unpack(args) end
 		return hook_function(...)
@@ -94,7 +86,7 @@ function Class.SetHandlerAll(hook_type, handler)
 	if not istable(hooks_data) then return end
 
 	for hook_name, hook_function in pairs(hooks_data) do
-		hook_Add(hook_type, hook_name, function(...)
+		hook.Add(hook_type, hook_name, function(...)
 			local args = { handler(...) }
 			if args and #args ~= 0 then return unpack(args) end
 			return hook_function(...)
