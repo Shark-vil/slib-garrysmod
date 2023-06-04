@@ -20,7 +20,6 @@ local Color = Color
 local Vector = Vector
 local Angle = Angle
 local tonumber = tonumber
-local tostring = tostring
 local table_insert = table.insert
 local util_TableToJSON = util.TableToJSON
 local util_JSONToTable = util.JSONToTable
@@ -31,18 +30,28 @@ local ValueSerialize = {
 		local getdatatable = slib.Serialize(v, false)
 		if getdatatable then return t, getdatatable end
 	end,
-	[TYPE_NUMBER] = function(t, v) return t, tostring(v) end,
+	[TYPE_NUMBER] = function(t, v) return t, v end,
 	[TYPE_STRING] = function(t, v) return t, v end,
-	[TYPE_BOOL] = function(t, v) return t, v == true and '.' or '' end,
+	[TYPE_BOOL] = function(t, v) return t, v == true and 1 or 0 end,
 	[TYPE_ENTITY] = function(t, v)
 		if not v or not IsValid(v) then return end
 		local index = v:EntIndex()
 		if index == -1 then return end
-		return t, tostring(index)
+		return t, index
 	end,
 	[TYPE_VECTOR] = function(t, v) return t, v.x .. ':' .. v.y .. ':' .. v.z end,
 	[TYPE_ANGLE] = function(t, v) return t, v.x .. ':' .. v.y .. ':' .. v.z end,
-	[TYPE_MATRIX] = function(t, v) return t, v:ToTable() end,
+	[TYPE_MATRIX] = function(t, v)
+		local value = ''
+		for row = 1, 4 do
+			for col = 1, 4 do
+				value = value .. v:GetField(row, col)
+				if col ~= 4 then value = value .. ':' end
+			end
+			if row ~= 4 then value = value .. ';' end
+		end
+		return t, value
+	end,
 	[TYPE_COLOR] = function(t, v) return t, v.r .. ':' .. v.g .. ':' .. v.b .. ':' .. v.a end,
 }
 
@@ -123,10 +132,10 @@ local ValueDeserialize = {
 		local getdatatable = slib.Deserialize(v)
 		if getdatatable then return getdatatable end
 	end,
-	[TYPE_NUMBER] = function(v) return tonumber(v) end,
+	[TYPE_NUMBER] = function(v) return v end,
 	[TYPE_STRING] = function(v) return v end,
-	[TYPE_BOOL] = function(v) return v == '.' and true or false end,
-	[TYPE_ENTITY] = function(v) return Entity(tonumber(v)) end,
+	[TYPE_BOOL] = function(v) return v == 1 and true or false end,
+	[TYPE_ENTITY] = function(v) return Entity(v) end,
 	[TYPE_VECTOR] = function(v)
 		local value = string_Split(v, ':')
 		return Vector(tonumber(value[1]), tonumber(value[2]), tonumber(value[3]))
@@ -135,7 +144,15 @@ local ValueDeserialize = {
 		local value = string_Split(v, ':')
 		return Angle(tonumber(value[1]), tonumber(value[2]), tonumber(value[3]))
 	end,
-	[TYPE_MATRIX] = function(v) return Matrix(v) end,
+	[TYPE_MATRIX] = function(v)
+		local rows = string_Split(v, ';')
+		local tbl = {}
+		for i = 1, 4 do
+			local col = string_Split(rows[i], ':')
+			tbl[i] = { tonumber(col[1]), tonumber(col[2]), tonumber(col[3]), tonumber(col[4]) }
+		end
+		return Matrix(tbl)
+	end,
 	[TYPE_COLOR] = function(v)
 		local value = string_Split(v, ':')
 		return Color(tonumber(value[1]), tonumber(value[2]), tonumber(value[3]), tonumber(value[4]))
