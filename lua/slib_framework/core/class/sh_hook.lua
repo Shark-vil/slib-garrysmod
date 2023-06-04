@@ -1,3 +1,6 @@
+local unpack = unpack
+local pairs = pairs
+--
 local Class = {}
 
 function Class.Get(hook_type, hook_name)

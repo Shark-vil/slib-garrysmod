@@ -4,7 +4,7 @@ local coroutine_create = coroutine.create
 local coroutine_resume = coroutine.resume
 local table_remove = table.remove
 local table_insert = table.insert
-local hook = slib.Component('Hook')
+-- local hook = slib.Component('Hook')
 local registred_async_process = {}
 local registred_async_process_self_container = {}
 local registred_async_process_count = 0
@@ -113,6 +113,8 @@ function async.Remove(id)
 		local obj = registred_async_process[i]
 		if obj.id ~= id then continue end
 		table_remove(registred_async_process, i)
+
+		slib.DebugLog('Remove asynchronous process - ', obj.id, ' [', obj.uuid, ']')
 		break
 	end
 
@@ -121,6 +123,8 @@ function async.Remove(id)
 		if obj.id ~= id then continue end
 		hook.Remove('Think', 'slib.system.async_process_handler.' .. obj.uuid)
 		table_remove(registred_async_process, i)
+
+		slib.DebugLog('Remove independent asynchronous process - ', obj.id, ' [', obj.uuid, ']')
 		break
 	end
 
