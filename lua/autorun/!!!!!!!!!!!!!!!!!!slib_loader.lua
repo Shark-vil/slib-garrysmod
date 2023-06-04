@@ -1,5 +1,5 @@
 slib = slib or {}
-slib.Version = '1.6.20-pre-0'
+slib.Version = '1.6.20'
 
 local root_directory = 'slib_framework'
 
