@@ -1,5 +1,5 @@
 slib = slib or {}
-slib.Version = '1.6.21'
+slib.Version = '1.6.22'
 
 local root_directory = 'slib_framework'
 
@@ -23,6 +23,7 @@ script:using('core/class/sh_sql_table.lua')
 script:using('core/class/sh_sql.lua')
 script:using('core/class/sh_hook.lua')
 script:using('core/class/sh_fakeplayer.lua')
+script:using('core/class/sh_chunks.lua')
 
 script:using('debug/sh_profiler.lua')
 script:using('debug/sh_message.lua')

@@ -177,12 +177,27 @@ function table.KeysToArray(t)
 	return  new_table
 end
 
-function table.Combine(dest, source)
-	local new_index = #dest + 1
+-- function table.Combine(dest, source)
+-- 	local new_index = #dest + 1
 
-	for i = 1, #source do
-		dest[new_index] = source[i]
-		new_index = new_index + 1
+-- 	for i = 1, #source do
+-- 		dest[new_index] = source[i]
+-- 		new_index = new_index + 1
+-- 	end
+
+-- 	return dest
+-- end
+
+function table.Combine(dest, ...)
+	local new_index = #dest + 1
+	local tables = { ... }
+
+	for table_index = 1, #tables do
+		local table_value = tables[table_index]
+		for index = 1, #table_value do
+			dest[new_index] = table_value[index]
+			new_index = new_index + 1
+		end
 	end
 
 	return dest
