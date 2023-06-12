@@ -194,7 +194,3 @@ function slib.ServerAction(func)
 	if CLIENT or not isfunction(func) then return end
 	func()
 end
-
-function slib.IsInfinityMap()
-	return file_Exists('infmap/' .. game_GetMap(), 'LUA')
-end

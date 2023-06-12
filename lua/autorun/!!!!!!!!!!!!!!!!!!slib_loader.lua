@@ -10,6 +10,7 @@ include(root_directory .. '/core/base/sh_base.lua')
 
 local script = slib.CreateIncluder(root_directory, '[SLibrary] Script load - {file}')
 
+script:using('core/sh_infmap.lua')
 script:using('core/table/sh_array.lua')
 script:using('core/table/sh_table.lua')
 script:using('core/base/sh_global.lua')
