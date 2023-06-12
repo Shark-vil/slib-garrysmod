@@ -181,13 +181,14 @@ end
 
 function meta:slibSinglePlayerWatching(ply)
 	if IsValid(ply) then
-		return ply:slibIsViewVector(position)
+		return ply:slibIsViewVector(self:GetPos())
 	end
 	return false
 end
 
 function meta:slibPlayersWatching()
 	local players = player_GetAll()
+	local position = self:GetPos()
 	for i = 1, #players do
 		local ply = players[i]
 		if IsValid(ply) and ply:slibIsViewVector(position) then return true end
