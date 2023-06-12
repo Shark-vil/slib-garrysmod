@@ -50,6 +50,7 @@ function slib.GetLanguageCode(select_language)
 	for code, value in pairs(language_codes) do
 		if value == _select_language or code == _select_language then return code, value end
 	end
+	return 'en', 'english'
 end
 
 function slib.language(data, select_language)

@@ -89,7 +89,15 @@ function meta:slibLanguage(data)
 end
 
 function meta:slibGetLanguage()
-	local lang = self:slibGetVar('slib_client_language', 'english')
-	local code = self:slibGetVar('slib_client_language_code', 'en')
+	local lang, code
+
+	if CLIENT then
+		lang = GetConVar('cl_language'):GetString()
+		code, lang = slib.GetLanguageCode(lang)
+	else
+		lang = self:slibGetVar('slib_client_language', 'english')
+		code = self:slibGetVar('slib_client_language_code', 'en')
+	end
+
 	return lang, code
 end
