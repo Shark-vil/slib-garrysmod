@@ -2,12 +2,14 @@
 local meta = FindMetaTable('Player')
 local infelicity_calcview = 0
 local is_another_camera = false
+local LocalPlayer = LocalPlayer
 
 snet.RegisterCallback('slib_player_notify', function(ply, text, message_type, length, sound_path)
 	ply:slibNotify(text, message_type, length, sound_path)
 end)
 
 hook.Add('slib.FirstPlayerSpawn', 'SlibInitializeGlobalClientLanguage', function(ply)
+	if ply ~= LocalPlayer() then return end
 	snet.InvokeServer('slib_player_set_language', GetConVar('cl_language'):GetString())
 	cvars.AddChangeCallback('cl_language', function(_, _, new_language)
 		snet.InvokeServer('slib_player_set_language', tostring(new_language))
