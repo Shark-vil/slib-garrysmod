@@ -14,6 +14,10 @@ local MASK_SHOT_HULL = MASK_SHOT_HULL
 local COLLISION_GROUP_WORLD = COLLISION_GROUP_WORLD
 -- local FrameTime = FrameTime
 local is_infmap = slib.IsInfinityMap()
+if is_infmap then
+	util_IsInWorld = function(...) return util.IsInWorld(...) end
+	util_TraceHull = function(...) return util.TraceHull(...) end
+end
 
 local CLASS = {}
 
@@ -46,27 +50,9 @@ function CLASS:Instance(settings)
 
 	function private:GetYieldPassController(condition)
 		local yield_pass = 0
-		-- local yield_pass_skip = 0
 		local function action()
 			if condition and not condition() then return end
 			yield_pass = yield_pass + 1
-
-			-- local fps = 1 / FrameTime()
-			-- if fps >= 60 then
-			-- 	yield_pass_skip = 5000
-			-- elseif fps >= 30 then
-			-- 	yield_pass_skip = 3000
-			-- elseif fps >= 15 then
-			-- 	yield_pass_skip = 1000
-			-- else
-			-- 	yield_pass_skip = 0
-			-- end
-
-			-- if yield_pass >= (1 / slib.deltaTime) + yield_pass_skip then
-			-- 	yield_pass = 0
-			-- 	coroutine_yield()
-			-- end
-
 			if yield_pass >= 1 / slib.deltaTime then
 				yield_pass = 0
 				coroutine_yield()
@@ -194,6 +180,23 @@ function CLASS:Instance(settings)
 	end
 
 	function public:GetChunkByVector(position, two_way_searching, is_async)
+		if is_infmap then
+			local cs = InfMap.chunk_size
+			local cs_double = cs * 2
+			local floor = math.floor
+			local cox = floor((position[1] + cs) / cs_double)
+			local coy = floor((position[2] + cs) / cs_double)
+			local coz = floor((position[3] + cs) / cs_double)
+			local chunk_offset = Vector(cox, coy, coz)
+			local chunk_size_vector = Vector(private.chunk_size_x, private.chunk_size_y, private.chunk_size_z)
+			return {
+				index = math.abs(chunk_offset.x) + math.abs(chunk_offset.y) + math.abs(chunk_offset.z),
+				center_pos = position,
+				start_pos = position - chunk_size_vector,
+				end_pos = position + chunk_size_vector
+			}
+		end
+
 		local yield_pass
 
 		if is_async then
@@ -296,7 +299,7 @@ function CLASS:GetMaxMapSize()
 end
 
 function CLASS:GetDefaultChunkSize()
-	return 1000
+	return is_infmap and 10000 or 1000
 end
 
 slib.SetComponent('Chunks', CLASS)
