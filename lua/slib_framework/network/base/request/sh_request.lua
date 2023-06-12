@@ -114,10 +114,11 @@ function snet.Request(name, ...)
 			receiver = { receiver }
 		end
 
-		receiver = slib.ListFastPlayerParse(receiver)
+		local receivers = slib.ListFastPlayerParse(receiver)
+		if #receivers == 0 then return obj end
 
-		obj.receiver_count = #receiver
-		obj.receiver = receiver
+		obj.receiver_count = #receivers
+		obj.receiver = receivers
 
 		snet.PushRequest(obj)
 		obj.unreliable = unreliable or false
@@ -135,7 +136,7 @@ function snet.Request(name, ...)
 		net_WriteString(obj.name)
 		net_WriteBool(obj.backward)
 		net_WriteString(obj.progress_text)
-		net_Send(receiver)
+		net_Send(receivers)
 		return obj
 	end
 
