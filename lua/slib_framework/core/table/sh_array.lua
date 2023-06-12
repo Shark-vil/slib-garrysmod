@@ -115,12 +115,9 @@ end
 function table.RemoveValueBySeq(t, v)
 	for i = #t, 1, -1 do
 		if t[i] == v then
-			table_remove(t, i)
-			break
+			return table_remove(t, i)
 		end
 	end
-
-	return t
 end
 
 function table.RemoveAllValueBySeq(t, v)

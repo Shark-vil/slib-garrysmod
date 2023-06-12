@@ -12,24 +12,29 @@ local coroutine_yield = coroutine.yield
 local util_TraceHull = util.TraceHull
 local MASK_SHOT_HULL = MASK_SHOT_HULL
 local COLLISION_GROUP_WORLD = COLLISION_GROUP_WORLD
-local FrameTime = FrameTime
---
+-- local FrameTime = FrameTime
+local is_infmap = slib.IsInfinityMap()
+if is_infmap then
+	util_IsInWorld = function(...) return util.IsInWorld(...) end
+	util_TraceHull = function(...) return util.TraceHull(...) end
+end
+
 local CLASS = {}
 
 function CLASS:Instance(settings)
 	settings = settings or {}
 
 	local private = {}
-	private.chunk_size_x = settings.chunk_size or settings.chunk_size_x or 1000
-	private.chunk_size_y = settings.chunk_size or settings.chunk_size_y or 1000
-	private.chunk_size_z = settings.chunk_size or settings.chunk_size_z or 1000
+	private.chunk_size_x = settings.chunk_size or settings.chunk_size_x or self:GetDefaultChunkSize()
+	private.chunk_size_y = settings.chunk_size or settings.chunk_size_y or self:GetDefaultChunkSize()
+	private.chunk_size_z = settings.chunk_size or settings.chunk_size_z or self:GetDefaultChunkSize()
 
 	private.chunk_center_index = 0
 	private.chunks_count = 0
 
-	private.gmod_map_size_max_x = settings.map_size or settings.map_size_x or 32768
-	private.gmod_map_size_max_y = settings.map_size or settings.map_size_y or 32768
-	private.gmod_map_size_max_z = settings.map_size or settings.map_size_z or 32768
+	private.gmod_map_size_max_x = settings.map_size or settings.map_size_x or self:GetMaxMapSize()
+	private.gmod_map_size_max_y = settings.map_size or settings.map_size_y or self:GetMaxMapSize()
+	private.gmod_map_size_max_z = settings.map_size or settings.map_size_z or self:GetMaxMapSize()
 
 	private.gmod_map_size_axis_x = private.gmod_map_size_max_x / 2
 	private.gmod_map_size_axis_y = private.gmod_map_size_max_y / 2
@@ -45,27 +50,9 @@ function CLASS:Instance(settings)
 
 	function private:GetYieldPassController(condition)
 		local yield_pass = 0
-		local yield_pass_skip = 0
 		local function action()
 			if condition and not condition() then return end
 			yield_pass = yield_pass + 1
-
-			-- local fps = 1 / FrameTime()
-			-- if fps >= 60 then
-			-- 	yield_pass_skip = 5000
-			-- elseif fps >= 30 then
-			-- 	yield_pass_skip = 3000
-			-- elseif fps >= 15 then
-			-- 	yield_pass_skip = 1000
-			-- else
-			-- 	yield_pass_skip = 0
-			-- end
-
-			-- if yield_pass >= (1 / slib.deltaTime) + yield_pass_skip then
-			-- 	yield_pass = 0
-			-- 	coroutine_yield()
-			-- end
-
 			if yield_pass >= 1 / slib.deltaTime then
 				yield_pass = 0
 				coroutine_yield()
@@ -90,7 +77,7 @@ function CLASS:Instance(settings)
 					local start_pos = Vector(x_start, y_start, z_start)
 					local end_pos = start_pos + Vector(private.chunk_size_x, private.chunk_size_y, private.chunk_size_z)
 					local center_pos = LerpVector(.5, start_pos, end_pos)
-					if util_IsInWorld(center_pos) or util_IsInWorld(start_pos) or util_IsInWorld(end_pos) then
+					if settings.no_check_is_in_world or util_IsInWorld(center_pos) or util_IsInWorld(start_pos) or util_IsInWorld(end_pos) then
 						local is_valid_chunk = true
 
 						if private.condition_chunk_touches_the_World then
@@ -107,7 +94,7 @@ function CLASS:Instance(settings)
 							-- 	is_valid_chunk = false
 							-- end
 
-							if not tr.Hit then
+							if not tr or not tr.Hit then
 								is_valid_chunk = false
 							else
 								yield_pass()
@@ -132,18 +119,7 @@ function CLASS:Instance(settings)
 			-- yield_pass()
 		end
 
-		private.gmod_map_chunks = gmod_map_chunks
-		private.chunks_count = chunks_count
-
-		if private.chunks_count ~= 0 then
-			local center_index = 0
-			if private.chunks_count % 2 == 0 then
-				center_index = private.chunks_count / 2
-			else
-				center_index = (private.chunks_count - 1) / 2
-			end
-			private.chunk_center_index = center_index
-		end
+		public:SetChunks(gmod_map_chunks, chunks_count)
 
 		return private.gmod_map_chunks
 	end
@@ -158,6 +134,21 @@ function CLASS:Instance(settings)
 		return private:MakeChunks()
 	end
 
+	function public:SetChunks(gmod_map_chunks, chunks_count)
+		private.gmod_map_chunks = istable(gmod_map_chunks) and gmod_map_chunks or {}
+		private.chunks_count = isnumber(chunks_count) and chunks_count or #private.gmod_map_chunks
+
+		if private.chunks_count ~= 0 then
+			local center_index = 0
+			if private.chunks_count % 2 == 0 then
+				center_index = private.chunks_count / 2
+			else
+				center_index = (private.chunks_count - 1) / 2
+			end
+			private.chunk_center_index = center_index
+		end
+	end
+
 	function public:SetConditionChunkTouchesTheWorld()
 		private.condition_chunk_touches_the_World = true
 	end
@@ -168,6 +159,10 @@ function CLASS:Instance(settings)
 
 	function public:ChunksCount()
 		return private.chunks_count
+	end
+
+	function public:IsValid()
+		return private.chunks_count ~= 0
 	end
 
 	function public:InChunkPosition(chunk, position)
@@ -184,12 +179,42 @@ function CLASS:Instance(settings)
 		return false
 	end
 
-	function public:GetChunkByVector(position, two_way_searching)
+	function public:GetChunkByVector(position, two_way_searching, is_async)
+		if is_infmap then
+			local cs = InfMap.chunk_size
+			local cs_double = cs * 2
+			local floor = math.floor
+			local cox = floor((position[1] + cs) / cs_double)
+			local coy = floor((position[2] + cs) / cs_double)
+			local coz = floor((position[3] + cs) / cs_double)
+			local chunk_offset = Vector(cox, coy, coz)
+			local chunk_size_vector = Vector(private.chunk_size_x, private.chunk_size_y, private.chunk_size_z)
+			return {
+				index = math.abs(chunk_offset.x) + math.abs(chunk_offset.y) + math.abs(chunk_offset.z),
+				center_pos = position,
+				start_pos = position - chunk_size_vector,
+				end_pos = position + chunk_size_vector
+			}
+		end
+
+		local yield_pass
+
+		if is_async then
+			yield_pass = private:GetYieldPassController()
+		end
+
 		if not two_way_searching then
 			for i = 1, private.chunks_count do
 				local chunk = private.gmod_map_chunks[i]
 				if position:WithinAABox(chunk.start_pos, chunk.end_pos) then
+					-- if is_infmap and chunk.index <= CLASS:GetMaxMapSize() then
+					-- 	chunk.index = chunk.index + CLASS:GetMaxMapSize() + 1
+					-- end
 					return chunk
+				end
+
+				if is_async then
+					yield_pass()
 				end
 			end
 		else
@@ -204,7 +229,14 @@ function CLASS:Instance(settings)
 
 				local chunk = private.gmod_map_chunks[while_index]
 				if position:WithinAABox(chunk.start_pos, chunk.end_pos) then
+					-- if is_infmap and chunk.index <= self:GetMaxMapSize() then
+					-- 	chunk.index = chunk.index + self:GetMaxMapSize() + 1
+					-- end
 					return chunk
+				end
+
+				if is_async then
+					yield_pass()
 				end
 
 				if is_beginning then
@@ -233,41 +265,7 @@ function CLASS:Instance(settings)
 	end
 
 	function public:GetChunkByVectorAsync(position, two_way_searching)
-		local yield_pass = private:GetYieldPassController()
-
-		if not two_way_searching then
-			for i = 1, private.chunks_count do
-				local chunk = private.gmod_map_chunks[i]
-				if position:WithinAABox(chunk.start_pos, chunk.end_pos) then
-					return chunk
-				end
-
-				yield_pass()
-			end
-		else
-			local chunks_count = private.chunks_count
-			if chunks_count == 0 then return end
-
-			local while_index, while_start_index, while_end_index, is_beginning = 0, 1, chunks_count, false
-
-			while while_index ~= private.chunk_center_index do
-				is_beginning = not is_beginning
-				while_index = is_beginning and while_start_index or while_end_index
-
-				local chunk = private.gmod_map_chunks[while_index]
-				if position:WithinAABox(chunk.start_pos, chunk.end_pos) then
-					return chunk
-				end
-
-				yield_pass()
-
-				if is_beginning then
-					while_start_index = while_start_index + 1
-				else
-					while_end_index = while_end_index - 1
-				end
-			end
-		end
+		return self:GetChunkByVector(position, two_way_searching, true)
 	end
 
 	function public:GetChunkByEntityAsync(ent, two_way_searching)
@@ -294,6 +292,14 @@ function CLASS:Instance(settings)
 	end
 
 	return public
+end
+
+function CLASS:GetMaxMapSize()
+	return 32768
+end
+
+function CLASS:GetDefaultChunkSize()
+	return is_infmap and 10000 or 1000
 end
 
 slib.SetComponent('Chunks', CLASS)
