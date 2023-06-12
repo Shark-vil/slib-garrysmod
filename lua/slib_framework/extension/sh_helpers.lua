@@ -8,6 +8,8 @@ local istable = istable
 local engine_GetAddons = engine.GetAddons
 local ipairs = ipairs
 local isfunction = isfunction
+local file_Exists = file.Exists
+local game_GetMap = game.GetMap
 --
 local call_markers = {}
 local language_codes = {
@@ -191,4 +193,8 @@ end
 function slib.ServerAction(func)
 	if CLIENT or not isfunction(func) then return end
 	func()
+end
+
+function slib.IsInfinityMap()
+	return file_Exists('infmap/' .. game_GetMap(), 'LUA')
 end
