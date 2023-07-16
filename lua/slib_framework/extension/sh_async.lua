@@ -4,6 +4,7 @@ local coroutine_create = coroutine.create
 local coroutine_resume = coroutine.resume
 local table_remove = table.remove
 local table_insert = table.insert
+local isfunction = isfunction
 -- local hook = slib.Component('Hook')
 local registred_async_process = {}
 local registred_async_process_self_container = {}
@@ -18,25 +19,29 @@ local function async_execute(obj)
 	local co = obj.co
 	local worked = obj.worked
 	local value = obj.value
+	local dispatcher_invoke = obj.dispatcher_invoke
+
+	if dispatcher_invoke then
+		slib.def({try = dispatcher_invoke})
+		obj.dispatcher_invoke = nil
+	end
 
 	if not co or not worked then
 		co = coroutine_create(func)
 	end
 
-	worked, value = coroutine_resume(co, coroutine_yield, coroutine_wait)
+	worked, value = coroutine_resume(co, coroutine_yield, coroutine_wait, dispatcher)
 
 	obj.value = value
 	obj.worked = worked
 	obj.co = co
 
-	if value == 'stop' then
+	if value and value == 'stop' then
 		slib.DebugLog('Async process "' .. id .. '" is stopped')
 		async.Remove(id)
-		return
-	end
-
-	if not worked and value ~= 'cannot resume dead coroutine' then
-		slib.Warning('\n[ASYNC ERROR] ' .. id .. ':\n' .. tostring(value) .. '\r')
+	elseif not worked and value ~= 'cannot resume dead coroutine' then
+		slib.Error('\n[ASYNC ERROR] ' .. id .. ':\n' .. tostring(value) .. '\r')
+		async.Remove(id)
 	end
 end
 
@@ -64,13 +69,20 @@ end
 function async.Add(id, func, self_hook)
 	async.Remove(id)
 
-	local value = {
+	local value
+	value = {
 		id = id,
 		uuid = slib.UUID(),
 		func = func,
 		co = nil,
 		worked = false,
-		value = nil
+		value = nil,
+		dispatcher_invoke = nil,
+		dispatcher = function(invoke)
+			if not invoke or not isfunction(invoke) then return end
+			value.dispatcher_invoke = invoke
+			coroutine_yield()
+		end
 	}
 
 	if self_hook then
