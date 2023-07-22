@@ -10,8 +10,10 @@ local IsValid = IsValid
 local coroutine_yield = coroutine.yield
 -- local ents_FindInBox = ents.FindInBox
 local util_TraceHull = util.TraceHull
-local MASK_SHOT_HULL = MASK_SHOT_HULL
-local COLLISION_GROUP_WORLD = COLLISION_GROUP_WORLD
+-- local MASK_SHOT_HULL = MASK_SHOT_HULL
+-- local COLLISION_GROUP_WORLD = COLLISION_GROUP_WORLD
+local MASK_ALL = MASK_ALL
+local MASK_SOLID_BRUSHONLY = MASK_SOLID_BRUSHONLY
 -- local FrameTime = FrameTime
 local is_infmap = slib.IsInfinityMap()
 if is_infmap then
@@ -86,8 +88,9 @@ function CLASS:Instance(settings)
 								endpos = center_pos,
 								maxs = end_pos,
 								mins = start_pos,
-								mask = MASK_SHOT_HULL,
-								filter = COLLISION_GROUP_WORLD,
+								mask = MASK_ALL,
+								collisiongroup = MASK_SOLID_BRUSHONLY,
+								ignoreworld = false,
 							})
 
 							-- if not tr.Hit or #ents_FindInBox(end_pos, start_pos) == 0 then
