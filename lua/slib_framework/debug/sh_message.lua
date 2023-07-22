@@ -21,11 +21,13 @@ local function ConsoleMessage(prefix, message_type, ...)
 		message = message .. tostring(message_args[i])
 	end
 
+	local print_message = stylized_prefix .. ' ' .. debug_traceback(message, 3) .. '\n'
+
 	if message_type == 'error' then
-		MsgC(error_color, stylized_prefix .. ' ' .. debug_traceback(message, 3) .. '\n')
-		ErrorNoHalt()
+		MsgC(error_color, print_message)
+		ErrorNoHalt(print_message)
 	elseif message_type == 'warning' then
-		MsgC(warning_color, stylized_prefix .. ' ' .. debug_traceback(message, 3) .. '\n')
+		MsgC(warning_color, print_message)
 	else
 		MsgC(log_color, stylized_prefix .. ' ' .. message .. '\n')
 	end
