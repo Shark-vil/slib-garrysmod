@@ -340,7 +340,10 @@ function meta:slibIsTraceEntity(target, distance, check_view_vector)
 		end
 	})
 
-	return tr.Hit and tr.Entity == target
+	if not tr.Hit then return false end
+
+	local tr_ent = tr.Entity
+	return tr_ent == target or (tr_ent:IsVehicle() and tr_ent:GetDriver() == target)
 end
 
 function snet.ServerRPC(ent, function_name, ...)

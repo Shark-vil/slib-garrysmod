@@ -32,10 +32,13 @@ function slib.Component(component_name, function_name, ...)
 
 		if not component or not component[function_name] then return end
 
+		local invoke = component[function_name]
+		if not isfunction(invoke) then return end
+
 		if self_caller then
-			return component[function_name](component, ...)
+			return invoke(component, ...)
 		else
-			return component[function_name](...)
+			return invoke(...)
 		end
 	end
 end
