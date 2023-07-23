@@ -5,18 +5,35 @@ local math_Round = math.Round
 local LerpVector = LerpVector
 local Vector = Vector
 local util_IsInWorld = util.IsInWorld
+local util_TraceLine = util.TraceLine
 local WorldToLocal = WorldToLocal
 local IsValid = IsValid
 local coroutine_yield = coroutine.yield
 -- local ents_FindInBox = ents.FindInBox
 local util_TraceHull = util.TraceHull
-local MASK_SHOT_HULL = MASK_SHOT_HULL
+-- local MASK_SHOT_HULL = MASK_SHOT_HULL
 local COLLISION_GROUP_WORLD = COLLISION_GROUP_WORLD
+local MASK_SOLID_BRUSHONLY = MASK_SOLID_BRUSHONLY
 -- local FrameTime = FrameTime
 local is_infmap = slib.IsInfinityMap()
 if is_infmap then
 	util_IsInWorld = function(...) return util.IsInWorld(...) end
 	util_TraceHull = function(...) return util.TraceHull(...) end
+end
+
+local util_Fast_IsInWorld
+do
+	local tr = {
+		mask = MASK_SOLID_BRUSHONLY,
+		collisiongroup = COLLISION_GROUP_WORLD,
+		output = {}
+	}
+
+	function util_Fast_IsInWorld(pos)
+		tr.start = pos
+		tr.endpos = pos
+		return not util_TraceLine(tr).HitWorld
+	end
 end
 
 local CLASS = {}
@@ -77,38 +94,51 @@ function CLASS:Instance(settings)
 					local start_pos = Vector(x_start, y_start, z_start)
 					local end_pos = start_pos + Vector(private.chunk_size_x, private.chunk_size_y, private.chunk_size_z)
 					local center_pos = LerpVector(.5, start_pos, end_pos)
-					if settings.no_check_is_in_world or util_IsInWorld(center_pos) or util_IsInWorld(start_pos) or util_IsInWorld(end_pos) then
-						local is_valid_chunk = true
+					local is_valid_chunk = true
 
-						if private.condition_chunk_touches_the_World then
+					if private.condition_chunk_touches_the_World then
+						if not util_IsInWorld(center_pos) then
+							is_valid_chunk = false
+						else
+							yield_pass()
+						end
+
+						if not is_valid_chunk then
 							local tr = util_TraceHull({
 								start = center_pos,
 								endpos = center_pos,
 								maxs = end_pos,
 								mins = start_pos,
-								mask = MASK_SHOT_HULL,
-								filter = COLLISION_GROUP_WORLD,
+								mask = MASK_SOLID_BRUSHONLY,
+								collisiongroup = COLLISION_GROUP_WORLD,
 							})
 
-							-- if not tr.Hit or #ents_FindInBox(end_pos, start_pos) == 0 then
-							-- 	is_valid_chunk = false
-							-- end
-
-							if not tr or not tr.Hit then
-								is_valid_chunk = false
-							else
+							if tr and tr.Hit then
+								is_valid_chunk = true
 								yield_pass()
 							end
 						end
 
-						if is_valid_chunk then
-							chunks_count = chunks_count + 1
-							local data_index = chunks_count
-							local data = { index = data_index, center_pos = center_pos, start_pos = start_pos, end_pos = end_pos }
-							gmod_map_chunks[data_index] = data
-							-- yield_pass()
+						if not is_valid_chunk and public:CheckChunkIsInWorld({ start_pos = start_pos }) then
+							is_valid_chunk = true
+							yield_pass()
 						end
+
+						-- if not public:CheckChunkIsInWorld({ start_pos = start_pos }) then
+						-- 	is_valid_chunk = false
+						-- else
+						-- 	yield_pass()
+						-- end
 					end
+
+					if is_valid_chunk then
+						chunks_count = chunks_count + 1
+						local data_index = chunks_count
+						local data = { index = data_index, center_pos = center_pos, start_pos = start_pos, end_pos = end_pos }
+						gmod_map_chunks[data_index] = data
+						-- yield_pass()
+					end
+
 					z_start = z_start + private.chunk_size_z
 					-- yield_pass()
 				end
@@ -122,6 +152,42 @@ function CLASS:Instance(settings)
 		public:SetChunks(gmod_map_chunks, chunks_count)
 
 		return private.gmod_map_chunks
+	end
+
+	function public:CheckChunkIsInWorld(chunk)
+		local size_check = 200
+		local half_size = size_check / 2
+		local x_parse = private.chunk_size_x / size_check
+		local y_parse = private.chunk_size_y / size_check
+		local z_parse = private.chunk_size_z / size_check
+		local start_pos = Vector(chunk.start_pos.x, chunk.start_pos.y, chunk.start_pos.z)
+		local check_pos = Vector(start_pos.x + half_size, start_pos.y + half_size, start_pos.z + half_size)
+		-- local clr = Color(255, 68, 68, 190)
+		-- local render_DrawSphere = render.DrawSphere
+		local SERVER = SERVER
+		local CLIENT = CLIENT
+
+		for y = 1, y_parse do
+			for x = 1, x_parse do
+				for z = 1, z_parse do
+					-- render.DrawSphere(check_pos, 25, 5, 5, clr)
+
+					if (CLIENT and util_Fast_IsInWorld(check_pos)) or (SERVER and util_IsInWorld(check_pos)) then
+						-- render_DrawSphere(check_pos, 25, 5, 5, clr)
+						return true
+					end
+
+					check_pos.z = check_pos.z + size_check
+				end
+				check_pos.x = check_pos.x + size_check
+				check_pos.z = start_pos.z + half_size
+			end
+			check_pos.y = check_pos.y + size_check
+			check_pos.x = start_pos.x + half_size
+			-- check_pos.z = start_pos.z + half_size
+		end
+
+		return false
 	end
 
 	function public:MakeChunks()
@@ -155,6 +221,36 @@ function CLASS:Instance(settings)
 
 	function public:GetChunks()
 		return private.gmod_map_chunks
+	end
+
+	function public:GetSettings()
+		return {
+			chunk_size_x = private.chunk_size_x,
+			chunk_size_y = private.chunk_size_y,
+			chunk_size_z = private.chunk_size_z,
+
+			chunk_center_index = private.chunk_center_index,
+			chunks_count = private.chunks_count,
+
+			gmod_map_size_max_x = private.gmod_map_size_max_x,
+			gmod_map_size_max_y = private.gmod_map_size_max_y,
+			gmod_map_size_max_z = private.gmod_map_size_max_z,
+
+			gmod_map_size_axis_x = private.gmod_map_size_axis_x,
+			gmod_map_size_axis_y = private.gmod_map_size_axis_y,
+			gmod_map_size_axis_z = private.gmod_map_size_axis_z,
+
+			gmod_map_chunks_count_x = private.gmod_map_chunks_count_x,
+			gmod_map_chunks_count_y = private.gmod_map_chunks_count_y,
+			gmod_map_chunks_count_z = private.gmod_map_chunks_count_z,
+		}
+	end
+
+	function public:SetPrivateVariables(key_values)
+		if SERVER then return end
+		for key, value in pairs(key_values) do
+			private[key] = value
+		end
 	end
 
 	function public:ChunksCount()
