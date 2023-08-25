@@ -81,6 +81,8 @@ end
 function slib.chance(percent)
 	if percent < 0 then percent = 0 end
 	if percent > 100  then percent = 100 end
+	if percent == 0 then return false end
+	if percent == 100 then return true end
 	return percent >= math_random(1, 100)
 end
 
