@@ -5,7 +5,6 @@ local math_Round = math.Round
 local LerpVector = LerpVector
 local Vector = Vector
 local util_IsInWorld = util.IsInWorld
-local util_TraceLine = util.TraceLine
 local WorldToLocal = WorldToLocal
 local IsValid = IsValid
 local coroutine_yield = coroutine.yield
@@ -19,21 +18,6 @@ local is_infmap = slib.IsInfinityMap()
 if is_infmap then
 	util_IsInWorld = function(...) return util.IsInWorld(...) end
 	util_TraceHull = function(...) return util.TraceHull(...) end
-end
-
-local util_Fast_IsInWorld
-do
-	local tr = {
-		mask = MASK_SOLID_BRUSHONLY,
-		collisiongroup = COLLISION_GROUP_WORLD,
-		output = {}
-	}
-
-	function util_Fast_IsInWorld(pos)
-		tr.start = pos
-		tr.endpos = pos
-		return not util_TraceLine(tr).HitWorld
-	end
 end
 
 local CLASS = {}
@@ -155,6 +139,7 @@ function CLASS:Instance(settings)
 	end
 
 	function public:CheckChunkIsInWorld(chunk)
+		local slib_IsInWorld = slib.IsInWorld
 		local size_check = 200
 		local half_size = size_check / 2
 		local x_parse = private.chunk_size_x / size_check
@@ -164,15 +149,13 @@ function CLASS:Instance(settings)
 		local check_pos = Vector(start_pos.x + half_size, start_pos.y + half_size, start_pos.z + half_size)
 		-- local clr = Color(255, 68, 68, 190)
 		-- local render_DrawSphere = render.DrawSphere
-		local SERVER = SERVER
-		local CLIENT = CLIENT
 
 		for y = 1, y_parse do
 			for x = 1, x_parse do
 				for z = 1, z_parse do
 					-- render.DrawSphere(check_pos, 25, 5, 5, clr)
 
-					if (CLIENT and util_Fast_IsInWorld(check_pos)) or (SERVER and util_IsInWorld(check_pos)) then
+					if slib_IsInWorld(check_pos) then
 						-- render_DrawSphere(check_pos, 25, 5, 5, clr)
 						return true
 					end

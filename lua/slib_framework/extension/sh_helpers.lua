@@ -81,11 +81,37 @@ end
 function slib.chance(percent)
 	if percent < 0 then percent = 0 end
 	if percent > 100  then percent = 100 end
+	if percent == 0 then return false end
+	if percent == 100 then return true end
 	return percent >= math_random(1, 100)
 end
 
 function slib.GetServerTickrate()
 	return 1 / engine_TickInterval()
+end
+
+do
+	local CLIENT = CLIENT
+	local tr, util_TraceLine, util_IsInWorld
+	tr = {
+		mask = MASK_SOLID_BRUSHONLY,
+		collisiongroup = COLLISION_GROUP_WORLD,
+		output = {}
+	}
+	if CLIENT then
+		util_TraceLine = util.TraceLine
+	else
+		util_IsInWorld = util.IsInWorld
+	end
+	function slib.IsInWorld(pos)
+		if CLIENT then
+			tr.start = pos
+			tr.endpos = pos
+			return not util_TraceLine(tr).HitWorld
+		else
+			return util_IsInWorld(pos)
+		end
+	end
 end
 
 function slib.magnitude(vec)
