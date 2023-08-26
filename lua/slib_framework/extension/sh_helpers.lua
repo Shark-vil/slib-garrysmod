@@ -90,6 +90,30 @@ function slib.GetServerTickrate()
 	return 1 / engine_TickInterval()
 end
 
+do
+	local CLIENT = CLIENT
+	local tr, util_TraceLine, util_IsInWorld
+	tr = {
+		mask = MASK_SOLID_BRUSHONLY,
+		collisiongroup = COLLISION_GROUP_WORLD,
+		output = {}
+	}
+	if CLIENT then
+		util_TraceLine = util.TraceLine
+	else
+		util_IsInWorld = util.IsInWorld
+	end
+	function slib.IsInWorld(pos)
+		if CLIENT then
+			tr.start = pos
+			tr.endpos = pos
+			return not util_TraceLine(tr).HitWorld
+		else
+			return util_IsInWorld(pos)
+		end
+	end
+end
+
 function slib.magnitude(vec)
 	local magnitude = vec
 	magnitude = magnitude.x ^ 2 + magnitude.y ^ 2 + magnitude.z ^ 2
