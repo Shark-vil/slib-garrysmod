@@ -34,8 +34,6 @@ hook.Add('PreDrawOpaqueRenderables', 'Slib.Animator.DrawController', function()
 	end
 end)
 
-hook.Remove('PostPlayerDraw', 'Slib.Animator.DrawController')
-
 hook.Add('Think', 'SlibAnimatorFlexController', function()
 	for i = 1, #slib.Storage.ActiveAnimations do
 		local value = slib.Storage.ActiveAnimations[i]
