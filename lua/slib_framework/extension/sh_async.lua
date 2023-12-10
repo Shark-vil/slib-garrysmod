@@ -33,11 +33,8 @@ local function async_execute(obj)
 	obj.worked = worked
 	obj.co = co
 
-	if value and value == 'stop' then
+	if not worked or (value and value == 'stop') then
 		slib.DebugLog('Async process "' .. id .. '" is stopped')
-		async.Remove(id)
-	elseif not worked and value ~= 'cannot resume dead coroutine' then
-		slib.Error('\n[ASYNC ERROR] ' .. id .. ':\n' .. tostring(value) .. '\r')
 		async.Remove(id)
 	end
 end

@@ -98,6 +98,43 @@ function meta:slibSetVar(key, value, unreliable)
 	return self.slibVariables[key]
 end
 
+do
+	local RecursiveSetPreventTransmit
+
+	function RecursiveSetPreventTransmit(ent, ply, stopTransmitting)
+		ent:SetPreventTransmit(ply, stopTransmitting)
+		local childrens = ent:GetChildren()
+		local childrens_count = #childrens
+		if childrens_count == 0 then return end
+		for children_index = 1, childrens_count do
+			local children_entity = childrens[children_index]
+			RecursiveSetPreventTransmit(children_entity, ply, stopTransmitting)
+		end
+	end
+
+	function meta:SetTransmit(obj, stopTransmitting)
+		if CLIENT then
+			ErrorNoHalt('It\'s a server function')
+			return
+		end
+		local players
+		if IsEntity(obj) then
+			players = { obj }
+		elseif istable(obj) then
+			players = obj
+		end
+		if not players then return end
+		local players_count = #players
+		if players_count == 0 then return end
+		for player_index = 1, players_count do
+			local ply = players[player_index]
+			if IsValid(ply) and ply:IsPlayer() then
+				RecursiveSetPreventTransmit(self, ply, stopTransmitting)
+			end
+		end
+	end
+end
+
 function meta:slibGetVar(key, fallback, assign_a_fallback)
 	if not self.slibVariables or self.slibVariables[key] == nil then
 		if assign_a_fallback and fallback ~= nil then

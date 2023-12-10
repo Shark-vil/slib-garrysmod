@@ -101,6 +101,8 @@ function snet.execute(backward, id, name, ply, ...)
 	end
 
 	hook.Run('SNetRequestResult', id, name, reuslt, ...)
+
+	return success
 end
 
 function snet.UploadProgressUpdate(id, progress_text, load_index, load_count, target_player)

@@ -8,6 +8,10 @@ local istable = istable
 local engine_GetAddons = engine.GetAddons
 local ipairs = ipairs
 local isfunction = isfunction
+local IsValid = IsValid
+local IsEntity = IsEntity
+local isnumber = isnumber
+local Entity = Entity
 --
 local call_markers = {}
 local language_codes = {
@@ -163,6 +167,16 @@ end
 
 function math.sign(x)
 	return x > 0 and 1 or x < 0 and -1 or 0
+end
+
+function slib.TryGetEntity(obj)
+	local ent
+	if IsEntity(obj) then
+		ent = obj
+	elseif isnumber(obj) then
+		ent = Entity(obj)
+	end
+	if IsValid(ent) then return ent end
 end
 
 function slib.MoveTowardsVector(current_vector, target_vector, delta_time)
