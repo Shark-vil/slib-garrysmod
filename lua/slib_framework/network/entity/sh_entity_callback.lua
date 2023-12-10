@@ -6,7 +6,7 @@ local IsValid = IsValid
 local ipairs = ipairs
 local AddOriginToPVS = AddOriginToPVS
 local RealTime = RealTime
-local isentity = isentity
+local IsEntity = IsEntity
 local istable = istable
 local unpack = unpack
 local table_insert = table.insert
@@ -21,7 +21,7 @@ if SERVER then
 		if not is_deep_search then
 			for i = 1, #data do
 				local value = data[i]
-				if isentity(value) and IsValid(value) then
+				if IsEntity(value) and IsValid(value) then
 					table_insert(tbl, value)
 				elseif istable(value) then
 					EntitiesPack(tbl, value, is_deep_search)
@@ -29,7 +29,7 @@ if SERVER then
 			end
 		else
 			for _, value in pairs(data) do
-				if isentity(value) and IsValid(value) then
+				if IsEntity(value) and IsValid(value) then
 					table_insert(tbl, value)
 				elseif istable(value) then
 					EntitiesPack(tbl, value, is_deep_search)
@@ -68,7 +68,6 @@ if SERVER then
 	snet.Callback('snet_sv_entity_network_success', function(ply, id)
 		for _, data in ipairs(entities_queue) do
 			if not data.isSuccess and data.id == id then
-				snet.Request('snet_cl_entity_network_success', id).Invoke(ply)
 				data.isSuccess = true
 				return
 			end
@@ -86,7 +85,7 @@ if SERVER then
 		end
 	end)
 
-	hook.Add('Tick', 'Slib_TemporaryEntityNetworkVisibilityChecker', function()
+	hook.Add('Think', 'Slib_TemporaryEntityNetworkVisibilityChecker', function()
 		local delay_infelicity = 0
 
 		for i = #entities_queue, 1, -1 do
@@ -95,16 +94,18 @@ if SERVER then
 			local ply = data.ply
 			local backward = data.backward
 			local entities = {}
+			local entities_index = 0
 			local real_time = RealTime()
 
 			for k = 1, #data.entities do
 				local ent = data.entities[k]
 				if IsValid(ent) then
-					table_insert(entities, ent)
+					entities_index = entities_index + 1
+					entities[entities_index] = ent
 				end
 			end
 
-			if data.timeout < real_time or #entities == 0 or not IsValid(ply) then
+			if data.timeout < real_time or entities_index == 0 or not IsValid(ply) then
 				hook_Run('SNetEntitySuccessInvoked', false, request_data.name, ply, entities)
 				table_remove(entities_queue, i)
 			elseif data.isSuccess then
@@ -123,26 +124,18 @@ if SERVER then
 		end
 	end)
 else
-	local uids_block = {}
-
 	snet.Callback('snet_cl_entity_network_callback', function(ply, id, name, vars, backward)
-		if table.HasValueBySeq(uids_block, id) then return end
+		for i = 1, #vars do
+			local ent = vars[i]
+			if IsEntity(ent) and not IsValid(ent) then
+				--ErrorNoHalt('Erroneous entity validation')
+				return
+			end
+		end
 
-		-- for i = 1, #vars do
-		-- 	local ent = vars[i]
-		-- 	if isentity(ent) and not IsValid(ent) then
-		-- 		return
-		-- 	end
-		-- end
-
-		snet.Request('snet_sv_entity_network_success', id).InvokeServer()
-		table_insert(uids_block, id)
-
-		snet.execute(backward, id, name, ply, unpack(vars))
-	end)
-
-	snet.Callback('snet_cl_entity_network_success', function(_, uid)
-		table.RemoveByValue(uids_block, uid)
+		if snet.execute(backward, id, name, ply, unpack(vars)) then
+			snet.Request('snet_sv_entity_network_success', id).InvokeServer()
+		end
 	end)
 
 	SNET_ENTITY_VALIDATOR = function(backward, id, name, ply, ...)
@@ -151,7 +144,7 @@ else
 
 		for i = 1, #args do
 			local ent = args[i]
-			if isentity(ent) and not IsValid(ent) then
+			if IsEntity(ent) and not IsValid(ent) then
 				snet.Request('snet_sv_entity_network_start', id, backward).InvokeServer()
 				return false
 			end
@@ -162,7 +155,7 @@ else
 
 	local function DeepValidator(args)
 		for _, value in pairs(args) do
-			if (isentity(value) and not IsValid(value)) or (istable(value) and not DeepValidator(value)) then
+			if (IsEntity(value) and not IsValid(value)) or (istable(value) and not DeepValidator(value)) then
 				return false
 			end
 		end

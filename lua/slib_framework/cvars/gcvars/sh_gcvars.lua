@@ -34,9 +34,7 @@ function gcvars.Register(cvar_name, value, flag, helptext, min, max, access_data
 		do
 			local new_flag = flag
 
-			if (isnumber(flag) and flag == FCVAR_REPLICATED)
-				or (istable(flag) and not table.isArray(flag))
-			then
+			if (isnumber(flag) and flag == FCVAR_REPLICATED) or (istable(flag) and not table.isArray(flag)) then
 				new_flag = FCVAR_NONE
 			elseif istable(flag) then
 				for i = #new_flag, 1, -1 do
@@ -84,9 +82,11 @@ function gcvars.Register(cvar_name, value, flag, helptext, min, max, access_data
 					snet.InvokeAll('slib_gcvars_server_update_success', cvar_name, old_value, new_value)
 				end
 
-				if SERVER then
-					hook.Run('slib.OnChangeGlobalCvar', cvar_name, old_value, new_value)
-				end
+				-- if SERVER then
+				-- 	hook.Run('slib.OnChangeGlobalCvar', cvar_name, old_value, new_value)
+				-- end
+
+				hook.Run('slib.OnChangeGlobalCvar', cvar_name, old_value, new_value)
 			end)
 		end, 'slib_GlobalCvars_OnChange_' .. cvar_name)
 	end

@@ -69,10 +69,10 @@ function slib.Animator.Play(name, sequence, entity, settings, data)
 	animator:SetAngles(entity:GetAngles())
 	animator:SetModelScale(entity:GetModelScale())
 	if settings.move_towards then
-		animator:slibCreateTimer('lerp_movement', .1, 0, function()
+		animator:slibCreateTimer('lerp_movement', .01, 0, function()
 			if not IsValid(entity) then return end
-			animator:slibMoveTowardsPosition(entity:GetPos(), 1000 * slib.deltaTime)
-			animator:slibMoveTowardsAngles(entity:GetAngles(), 1000 * slib.deltaTime)
+			animator:slibMoveTowardsPosition(entity:GetPos(), slib.fixedDeltaTime * 1000)
+			animator:slibMoveTowardsAngles(entity:GetAngles(), slib.fixedDeltaTime * 1000)
 		end)
 	elseif not settings.not_parent then
 		animator:SetParent(entity)
