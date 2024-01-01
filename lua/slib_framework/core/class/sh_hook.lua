@@ -18,7 +18,7 @@ function Class.Get(hook_type, hook_name)
 end
 
 function Class.Exists(hook_type, hook_name)
-	return hook.Get(hook_type, hook_name) ~= nil
+	return Class.Get(hook_type, hook_name) ~= nil
 end
 
 function Class.SafeRun(hook_type, ...)
