@@ -1,5 +1,5 @@
 slib = slib or {}
-slib.Version = '1.8.1'
+slib.Version = '1.8.3'
 
 local root_directory = 'slib_framework'
 
@@ -102,6 +102,10 @@ script:using('extension/gui/cl_default_listeners.lua')
 script:using('extension/gui/sh_routes.lua')
 script:using('extension/dfcl/cl_library.lua')
 script:using('extension/dfcl/cl_dframe_context.lua')
+
+script:using('fixes/sh_no_rcf.lua')
+-- script:using('fixes/cl_fix_client_convar.lua')
+-- script:using('fixes/cl_fix_simfphys.lua')
 
 scvar.Register('slib_debug', 0, FCVAR_ARCHIVE, 'Enables debugging mode of the "SLIB" library', 0, 1)
 
