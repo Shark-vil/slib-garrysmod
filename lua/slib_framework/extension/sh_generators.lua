@@ -14,7 +14,7 @@ local UID_AS_MINUS = false
 local MAX_INTEGER = 9007199254740000
 local MIN_INTEGER = -MAX_INTEGER
 
-function slib.GetUid()
+function slib.GetUID()
   if UID_AS_MINUS then
     CURRENT_UID = CURRENT_UID - 1
     if CURRENT_UID <= MIN_INTEGER then
