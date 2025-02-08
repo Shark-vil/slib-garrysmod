@@ -45,7 +45,7 @@ end
 
 function snet.Request(name, ...)
 	local obj = {}
-	obj.id = slib.GetUID(name)
+	obj.id = slib.GetChecksumUID(name)
 	obj.name = name
 	obj.data = { ... }
 	do

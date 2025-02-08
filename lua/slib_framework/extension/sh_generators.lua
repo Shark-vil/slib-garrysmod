@@ -17,7 +17,7 @@ function slib.GetUid()
   return uid
 end
 
-function slib.GetUID(salt)
+function slib.GetChecksumUID(salt)
   salt = salt or ''
   local sys_time = tostring(SysTime())
   local real_time = tostring(RealTime())

@@ -22,7 +22,7 @@ if SERVER then
 		if ply.slib_player_spawn then return end
 		ply.slib_player_spawn = true
 
-		local hook_name = 'slib.FirstSpawnSetupMove_' .. slib.GetUID(ply:UserID())
+		local hook_name = 'slib.FirstSpawnSetupMove_' .. slib.GetChecksumUID(ply:UserID())
 		ply.slib_first_spawn_hook_name = hook_name
 
 		hook.Add('SetupMove', hook_name, function(move_player, move_data, move_command)
