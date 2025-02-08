@@ -9,12 +9,27 @@ local string_char = string.char
 local SysTime = SysTime
 local RealTime = RealTime
 --
-local uid = 0
+local CURRENT_UID = 0
+local UID_AS_MINUS = false
+local MAX_INTEGER = 9007199254740000
+local MIN_INTEGER = -MAX_INTEGER
 
 function slib.GetUid()
-  uid = uid + 1
+  if UID_AS_MINUS then
+    CURRENT_UID = CURRENT_UID - 1
+    if CURRENT_UID <= MIN_INTEGER then
+      CURRENT_UID = 0
+      UID_AS_MINUS = false
+    end
+  else
+    CURRENT_UID = CURRENT_UID + 1
+    if CURRENT_UID >= MAX_INTEGER then
+      CURRENT_UID = -1
+      UID_AS_MINUS = true
+    end
+  end
 
-  return uid
+  return CURRENT_UID
 end
 
 function slib.GetChecksumUID(salt)
@@ -22,7 +37,6 @@ function slib.GetChecksumUID(salt)
   local sys_time = tostring(SysTime())
   local real_time = tostring(RealTime())
 
-  return tostring(util_CRC(tostring(salt) .. sys_time .. real_time))
 end
 
 -- Source:
