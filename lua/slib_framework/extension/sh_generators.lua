@@ -17,7 +17,7 @@ function slib.GetUid()
   return uid
 end
 
-function slib.GenerateUid(salt)
+function slib.GetUID(salt)
   salt = salt or ''
   local sys_time = tostring(SysTime())
   local real_time = tostring(RealTime())

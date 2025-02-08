@@ -45,7 +45,7 @@ end
 
 function snet.Request(name, ...)
 	local obj = {}
-	obj.id = slib.GenerateUid(name)
+	obj.id = slib.GetUID(name)
 	obj.name = name
 	obj.data = { ... }
 	do

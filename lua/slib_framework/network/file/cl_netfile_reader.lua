@@ -24,7 +24,7 @@ end)
 
 function snet.FileReadInServer(path, response_action)
 	local name = 'snet_file_read_in_server'
-	local customId = slib.GenerateUid(name)
+	local customId = slib.GetUID(name)
 
 	local request = snet.Request(name, path, customId)
 	request.id = customId
@@ -55,7 +55,7 @@ end)
 
 function snet.FileExistsInServer(path, response_action)
 	local name = 'snet_file_exists_in_server'
-	local customId = slib.GenerateUid(name)
+	local customId = slib.GetUID(name)
 
 	local request = snet.Request(name, path, customId)
 	request.id = customId
