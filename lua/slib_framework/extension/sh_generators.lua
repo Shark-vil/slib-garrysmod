@@ -25,14 +25,6 @@ function slib.GenerateUid(salt)
   return tostring(util_CRC(tostring(salt) .. sys_time .. real_time))
 end
 
-function slib.GenerateUidHash(salt)
-  salt = salt or ''
-  local sys_time = tostring(SysTime())
-  local real_time = tostring(RealTime())
-
-  return tostring(util_Base64Encode(tostring(salt) .. sys_time .. real_time))
-end
-
 -- Source:
 -- https://gist.github.com/jrus/3197011
 function slib.UUID()
