@@ -31,6 +31,8 @@ function slib.GetUID()
 
   return CURRENT_UID
 end
+-- Compatibility with older versions
+slib.GetUid = slib.GetUID
 
 function slib.GetChecksumUID(salt)
   salt = salt and tostring(salt) or ''
@@ -39,6 +41,8 @@ function slib.GetChecksumUID(salt)
 
   return tostring(util_CRC(salt .. sys_time .. real_time))
 end
+-- Compatibility with older versions
+slib.GenerateUid = slib.GetChecksumUID
 
 -- Source:
 -- https://gist.github.com/jrus/3197011
