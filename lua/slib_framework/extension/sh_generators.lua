@@ -33,10 +33,11 @@ function slib.GetUid()
 end
 
 function slib.GetChecksumUID(salt)
-  salt = salt or ''
+  salt = salt and tostring(salt) or ''
   local sys_time = tostring(SysTime())
   local real_time = tostring(RealTime())
 
+  return tostring(util_CRC(salt .. sys_time .. real_time))
 end
 
 -- Source:
