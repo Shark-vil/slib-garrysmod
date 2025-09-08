@@ -1,8 +1,12 @@
 local valid_prefix_list = { 'cl', 'sv', 'sh' }
 
-local function ScriptInclude(file_path, loading_text)
+local function ScriptInclude(is_include, file_path, loading_text)
 	if not isstring(file_path) or not file.Exists(file_path, 'LUA') then
-		MsgN('[SLibrary] Script failed load - ' .. file_path)
+		if is_include then
+			MsgN('[SLibrary] Script failed load - ' .. file_path)
+		else
+			MsgN('[SLibrary] Script failed add - ' .. file_path)
+		end
 		return
 	end
 
@@ -10,7 +14,11 @@ local function ScriptInclude(file_path, loading_text)
 	   MsgN(string.Replace(loading_text, '{file}', file_path))
 	end
 
-	return include(file_path)
+	if is_include then
+		return include(file_path)
+	end
+
+	AddCSLuaFile(file_path)
 end
 
 local function GetFileNetworkType(file_path)
@@ -38,17 +46,17 @@ function slib.CreateIncluder(root_directory, loading_text)
 		end
 
 		if network_type == 'cl' or network_type == 'sh' then
-			if SERVER then AddCSLuaFile(file_path) end
+			if SERVER then ScriptInclude(false, file_path) end
 
 			if not disable_auto_include then
 				if CLIENT and network_type == 'cl' then
-					return ScriptInclude(file_path, self.loading_text)
+					return ScriptInclude(true, file_path, self.loading_text)
 				elseif network_type == 'sh' then
-					return ScriptInclude(file_path, self.loading_text)
+					return ScriptInclude(true, file_path, self.loading_text)
 				end
 			end
 		elseif network_type == 'sv' and SERVER and not disable_auto_include then
-			return ScriptInclude(file_path, self.loading_text)
+			return ScriptInclude(true, file_path, self.loading_text)
 		end
 	end
 

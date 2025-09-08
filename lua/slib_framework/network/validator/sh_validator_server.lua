@@ -20,7 +20,7 @@ else
 
 	function snet.IsValidForServer(func_callback, validator_name, ...)
 		validator_name = validator_name or 'entity'
-		local uid = slib.GenerateUid(validator_name)
+		local uid = slib.GetChecksumUID(validator_name)
 		local func = func_callback
 
 		callback_data[uid] = function(ply, result)

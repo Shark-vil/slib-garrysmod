@@ -95,19 +95,6 @@ function table.equals(t1, t2)
 	return true
 end
 
--- function table.RemoveByValue(t, val)
---    local tbl = {}
---    local deleted = false
---    for k, v in next, t do
---       if deleted or v ~= val then
---          tbl[ k ] = v
---       else
---          deleted = true
---       end
---    end
---    return tbl
--- end
-
 function table.RemoveAllByValue(t, val)
 	local tbl = {}
 

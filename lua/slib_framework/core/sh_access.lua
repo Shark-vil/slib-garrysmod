@@ -50,11 +50,11 @@ function Component:Make(data)
 	end
 
 	function private.IsValidAdmin(ply)
-		if IsValid(ply) and ply:IsAdmin() then return true end
+		if IsValid(ply) and (game.SinglePlayer() or ply:IsAdmin()) then return true end
 	end
 
 	function private.IsValidSuperAdmin(ply)
-		if IsValid(ply) and ply:IsSuperAdmin() then return true end
+		if IsValid(ply) and (game.SinglePlayer() or ply:IsSuperAdmin()) then return true end
 	end
 
 	local public = {}

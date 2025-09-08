@@ -203,21 +203,7 @@ snet.Deserialize = slib.Deserialize
 
 function snet.ValueIsValid(value)
 	local typeid = TypeID(value)
-
-	if typeid == TYPE_TABLE
-		or typeid == TYPE_NUMBER
-		or typeid == TYPE_STRING
-		or typeid == TYPE_BOOL
-		or typeid == TYPE_ENTITY
-		or typeid == TYPE_VECTOR
-		or typeid == TYPE_ANGLE
-		or typeid == TYPE_MATRIX
-		or typeid == TYPE_COLOR
-	then
-		return true
-	end
-
-	return false
+	return typeid ~= nil and ValueSerialize[typeid] ~= nil
 end
 
 function snet.GetNormalizeDataTable(data)
